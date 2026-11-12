@@ -1,0 +1,34 @@
+# --- Python ---
+__pycache__/
+*.py[cod]
+*.egg-info/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.coverage
+htmlcov/
+
+# --- Virtual environments ---
+.venv/
+venv/
+env/
+
+# --- Secrets ---
+.env
+.env.*
+!.env.example
+
+# --- IDE / OS ---
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
+
+# --- Streamlit local secrets ---
+.streamlit/secrets.toml
+
+# --- Data safety ---
+# Only fictional synthetic data may be committed.
+# Ignore everything under data/ except data/synthetic/.
+data/*
+!data/synthetic/
