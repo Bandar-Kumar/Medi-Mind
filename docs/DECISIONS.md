@@ -40,7 +40,7 @@ A Proposed or Deferred ADR is not a final decision.
 | 023 | Fact status lifecycle; review flagged extractions | **Accepted** | Q7 |
 | 024 | LLM provider selected by evaluation, free preferred | **Deferred** to the start of Phase 3 | Q5 |
 | 025 | India region profile | **Proposed, awaiting owner's final confirmation** | Q3 |
-| 026 | Python 3.12 + uv | **Accepted (provisional)** | Q11 |
+| 026 | Python 3.12 + uv | **Accepted — resolution verified** (runtime not yet tested) | Q11, Task 1.1 |
 | 027 | Full-time schedule; portfolio checkpoint at the MVP | Proposed | Q9 |
 
 ---
@@ -259,7 +259,8 @@ A Proposed or Deferred ADR is not a final decision.
   - If real data were ever used, India's Digital Personal Data Protection Act 2023 would apply. This is out of scope for the synthetic-only prototype.
 
 ## ADR-026: Python 3.12 + uv
-- **Status:** **Accepted (provisional)** (Q11). This is revisited if the Phase 1 compatibility test fails.
+- **Status:** **Accepted — resolution verified** (Q11; Task 1.1, approved 2026-11-13).
+  - **Runtime compatibility has not been established yet.** This ADR is revisited if the Phase 2 runtime smoke test fails.
 - **Reasoning:**
   - Python 3.12 is mature, and ML libraries (torch, Docling, sentence-transformers) publish wheels for it. Some ML wheels lag behind for 3.13.
   - uv is fast, uses a lockfile, reads `pyproject.toml` natively and installs Python versions on Windows.
@@ -274,7 +275,25 @@ A Proposed or Deferred ADR is not a final decision.
   - The owner created `.venv` with uv 0.12.5 and Python 3.12.14.
   - `pyproject.toml` pins `requires-python = ">=3.12,<3.13"`.
   - Task 1.2 dependencies installed and tests pass.
-  - **The Docling resolution check (step 1 above) has not been run yet**, so this ADR stays provisional.
+- **Task 1.1 result: step 1 (resolution) passed (2026-11-13).**
+  - **What was run:** `uv pip compile` for docling, sentence-transformers, langchain, langgraph, sqlalchemy, psycopg[binary], streamlit and pydantic-settings.
+    - Targets: `--python-version 3.12 --python-platform x86_64-pc-windows-msvc`.
+    - `--only-binary :all:`, so only ready-made wheels were used, no package was built, and no package code ran.
+    - It ran in a temporary folder outside the repo, so nothing was installed.
+  - **Outcome:**
+    - **146 packages resolved** with no conflicts. Every package has a Windows x86_64 wheel that works on Python 3.12, so no C compiler is needed.
+    - Key versions: `docling 2.150.0`, `torch 2.15.0` (CPU build: its NVIDIA/CUDA requirements apply to Linux only), `transformers 5.22.2`, `sentence-transformers 6.3.0`, `numpy 2.5.4`, `langchain 1.5.0`, `langgraph 1.2.21`, `langchain-core 1.8.0`, `sqlalchemy 2.1.8`, `psycopg 3.3.9` + `psycopg-binary 3.3.9`, `streamlit 1.67.0`.
+    - **Compared with `uv.lock`:** every locked package resolves to the same version (pydantic 2.14.3, pydantic-core 2.50.4, typing-extensions 4.16.0 and the others). The stack only adds packages; nothing would be upgraded, downgraded or replaced.
+  - **What this does *not* show:** resolution proves only that compatible versions *exist*. Nothing has been imported or run. **Runtime compatibility is unverified.**
+  - **Known limitation:** Docling's OCR engine resolved to `rapidocr 3.10.0`, but **no OCR backend** (such as `onnxruntime`) was pulled in. OCR on scanned documents may fail at runtime, or need an extra package.
+- **Step 2, the runtime smoke test, is scheduled as the first step of the Phase 2 Docling spike.** It needs owner approval, and runs in a throwaway environment.
+  - **What it checks:**
+    - `import torch` and `import docling` on Windows;
+    - converting one native-text PDF and one scanned PDF, including a working OCR backend;
+    - loading sentence-transformers with transformers 5.x;
+    - first-run model downloads;
+    - peak memory.
+  - **If it fails:** first fix it by adjusting packages or extras; fall back to Python 3.11 only if needed.
 
 ## ADR-027: Full-time schedule; portfolio checkpoint at the MVP
 - **Status:** Proposed

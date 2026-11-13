@@ -22,9 +22,39 @@ Only work that actually happened and was verified is recorded.
 
 ---
 
-## 2026-11-13: Phase 1, Task 1.2: Project foundation
+## 2026-11-13: Phase 1, Tasks 1.2 and 1.1: Project foundation and dependency compatibility
 
 **Phase:** 1, development environment and project foundation
+
+### Task 1.1: Dependency compatibility (resolution only)
+- **Method:**
+  - `uv pip compile` ran in `%TEMP%\medimind-task-1.1\`, outside the repo, and installed nothing.
+  - Packages: docling, sentence-transformers, langchain, langgraph, sqlalchemy, psycopg[binary], streamlit, pydantic-settings.
+  - Flags:
+    - `--python-version 3.12 --python-platform x86_64-pc-windows-msvc` (Python 3.12, 64-bit Windows);
+    - `--only-binary :all:` (ready-made wheels only, no builds, so no package code ran);
+    - `--no-config` (ignore the project's uv settings).
+- **Result:** exit code 0. **146 packages resolved** with no conflicts, and every one has a Windows x86_64 wheel that works on Python 3.12.
+- **Key versions:**
+  - Docling: `docling 2.150.0`, `docling-ibm-models 4.0.4`, `docling-parse 7.25.0`, `rapidocr 3.10.0`;
+  - ML: `torch 2.15.0` (CPU build on Windows: its NVIDIA/CUDA requirements apply to Linux only, and no NVIDIA packages resolved), `torchvision 0.29.2`, `transformers 5.22.2`, `sentence-transformers 6.3.0`, `numpy 2.5.4`;
+  - LLM: `langchain 1.5.0`, `langgraph 1.2.21`, `langchain-core 1.8.0` (one version shared by both);
+  - data and UI: `sqlalchemy 2.1.8`, `psycopg 3.3.9` + `psycopg-binary 3.3.9`, `streamlit 1.67.0`.
+- **Compared with `uv.lock`:**
+  - every locked package resolves to the same version (pydantic 2.14.3, pydantic-core 2.50.4, typing-extensions 4.16.0 and the others);
+  - transformers, torch and numpy would be new additions;
+  - nothing would be upgraded, downgraded or replaced.
+- **Download sizes** (from PyPI metadata): torch 126.7 MB, opencv 43.8 MB, scipy 36.7 MB, pyarrow 29.1 MB, transformers 13.1 MB, numpy 12.6 MB, psycopg-binary 2.9 MB.
+- **Project unchanged (verified):** the SHA-256 of `pyproject.toml` and `uv.lock` matched before and after, `uv pip list` was identical (14 packages), and `git status` was clean.
+- **Not established:** runtime compatibility, because nothing was imported or run.
+  - **Docling's OCR backend is missing:** `rapidocr` resolved without one (such as `onnxruntime`).
+  - The runtime smoke test is scheduled as the first step of the Phase 2 Docling spike (ADR-026), with owner approval.
+- **Docs:** ADR-026 is now "Accepted — resolution verified", and Task 1.1 is marked complete in `docs/PROGRESS.md`.
+- **Lessons:**
+  - My first wheel check missed torchvision (`py3-none-win_amd64`) and opencv (`cp37-abi3-win_amd64`), because I searched only for `cp312` file names. Wheels for Python 3.12 can carry other tags.
+  - In CMD, `%ERRORLEVEL%` on the same line as the command shows the *previous* exit code. That's why an earlier audit check misleadingly showed 0.
+
+### Task 1.2: Project foundation
 
 ### Done
 - **Environment.** The owner created `.venv` with uv 0.12.5 and Python 3.12.14. Then:
@@ -114,11 +144,17 @@ Only work that actually happened and was verified is recorded.
   - the ADR-026 Docling resolution check (task 1.1);
   - ADRs 009, 016 and 020 must be decided before the database tasks;
   - ADR-025 (India) is unconfirmed.
-- Nothing from this task is committed. All changes since merge commit `1575603` are uncommitted.
+- **Git:**
+  - Claude's commit `e9f708f` included a co-author trailer. At the owner's request, Claude removed it from GitHub with `reset --soft` and `push --force-with-lease`, keeping the files.
+  - Separately, an accidental `git reset` and an unfinished rebase had hidden the Task 1.2 files. Claude recovered them with `git rebase --abort`, before that removal.
+  - The owner then committed Task 1.2 as `58033ec`, "Foundation ok".
+  - Claude no longer adds attribution lines to commits.
+  - Task 1.1's doc updates are uncommitted.
 
 ### Next
-1. Owner review of Task 1.2, then commit.
-2. Task 1.1: Docling dependency-resolution check (resolve only, no install).
+1. The owner decides ADRs 009, 016 and 020 and the remaining ADR-002 additions.
+2. Task 1.5: Docker Compose for Postgres + pgvector.
+3. Phase 2 starts with the Docling runtime smoke test (ADR-026).
 
 ---
 

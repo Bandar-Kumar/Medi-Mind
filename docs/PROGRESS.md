@@ -2,7 +2,7 @@
 
 ## Current phase
 
-**Phase 1: Development environment and project foundation.** Task 1.2 (project foundation) is done and waiting for review. Phase 0 is complete, but some Proposed ADRs are still open.
+**Phase 1: Development environment and project foundation.** Tasks 1.1 (dependency compatibility, resolution only) and 1.2 (project foundation) are complete. Phase 0 is complete, but some Proposed ADRs are still open.
 
 ## Completed
 
@@ -12,7 +12,7 @@
   - `d9dd20e`: "1st commit", by the owner;
   - `f34a9f8`: GitHub's "Initial commit" (placeholder README);
   - `1575603`: merge commit by the owner, after the README conflict was resolved. It is pushed: `origin/main` = `1575603`.
-  - All later work (Task 1.2 and these doc updates) is uncommitted.
+  - Task 1.2 was committed by the owner as `58033ec`, "Foundation ok". An earlier commit of the same work, `e9f708f`, was removed from GitHub at the owner's request.
 - Created `README.md`, `.gitignore`, `app/`, `tests/` and `data/synthetic/`. The ignore rules were verified with dummy files.
 
 ### 2026-11-12: Phase 0 critical review and design docs
@@ -53,12 +53,18 @@
   - **33 tests pass.**
   - Findings #4–#12 are deferred (listed in SUMMARY.md).
 
+### 2026-11-13: Phase 1, Task 1.1: Dependency compatibility (resolution only) ✅
+- **Result:** the full planned stack resolves for Python 3.12 on Windows x86_64. 146 packages, prebuilt wheels only, no conflicts.
+- **No version changes:** every package in `uv.lock` resolves to the same version.
+- **Project unchanged:** `pyproject.toml`, `uv.lock`, `.venv` and git state were all checked unchanged.
+- **Runtime compatibility is not yet established.** Docling's OCR backend is missing from the resolution. The runtime smoke test is the first step of the Phase 2 Docling spike (ADR-026).
+
 ## Next steps
 
-1. The owner reviews Task 1.2 and approves a commit.
-2. Task 1.1: Docling dependency-resolution check (ADR-026). It is still outstanding and should run before any Phase 2 work.
-3. The owner decides ADRs 009, 016 and 020 and the remaining ADR-002 additions. These are needed before the database tasks (1.5–1.8).
-4. The owner confirms ADR-025 (India).
+1. The owner decides ADRs 009, 016 and 020 and the remaining ADR-002 additions. These are needed before the database tasks (1.5–1.8).
+2. Task 1.5: Docker Compose for Postgres + pgvector, once those ADRs are decided.
+3. The owner confirms ADR-025 (India).
+4. At the start of Phase 2: the runtime smoke test (ADR-026), with owner approval.
 
 ## Open questions
 
