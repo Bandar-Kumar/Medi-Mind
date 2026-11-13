@@ -6,6 +6,8 @@ readme = "README.md"
 # Python 3.12 only, until a future compatibility review (ADR-026).
 requires-python = ">=3.12,<3.13"
 dependencies = [
+    "alembic>=1.20.1",
+    "pgvector>=0.5.1",
     "psycopg[binary]>=3.3.9",
     "pydantic-settings>=2.16.2",
     "sqlalchemy>=2.1.8",
@@ -34,6 +36,11 @@ line-length = 100
 [tool.ruff.lint]
 # E/F: pycodestyle + pyflakes errors, I: import sorting, UP: modern syntax, B: likely bugs.
 select = ["E", "F", "I", "UP", "B"]
+
+[tool.ruff.lint.per-file-ignores]
+# Frozen migrations keep each CHECK constraint's SQL as one unbroken literal, so it can be compared
+# with app/records/models.py at a glance.
+"migrations/versions/*.py" = ["E501"]
 
 [dependency-groups]
 dev = [

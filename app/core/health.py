@@ -135,6 +135,51 @@ def check_database_connection(settings: Settings) -> CheckResult:
     )
 
 
+MIGRATE_HINT = "run `uv run python -m app migrate`"
+
+
+def check_database_schema(settings: Settings) -> CheckResult:
+    """Is the database schema at the code's latest migration? (Task 1.7, read-only.)
+
+    - OK: at the latest revision;
+    - WARN: no password (skipped), database unreachable (skipped), no migrations applied yet, or an
+      older revision (run the migrate command);
+    - FAIL: a revision this code does not know (the database is newer than the code), or a
+      database error other than unreachable (sanitized message).
+    """
+    password = settings.db_password
+    if password is None or not password.get_secret_value():
+        return CheckResult("database_schema", "warn", "skipped: MEDIMIND_DB_PASSWORD is not set")
+
+    # Imported here so that app.core does not depend on app.records at import time.
+    from app.records.db import DbErrorKind
+    from app.records.migrations import SchemaState, schema_status
+
+    try:
+        status = schema_status(settings)
+    except DatabaseError as exc:  # already sanitized
+        if exc.kind == DbErrorKind.UNREACHABLE:
+            return CheckResult("database_schema", "warn", f"skipped: {exc}")
+        return CheckResult("database_schema", "fail", str(exc))
+
+    if status.state == SchemaState.AT_HEAD:
+        return CheckResult("database_schema", "ok", f"at revision {status.head} (latest)")
+    if status.state == SchemaState.NOT_MIGRATED:
+        return CheckResult("database_schema", "warn", f"no migrations applied; {MIGRATE_HINT}")
+    if status.state == SchemaState.BEHIND:
+        return CheckResult(
+            "database_schema",
+            "warn",
+            f"at revision {status.current}, latest is {status.head}; {MIGRATE_HINT}",
+        )
+    return CheckResult(
+        "database_schema",
+        "fail",
+        f"revision {status.current} is not known to this code (latest is {status.head}); "
+        "the database is newer than the code",
+    )
+
+
 CHECKS: list[Callable[[Settings], CheckResult]] = [
     check_python_version,
     check_configuration,
@@ -144,6 +189,7 @@ CHECKS: list[Callable[[Settings], CheckResult]] = [
     check_database_tcp,
     check_database_password,
     check_database_connection,
+    check_database_schema,
 ]
 
 

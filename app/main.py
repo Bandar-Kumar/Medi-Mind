@@ -30,7 +30,19 @@ def run_health(settings: Settings) -> int:
     return EXIT_FAILURE if status == "fail" else EXIT_OK
 
 
-COMMANDS: dict[str, Callable[[Settings], int]] = {"health": run_health}
+def run_migrate(settings: Settings) -> int:
+    """Upgrade the configured database to the latest schema revision (upgrade only).
+
+    Database errors propagate to ``main``, which logs them sanitized (no driver text).
+    """
+    from app.records.migrations import run_upgrade
+
+    head = run_upgrade(settings)
+    print(f"Database schema is at revision {head} (latest).", flush=True)
+    return EXIT_OK
+
+
+COMMANDS: dict[str, Callable[[Settings], int]] = {"health": run_health, "migrate": run_migrate}
 
 
 def build_parser() -> argparse.ArgumentParser:
@@ -38,6 +50,10 @@ def build_parser() -> argparse.ArgumentParser:
     parser.add_argument("--version", action="version", version=f"MediMind {__version__}")
     subcommands = parser.add_subparsers(dest="command")
     subcommands.add_parser("health", help="check that the environment is set up correctly")
+    subcommands.add_parser(
+        "migrate",
+        help="upgrade the database schema to the latest migration (downgrades: alembic CLI only)",
+    )
     return parser
 
 

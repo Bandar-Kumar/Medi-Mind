@@ -114,3 +114,50 @@ def test_rejected_login_reaching_main_is_logged_sanitized(
     assert fake_secret not in caplog.text
     assert "auth failed" not in caplog.text
     assert fake_secret not in capsys.readouterr().err
+
+
+# --- migrate (Task 1.7) --------------------------------------------------------------------------
+
+
+def test_migrate_reports_the_head_revision(
+    monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture[str]
+) -> None:
+    from app.records import migrations
+
+    calls: list[object] = []
+    monkeypatch.setattr(
+        migrations, "run_upgrade", lambda settings: calls.append(settings) or "0003"
+    )
+    assert main(["migrate"]) == EXIT_OK
+    assert "Database schema is at revision 0003 (latest)." in capsys.readouterr().out
+    assert len(calls) == 1
+
+
+def test_migrate_without_password_fails_with_the_setting_name(
+    caplog: pytest.LogCaptureFixture,
+) -> None:
+    # Real run_upgrade: fails while building the URL, before any connection attempt.
+    assert main(["migrate"]) == EXIT_FAILURE
+    assert "MEDIMIND_DB_PASSWORD is not set" in caplog.text
+
+
+def test_migrate_database_errors_are_logged_sanitized(
+    monkeypatch: pytest.MonkeyPatch, caplog: pytest.LogCaptureFixture, tcp_listener: int
+) -> None:
+    import psycopg
+    from sqlalchemy.exc import OperationalError
+
+    from app.records import migrations
+
+    fake_secret = "FAKE-DB-PASSWORD-in-migration-error-5e1a"
+    monkeypatch.setenv("MEDIMIND_DB_PORT", str(tcp_listener))
+
+    def failing_upgrade(settings: object) -> str:
+        raise OperationalError("SELECT 1", None, psycopg.OperationalError(f"x {fake_secret}"))
+
+    monkeypatch.setattr(migrations, "run_upgrade", failing_upgrade)
+    assert main(["migrate"]) == EXIT_FAILURE
+    record = next(r for r in caplog.records if r.levelno == logging.ERROR)
+    assert record.exc_info is None
+    assert "Database error while running 'migrate'" in record.getMessage()
+    assert fake_secret not in caplog.text

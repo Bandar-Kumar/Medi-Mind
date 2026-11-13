@@ -45,6 +45,9 @@ class JsonFormatter(logging.Formatter):
         return json.dumps(payload, default=str)
 
 
+_QUIET_LOGGERS: dict[str, int] = {"alembic.runtime.plugins": logging.WARNING}
+
+
 def configure_logging(
     level: str = "INFO", fmt: LogFormat = "text", stream: TextIO | None = None
 ) -> logging.Handler:
@@ -70,4 +73,8 @@ def configure_logging(
 
     root.addHandler(handler)
     root.setLevel(level)
+    # Third-party startup noise: Alembic 1.20 logs one INFO line per internal plugin while it is
+    # imported (seven lines in every `health` run). Its migration progress messages are kept.
+    for name, quiet_level in _QUIET_LOGGERS.items():
+        logging.getLogger(name).setLevel(quiet_level)
     return handler

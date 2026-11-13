@@ -9,6 +9,7 @@ from app.core.health import (
     CheckResult,
     check_database_connection,
     check_database_password,
+    check_database_schema,
     check_database_tcp,
     check_python_version,
     format_report,
@@ -24,9 +25,10 @@ def _by_name(results: list[CheckResult]) -> dict[str, CheckResult]:
 
 
 def test_all_checks_pass_in_a_complete_setup(
-    data_dir: Path, env_file: Path, tcp_listener: int, fake_probe
+    data_dir: Path, env_file: Path, tcp_listener: int, fake_probe, fake_schema_status
 ) -> None:
     fake_probe()  # successful authenticated probe, no real connection
+    fake_schema_status()  # schema at the latest revision, no real connection
     settings = Settings(db_port=tcp_listener, db_password=FAKE_PASSWORD)
     results = run_health_checks(settings)
     assert {r.status for r in results} == {"ok"}
@@ -194,3 +196,58 @@ def test_real_driver_against_closed_port_is_unreachable_and_leaks_nothing(
     assert FAKE_PASSWORD not in result.detail
     assert FAKE_PASSWORD not in caplog.text
     assert FAKE_PASSWORD not in format_report([result], settings)
+
+
+# --- database_schema (Task 1.7) ------------------------------------------------------------------
+
+
+def test_database_schema_is_skipped_without_password() -> None:
+    result = check_database_schema(Settings(db_password=None))
+    assert (result.status, result.detail) == (
+        "warn",
+        "skipped: MEDIMIND_DB_PASSWORD is not set",
+    )
+
+
+@pytest.mark.parametrize(
+    ("state", "current", "status", "fragment"),
+    [
+        ("at_head", "HEAD", "ok", "(latest)"),
+        ("not_migrated", None, "warn", "no migrations applied; run `uv run python -m app migrate`"),
+        ("behind", "0001", "warn", "at revision 0001, latest is 0003"),
+        ("unknown_revision", "9999", "fail", "revision 9999 is not known to this code"),
+    ],
+)
+def test_database_schema_severity(
+    fake_schema_status, state: str, current: str | None, status: str, fragment: str
+) -> None:
+    fake_schema_status(state, current)
+    result = check_database_schema(Settings(db_password=FAKE_PASSWORD))
+    assert result.status == status
+    assert fragment in result.detail
+
+
+def test_database_schema_unreachable_is_a_skipped_warning(fake_schema_status) -> None:
+    fake_schema_status(error=DatabaseError("Database unreachable or timed out", kind="unreachable"))
+    result = check_database_schema(Settings(db_password=FAKE_PASSWORD))
+    assert result.status == "warn"
+    assert result.detail.startswith("skipped: Database unreachable")
+
+
+def test_database_schema_rejected_login_fails(fake_schema_status) -> None:
+    fake_schema_status(
+        error=DatabaseError("Database rejected the connection", kind="connection_rejected")
+    )
+    result = check_database_schema(Settings(db_password=FAKE_PASSWORD))
+    assert result.status == "fail"
+    assert FAKE_PASSWORD not in result.detail
+
+
+def test_database_schema_real_closed_port_is_fast_and_does_not_connect(closed_port: int) -> None:
+    import time
+
+    started = time.perf_counter()
+    result = check_database_schema(Settings(db_port=closed_port, db_password=FAKE_PASSWORD))
+    assert result.status == "warn"
+    assert result.detail == "skipped: Database unreachable or timed out (PortClosed)"
+    assert time.perf_counter() - started < 1.0  # TCP check only (0.1 s in tests)

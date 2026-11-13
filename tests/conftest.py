@@ -173,3 +173,30 @@ def failing_engine(monkeypatch: pytest.MonkeyPatch) -> Callable[[BaseException],
         return disposed
 
     return install
+
+
+@pytest.fixture
+def fake_schema_status(monkeypatch: pytest.MonkeyPatch) -> Callable[..., None]:
+    """Replace ``schema_status`` with a fake returning a chosen state, or raising a DatabaseError.
+
+    Defaults to "at head", so health tests need no database.
+    """
+    from app.records import migrations
+
+    def install(
+        state: str = "at_head", current: str | None = "HEAD", *, error: DatabaseError | None = None
+    ) -> None:
+        head = migrations.head_revision()
+
+        def fake(settings: object) -> migrations.SchemaStatus:
+            if error is not None:
+                raise error
+            return migrations.SchemaStatus(
+                state=migrations.SchemaState(state),
+                current=head if current == "HEAD" else current,
+                head=head,
+            )
+
+        monkeypatch.setattr(migrations, "schema_status", fake)
+
+    return install

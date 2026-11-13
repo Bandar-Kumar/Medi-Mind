@@ -60,3 +60,13 @@ def test_handlers_owned_by_other_code_are_not_removed() -> None:
         assert foreign in root.handlers
     finally:
         root.removeHandler(foreign)
+
+
+def test_alembic_plugin_startup_noise_is_quieted() -> None:
+    import logging
+
+    from app.core.logging import configure_logging
+
+    configure_logging("INFO", "text")
+    assert logging.getLogger("alembic.runtime.plugins").level == logging.WARNING
+    assert logging.getLogger("alembic.runtime.migration").level == logging.NOTSET  # kept
