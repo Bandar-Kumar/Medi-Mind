@@ -17,7 +17,7 @@ All demo data is **fictional and synthetic**.
 
 ## Status
 
-**Phase 0: Product planning and system design.** There is no application code yet. The design docs are waiting for review. See [docs/PROGRESS.md](docs/PROGRESS.md).
+**Phase 1: Development environment and project foundation.** The project foundation is in place: configuration, logging, error handling, a health check and tests. There are no AI features yet. See [docs/PROGRESS.md](docs/PROGRESS.md).
 
 ### Roadmap
 | Phase | Focus |
@@ -35,13 +35,36 @@ All demo data is **fictional and synthetic**.
 
 For details, see [docs/ROADMAP.md](docs/ROADMAP.md).
 
+## Getting started
+
+Requirements: Windows, macOS or Linux, with [uv](https://docs.astral.sh/uv/) installed. uv provides Python 3.12.
+
+```bash
+uv sync                          # create .venv and install the locked dependencies
+uv run python -m app health      # check the environment: exit code 0 = healthy
+uv run pytest                    # run the tests
+uv run ruff check .              # lint
+```
+
+Create your local settings file (git-ignored) from the template:
+
+| Shell | Command |
+|---|---|
+| Windows CMD | `copy .env.example .env` |
+| PowerShell | `Copy-Item .env.example .env` |
+| macOS / Linux / Git Bash | `cp .env.example .env` |
+
+- **Settings** use the `MEDIMIND_` prefix. A real environment variable overrides `.env`, and `.env` overrides the defaults in code.
+- **VS Code (optional, local only):** `.vscode/` is git-ignored, so it isn't included when you clone the repo. To have VS Code load `.env` into new terminals, add `"python.terminal.useEnvFile": true` to your own `.vscode/settings.json`. If you change `.env`, open a new terminal so the change is picked up.
+- **Health-check exit codes:** `0` healthy, `1` a check failed, `2` invalid configuration.
+
 ## Repository layout
 
 | Path | Purpose |
 |---|---|
 | `docs/` | Project brief, roadmap, decisions and progress log |
-| `app/` | Application code (added from Phase 1 onwards) |
-| `tests/` | Automated tests |
+| `app/` | Application code. `app/main.py` is the entry point, and `app/core/` holds configuration, logging, errors and health checks |
+| `tests/` | Automated tests (pytest) |
 | `data/synthetic/` | Fictional demo records only. Never put real patient data here. |
 
 ## Documentation
@@ -54,4 +77,5 @@ For details, see [docs/ROADMAP.md](docs/ROADMAP.md).
 - [Decisions](docs/DECISIONS.md): architecture decision records
 - [Implementation plan](docs/IMPLEMENTATION_PLAN.md)
 - [Progress](docs/PROGRESS.md)
+- [Daily summary](SUMMARY.md): day-by-day log of work and decisions
 

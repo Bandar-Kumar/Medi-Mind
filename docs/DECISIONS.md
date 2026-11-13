@@ -16,7 +16,7 @@ A Proposed or Deferred ADR is not a final decision.
 | ADR | Title | Status | Source |
 |---|---|---|---|
 | 001 | Modular monolith | Accepted | CLAUDE.md |
-| 002 | Core technology stack | Accepted (base) / Proposed (additions) | CLAUDE.md, brief |
+| 002 | Core technology stack | Accepted (base; `pydantic-settings`, `pytest`, `ruff`) / Proposed (other additions) | CLAUDE.md, brief, Task 1.2 |
 | 003 | Deterministic numerical computation | Accepted | CLAUDE.md |
 | 004 | Incremental project structure | Accepted (amended by 018) | Owner, 2026-11-12 |
 | 005 | Synthetic data only | Accepted | CLAUDE.md |
@@ -53,7 +53,8 @@ A Proposed or Deferred ADR is not a final decision.
 ## ADR-002: Core technology stack
 - **Status:**
   - **Accepted (base, from CLAUDE.md):** Python, Streamlit, PostgreSQL + pgvector, Docling, Pydantic, LangChain, LangGraph.
-  - **Proposed (additions from the brief):** SQLAlchemy 2.x, Alembic, psycopg 3, BGE-small-en-v1.5, MiniLM cross-encoder, pytest, Docker (database only).
+  - **Accepted with the Task 1.2 plan (2026-11-13):** `pydantic-settings` (configuration), `pytest` and `ruff` (development only).
+  - **Proposed (additions from the brief):** SQLAlchemy 2.x, Alembic, psycopg 3, BGE-small-en-v1.5, MiniLM cross-encoder, Docker (database only).
 - **Excluded unless a concrete need is shown:** FastAPI, Redis, Celery, Kubernetes, extra databases, hosted tracing.
 - **Rule:** Each dependency is added in the phase that first needs it.
 
@@ -269,6 +270,11 @@ A Proposed or Deferred ADR is not a final decision.
   1. Resolve the planned dependency set on Windows *without installing it*: Docling, sentence-transformers, CPU torch, LangChain, LangGraph, SQLAlchemy, psycopg, Streamlit.
   2. With your approval, run a smoke test that imports Docling in a throwaway environment.
   3. If it fails, fall back to Python 3.11.
+- **Progress (2026-11-13):**
+  - The owner created `.venv` with uv 0.12.5 and Python 3.12.14.
+  - `pyproject.toml` pins `requires-python = ">=3.12,<3.13"`.
+  - Task 1.2 dependencies installed and tests pass.
+  - **The Docling resolution check (step 1 above) has not been run yet**, so this ADR stays provisional.
 
 ## ADR-027: Full-time schedule; portfolio checkpoint at the MVP
 - **Status:** Proposed

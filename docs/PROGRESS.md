@@ -2,12 +2,17 @@
 
 ## Current phase
 
-**Phase 0: Product planning and system design.** The owner has decided most open questions. The remaining Proposed ADRs are waiting for review.
+**Phase 1: Development environment and project foundation.** Task 1.2 (project foundation) is done and waiting for review. Phase 0 is complete, but some Proposed ADRs are still open.
 
 ## Completed
 
 ### 2026-11-12: Minimal project structure
-- Initialized the git repository. Nothing has been committed yet.
+- Initialized the git repository.
+- **Git history, as of 2026-11-13:**
+  - `d9dd20e`: "1st commit", by the owner;
+  - `f34a9f8`: GitHub's "Initial commit" (placeholder README);
+  - `1575603`: merge commit by the owner, after the README conflict was resolved. It is pushed: `origin/main` = `1575603`.
+  - All later work (Task 1.2 and these doc updates) is uncommitted.
 - Created `README.md`, `.gitignore`, `app/`, `tests/` and `data/synthetic/`. The ignore rules were verified with dummy files.
 
 ### 2026-11-12: Phase 0 critical review and design docs
@@ -31,11 +36,29 @@
 - **Q9 answered:** the owner works full time and the goal is job readiness. The roadmap now has full-time estimates and a proposed portfolio checkpoint at the MVP (ADR-027).
 - Updated `ARCHITECTURE`, `DATABASE_DESIGN`, `USER_FLOWS`, `IMPLEMENTATION_PLAN`, `PROJECT_BRIEF` and `ROADMAP` to match.
 
+### 2026-11-13: Phase 1, Task 1.2: Project foundation
+- **Built:**
+  - `pyproject.toml` + `uv.lock` (Python `>=3.12,<3.13`);
+  - entry point `python -m app health`;
+  - Pydantic Settings configuration;
+  - `.env.example`;
+  - centralized logging (text and JSON);
+  - error hierarchy with exit codes;
+  - health checks;
+  - pytest setup.
+- **Verified:** 32 tests pass, alone and in reverse order; Ruff is clean; the health check exits with 0. Details are in [SUMMARY.md](../SUMMARY.md).
+- **Pre-commit audit and fixes:**
+  - Fixed audit finding #1: a configuration error no longer carries the original pydantic error, so no traceback can show the rejected value. A regression test was added.
+  - Corrected the documentation (findings #2 and #3, plus the other doc fixes).
+  - **33 tests pass.**
+  - Findings #4–#12 are deferred (listed in SUMMARY.md).
+
 ## Next steps
 
-1. The owner confirms ADR-025 (India) and decides the remaining Proposed ADRs.
-2. Make the first commit, once approved.
-3. Phase 1, task 1.1: the compatibility test (ADR-026).
+1. The owner reviews Task 1.2 and approves a commit.
+2. Task 1.1: Docling dependency-resolution check (ADR-026). It is still outstanding and should run before any Phase 2 work.
+3. The owner decides ADRs 009, 016 and 020 and the remaining ADR-002 additions. These are needed before the database tasks (1.5–1.8).
+4. The owner confirms ADR-025 (India).
 
 ## Open questions
 

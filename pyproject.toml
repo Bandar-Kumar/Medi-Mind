@@ -1,0 +1,36 @@
+[project]
+name = "medimind"
+version = "0.1.0"
+description = "Evidence-linked personal medical record intelligence platform (prototype)."
+readme = "README.md"
+# Python 3.12 only, until a future compatibility review (ADR-026).
+requires-python = ">=3.12,<3.13"
+dependencies = [
+    "pydantic-settings>=2.16.2",
+]
+
+[tool.uv]
+# MediMind is an application, not a library to publish: uv should not build or install
+# `app/` as a package. Imports work because commands run from the project root.
+package = false
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+# Make `import app...` work in tests without installing the project.
+pythonpath = ["."]
+# -ra: summary of skipped/failed tests; --strict-markers: typos in markers are errors.
+addopts = "-ra --strict-markers"
+
+[tool.ruff]
+target-version = "py312"
+line-length = 100
+
+[tool.ruff.lint]
+# E/F: pycodestyle + pyflakes errors, I: import sorting, UP: modern syntax, B: likely bugs.
+select = ["E", "F", "I", "UP", "B"]
+
+[dependency-groups]
+dev = [
+    "pytest>=9.2.0",
+    "ruff>=0.17.5",
+]

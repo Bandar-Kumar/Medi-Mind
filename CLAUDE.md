@@ -72,6 +72,19 @@ Do not add infrastructure or dependencies without a clear technical reason.
 - Do not perform destructive operations without approval.
 - Do not commit or push changes without user approval.
 - Update documentation and progress after completed tasks.
+- SUMMARY.md (repository root) is the cumulative development history. Keep it separate from docs/PROGRESS.md: do not merge them. Update it at two points:
+  - **When a significant task is completed:** record it in that day's dated entry, creating the entry if needed, and update docs/PROGRESS.md and any other relevant progress documentation.
+  - **When the user says "wrap up"** (end of their working day): finalize that day's entry with done, decisions, learned, issues and next.
+  - In both cases, record only work that actually happened and was verified.
+
+## Sensitive data in logs and errors
+
+Never log, print or display patient data, medical record contents, personally identifiable information, API keys, passwords, tokens or other secrets. This applies to:
+- normal (text) logs and JSON logs, including fields passed through `extra=`;
+- error messages and exception reporting, including tracebacks and chained exceptions;
+- debug output.
+
+Log identifiers, counts, statuses and durations instead of content. Error messages may name an invalid setting, but never its value.
 
 ## Learning requirements
 

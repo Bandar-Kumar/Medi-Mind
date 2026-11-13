@@ -32,9 +32,9 @@ Every phase follows the same template: **Objective · Subtasks · Dependencies �
 | # | Task | Size | Output |
 |---|---|---|---|
 | 1.1 | **Compatibility test (ADR-026):**<br>• resolve the planned dependency set on Windows with Python 3.12 + uv, without installing it;<br>• then, with approval, run a smoke test importing Docling in a throwaway environment;<br>• fall back to Python 3.11 if needed. | S | Test result recorded in ADR-026 |
-| 1.2 | Create `pyproject.toml` with only the Phase 1 dependencies, plus the Ruff and pytest config | S | `pyproject.toml`, lock file |
-| 1.3 | `app/core/config.py`: typed settings from `.env` (including `DEMO_MODE` and the region profile); commit `.env.example` | S | Config module and tests |
-| 1.4 | `app/core/logging.py`: structured logging with run IDs and no document content | S | Logging module |
+| 1.2 | ✅ **Project foundation (done 2026-11-13).** Covers original tasks 1.2–1.4, plus error handling and a health check:<br>• `pyproject.toml`, `uv.lock`, `.python-version`;<br>• `app/main.py` entry point (`python -m app health`);<br>• `app/core/config.py`;<br>• `app/core/logging.py` (text + JSON);<br>• `app/core/errors.py`;<br>• `app/core/health.py`;<br>• `.env.example`;<br>• 32 pytest tests.<br>**Deviations:**<br>• `DEMO_MODE` and the region profile are deferred until first used (the UI, and Phase 3);<br>• run IDs are deferred to the `pipeline_runs` task. | M | See SUMMARY.md |
+| 1.3 | *(merged into 1.2)* | — | — |
+| 1.4 | *(merged into 1.2)* | — | — |
 | 1.5 | `docker-compose.yml`: a single Postgres + pgvector service with a named volume and health check | S | Compose file, README setup steps |
 | 1.6 | SQLAlchemy engine and session; initialize Alembic | M | `app/records/db.py`, `migrations/` |
 | 1.7 | Baseline migration: `patients`, `documents` (core columns), `pipeline_runs`; enable the `vector` extension | M | Migration 0001 |
