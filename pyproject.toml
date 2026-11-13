@@ -6,7 +6,9 @@ readme = "README.md"
 # Python 3.12 only, until a future compatibility review (ADR-026).
 requires-python = ">=3.12,<3.13"
 dependencies = [
+    "psycopg[binary]>=3.3.9",
     "pydantic-settings>=2.16.2",
+    "sqlalchemy>=2.1.8",
 ]
 
 [tool.uv]
@@ -19,7 +21,11 @@ testpaths = ["tests"]
 # Make `import app...` work in tests without installing the project.
 pythonpath = ["."]
 # -ra: summary of skipped/failed tests; --strict-markers: typos in markers are errors.
-addopts = "-ra --strict-markers"
+# Integration tests need the real database and are opt-in: `uv run pytest -m integration`.
+addopts = "-ra --strict-markers -m 'not integration'"
+markers = [
+    "integration: needs the running PostgreSQL container (opt-in, read-only)",
+]
 
 [tool.ruff]
 target-version = "py312"

@@ -62,6 +62,16 @@ def main(argv: list[str] | None = None) -> int:
     except MediMindError as exc:  # expected failure: clear message, no traceback
         logger.error("%s", exc)
         return EXIT_FAILURE
-    except Exception:  # a bug: log the full traceback so it can be fixed
+    except Exception as exc:
+        # Database errors: log only the sanitized category, class name and SQLSTATE. Their raw
+        # messages and tracebacks can contain driver text, so they are never logged.
+        from app.records.db import describe_db_error, is_database_error
+
+        if is_database_error(exc):
+            logger.error(
+                "Database error while running %r: %s", args.command, describe_db_error(exc)
+            )
+            return EXIT_FAILURE
+        # Anything else is a bug: log the full traceback so it can be fixed.
         logger.exception("Unexpected error while running %r", args.command)
         return EXIT_FAILURE

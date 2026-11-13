@@ -59,3 +59,58 @@ def test_expected_error_is_logged_without_traceback(
 def test_no_command_prints_help(capsys: pytest.CaptureFixture[str]) -> None:
     assert main([]) == EXIT_OK
     assert "health" in capsys.readouterr().out
+
+
+def test_database_errors_are_logged_sanitized_without_traceback(
+    monkeypatch: pytest.MonkeyPatch,
+    caplog: pytest.LogCaptureFixture,
+    capsys: pytest.CaptureFixture[str],
+) -> None:
+    import psycopg
+    from sqlalchemy.exc import OperationalError
+
+    fake_secret = "FAKE-DB-PASSWORD-in-driver-message-3b9e"
+
+    def raises_driver_error(settings: object) -> int:
+        raise OperationalError(
+            "SELECT 1", None, psycopg.errors.InvalidPassword(f"password {fake_secret}")
+        )
+
+    monkeypatch.setitem(main_module.COMMANDS, "health", raises_driver_error)
+    assert main(["health"]) == EXIT_FAILURE
+
+    record = next(r for r in caplog.records if r.levelno == logging.ERROR)
+    assert record.exc_info is None  # no traceback logged for database errors
+    assert "InvalidPassword, sqlstate=28P01" in record.getMessage()
+    assert fake_secret not in caplog.text
+    assert fake_secret not in capsys.readouterr().err
+
+
+def test_rejected_login_reaching_main_is_logged_sanitized(
+    monkeypatch: pytest.MonkeyPatch,
+    caplog: pytest.LogCaptureFixture,
+    capsys: pytest.CaptureFixture[str],
+    tcp_listener: int,
+) -> None:
+    """The measured shape (plain OperationalError, no SQLSTATE) with the port open."""
+    import psycopg
+    from sqlalchemy.exc import OperationalError
+
+    fake_secret = "FAKE-DB-PASSWORD-in-driver-message-77c2"
+    monkeypatch.setenv("MEDIMIND_DB_PORT", str(tcp_listener))
+
+    def raises_driver_error(settings: object) -> int:
+        raise OperationalError(
+            "SELECT 1", None, psycopg.OperationalError(f"auth failed {fake_secret}")
+        )
+
+    monkeypatch.setitem(main_module.COMMANDS, "health", raises_driver_error)
+    assert main(["health"]) == EXIT_FAILURE
+
+    record = next(r for r in caplog.records if r.levelno == logging.ERROR)
+    assert record.exc_info is None
+    assert "Database rejected the connection" in record.getMessage()
+    assert "(OperationalError)" in record.getMessage()
+    assert fake_secret not in caplog.text
+    assert "auth failed" not in caplog.text
+    assert fake_secret not in capsys.readouterr().err

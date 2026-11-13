@@ -17,7 +17,7 @@ All demo data is **fictional and synthetic**.
 
 ## Status
 
-**Phase 1: Development environment and project foundation.** The project foundation is in place: configuration, logging, error handling, a health check and tests. There are no AI features yet. See [docs/PROGRESS.md](docs/PROGRESS.md).
+**Phase 1: Development environment and project foundation.** The project foundation is in place: configuration, logging, error handling, a health check and tests, plus a local PostgreSQL + pgvector database and an authenticated, read-only database connection. There are no AI features yet. See [docs/PROGRESS.md](docs/PROGRESS.md).
 
 ### Roadmap
 | Phase | Focus |
@@ -81,11 +81,31 @@ Run these from the project root:
 | Start again after `stop` | `docker compose start` |
 | Logs | `docker compose logs db` (add `-f` to follow) |
 | SQL shell | `docker compose exec db sh -c 'psql -U "$POSTGRES_USER" -d "$POSTGRES_DB"'` |
-| Check the app can reach it | `uv run python -m app health` (the `database_tcp` line) |
+| Check the app can log in | `uv run python -m app health` (the `database_tcp` and `database_connection` lines) |
 
 The `psql` command connects through the container's local socket, so you don't need to type the password.
 
-`database_tcp` only checks that the port accepts connections. It does **not** log in. Authenticated database health arrives in Task 1.6.
+**What the database health lines mean:**
+
+| Line | Checks | Status |
+|---|---|---|
+| `database_tcp` | The port accepts TCP connections (no login) | ok, or **warn** if stopped |
+| `database_password` | `MEDIMIND_DB_PASSWORD` is set (the value is never shown) | ok, or **warn** |
+| `database_connection` | The app logs in with your settings and runs one read-only query | ok; **warn** if unreachable or no password is set (just start the database); **fail** if the login is rejected |
+
+A rejected login means a wrong user, wrong password or missing database. The driver doesn't say which, so check `MEDIMIND_DB_USER`, `MEDIMIND_DB_PASSWORD` and `MEDIMIND_DB_NAME`. Error messages and logs never include passwords or the driver's raw error text.
+
+### Integration tests (optional, read-only)
+`uv run pytest` never needs Docker. To test against the real database, start it first, then run the opt-in integration tests:
+```bash
+docker compose start
+uv run pytest -m integration
+docker compose stop
+```
+- They read your `.env` in memory and never print it.
+- Every connection is read-only, and they run only `SELECT`/`SHOW`. Each test checks that no tables, extensions, roles or schemas changed.
+- The wrong-password check uses a fake password, not yours.
+- They skip themselves if the password isn't set or the database isn't running.
 
 ### 3. Verify pgvector is available (without enabling it)
 ```bash
@@ -110,7 +130,8 @@ docker compose port db 5432      # expected: 127.0.0.1:5432
 |---|---|
 | `docs/` | Project brief, roadmap, decisions and progress log |
 | `app/` | Application code. `app/main.py` is the entry point, and `app/core/` holds configuration, logging, errors and health checks |
-| `tests/` | Automated tests (pytest) |
+| `app/records/` | Database access (SQLAlchemy + psycopg). The **only** code allowed to talk to the database (ADR-016) |
+| `tests/` | Automated tests (pytest). `tests/integration/` needs the running database and is opt-in |
 | `data/synthetic/` | Fictional demo records only. Never put real patient data here. |
 
 ## Documentation

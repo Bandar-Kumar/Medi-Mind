@@ -34,7 +34,7 @@ A Proposed or Deferred ADR is not a final decision.
 | 017 | Custom evaluation primary, RAGAS optional | Proposed | Review |
 | 018 | All eight design docs in Phase 0 | Accepted | Owner, 2026-11-12 |
 | 019 | Lab reports first | **Accepted** | Q4 |
-| 020 | Database foundation in Phase 1 | **Accepted** | Owner, 2026-11-13 |
+| 020 | Database foundation in Phase 1 | **Accepted** (+ D1, D2, Task 1.6) | Owner, 2026-11-13 |
 | 021 | Class-table inheritance for extracted facts | Proposed | Review |
 | 022 | Records-only copilot | **Accepted** | Q6 |
 | 023 | Fact status lifecycle; review flagged extractions | **Accepted** | Q7 |
@@ -61,7 +61,7 @@ A Proposed or Deferred ADR is not a final decision.
   - **SQLAlchemy 2.x:** typed models and a session layer, so database access is plain, testable Python.
   - **Alembic:** versioned, reviewable schema migrations, so every database change is recorded in git.
   - **psycopg 3:** the PostgreSQL driver. Its binary build ships a ready-made Windows wheel (verified in Task 1.1).
-  - All three are added when Task 1.6 first needs them.
+  - Each is added when a task first needs it: SQLAlchemy 2.1.8 and psycopg[binary] 3.3.9 were added in Task 1.6 (2026-11-13). Alembic is added in Task 1.7 (decision D1).
 - **Excluded unless a concrete need is shown:** FastAPI, Redis, Celery, Kubernetes, extra databases, hosted tracing.
 - **Rule:** Each dependency is added in the phase that first needs it.
 
@@ -158,6 +158,7 @@ A Proposed or Deferred ADR is not a final decision.
   - **Retrieval:** every search is filtered by `patient_id`.
   - **Tests:** mandatory cross-patient tests for read, update and delete. Patient A's scope must never read, change or delete patient B's rows.
 - **Rationale:** caregivers manage several patients, so leaking data between profiles is the main privacy risk in a single-user app.
+- **Enforcement started (Task 1.6, 2026-11-13; owner decision D5):** `app/records/` is the only database access path. `session_scope()` exists for the records layer only. An architecture test (`tests/test_architecture.py`) fails if code outside `app/records/` imports SQLAlchemy or psycopg, or imports anything from `app.records.db` except the health probe and the error-sanitizing helpers.
 
 ## ADR-017: Custom evaluation primary, RAGAS optional
 - **Status:** Proposed
@@ -189,6 +190,15 @@ A Proposed or Deferred ADR is not a final decision.
   - **Task 1.6:** the SQLAlchemy connection;
   - **Task 1.7:** the baseline migration;
   - **Task 1.8:** the patient-scoped repositories.
+- **Decision D1 (owner, 2026-11-13, Task 1.6):** Alembic initialization moves from Task 1.6 to Task 1.7, together with the baseline migration. Task 1.6 is the connection only: no `migrations/`, tables or extensions.
+- **Decision D2 (owner, 2026-11-13, Task 1.6): severity of the authenticated `database_connection` health check.**
+  - **Warn:** no password configured (check skipped), or the database is unreachable or timed out. A stopped container is the normal state on this laptop.
+  - **Fail:** the server answered but rejected the login, or any other database error.
+- **Refinement (owner approved "Option A", 2026-11-13), from a measured driver limit:** psycopg 3.3.9 with libpq 18.4 reports a wrong password and a missing database as a plain `OperationalError` with **no SQLSTATE**. Telling them apart would require reading the message text, which is never done (it is locale-dependent and may contain sensitive values). So:
+  - SQLSTATE codes win when present (`28P01`/`28000` → authentication failed, `3D000` → database missing);
+  - `ConnectionTimeout` → unreachable (warn);
+  - a plain `OperationalError` with no SQLSTATE → one bounded TCP check (1 s): port open → **`connection_rejected`** (fail; "authentication failed, database missing or login refused"); port closed → unreachable (warn).
+  - Rejected alternatives: matching message text; a second connection to another database to disambiguate.
 
 ## ADR-021: Class-table inheritance for extracted facts
 - **Status:** Proposed

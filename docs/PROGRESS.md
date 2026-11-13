@@ -2,7 +2,7 @@
 
 ## Current phase
 
-**Phase 1: Development environment and project foundation.** Tasks 1.1 (dependency compatibility, resolution only), 1.2 (project foundation) and 1.5 (Docker Compose PostgreSQL + pgvector) are complete. Phase 0 is complete, but some Proposed ADRs are still open.
+**Phase 1: Development environment and project foundation.** Tasks 1.1 (dependency compatibility, resolution only), 1.2 (project foundation), 1.5 (Docker Compose PostgreSQL + pgvector) and 1.6 (SQLAlchemy connection + authenticated database health) are complete. Phase 0 is complete, but some Proposed ADRs are still open.
 
 ## Completed
 
@@ -89,10 +89,29 @@
 - **Not in this task:** no SQLAlchemy connection, extension, tables or migrations.
 - **Left stopped**, with the volume kept.
 
+### 2026-11-13: Phase 1, Task 1.6: SQLAlchemy connection + authenticated database health ✅
+- **Built:**
+  - dependencies `sqlalchemy` 2.1.8, `psycopg[binary]` 3.3.9 (libpq 18.4 bundled), plus `tzdata` 2026.6; no `greenlet`, no Alembic (moved to Task 1.7, decision D1);
+  - `app/records/db.py`, the only database access path (ADR-016): connection URL with a masked password, lazy pooled engine (at most 5 connections, `pool_pre_ping`), NullPool engines for one-shot checks, `session_scope()`, read-only `probe_database()`;
+  - sanitized `DatabaseError`: classified by exception type, SQLSTATE and (only when ambiguous) one bounded TCP check. The driver's message text is never read, logged or shown;
+  - `database_connection` health check (decision D2): **warn** when unreachable or no password is set, **fail** when the login is rejected or any other database error occurs;
+  - entry-point sanitization in `app/main.py`: database errors are logged as category + class + SQLSTATE, with no traceback;
+  - ADR-016 architecture test: outside `app/records/`, no code imports SQLAlchemy or psycopg or uses sessions;
+  - 125 unit tests (no database needed) and 5 opt-in, read-only integration tests (`uv run pytest -m integration`).
+- **Verified (measured):**
+  - the live container showed that a wrong password and a missing database both arrive as a plain `psycopg.OperationalError` with **no SQLSTATE** (libpq 18.4), so they share the category `connection_rejected`; a closed port arrives as `ConnectionTimeout` after the 2 s timeout;
+  - integration tests: **5 passed** (run by the owner after the fix); health with the database running: all checks ok, exit 0;
+  - pool: 5 connections held, the 6th request timed out after 5.01 s; returned connections leave 2 open; 0 after dispose;
+  - `pool_pre_ping`: after `docker compose restart db` the same engine answered in 0.03 s;
+  - memory: 54.6 MiB idle → 62.0 MiB with 5 connections (1 GiB limit);
+  - database snapshot (tables, extensions, roles, schemas, databases) identical before and after all runs: 0 tables, `plpgsql` only;
+  - with the database stopped: `database_connection` warn, exit 0, about 4.4 s.
+- **Left stopped**, with the volume kept.
+
 ## Next steps
 
-1. **Task 1.6:** SQLAlchemy connection and authenticated database health (the plan needs owner approval).
-2. Then Tasks 1.7–1.8: baseline migration (which enables `vector`) and patient-scoped repositories with cross-patient read, update and delete isolation tests.
+1. **Task 1.7:** initialize Alembic, then the baseline migration (`patients`, `documents`, `pipeline_runs`; enable `vector`).
+2. **Task 1.8:** patient-scoped repositories with cross-patient read, update and delete isolation tests.
 3. At the start of Phase 2: the runtime smoke test (ADR-026), with owner approval.
 
 ## Open questions

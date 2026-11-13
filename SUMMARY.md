@@ -22,9 +22,32 @@ Only work that actually happened and was verified is recorded.
 
 ---
 
-## 2026-11-13: Phase 1, Tasks 1.2, 1.1 and 1.5, plus architecture decisions
+## 2026-11-13: Phase 1, Tasks 1.2, 1.1, 1.5 and 1.6, plus architecture decisions
 
 **Phase:** 1, development environment and project foundation
+
+### Task 1.6: SQLAlchemy connection + authenticated database health
+- **Decisions (owner):** D1 Alembic moves to Task 1.7; D2 `database_connection` warns when unreachable and fails on rejected logins; D3 integration tests read `.env` in memory, read-only; D4 Task 1.5 committed first (`715d77b`); D5 `session_scope()` now, records layer only. Later: "Option A" (`connection_rejected`, see Learned).
+- **Dependencies:** `uv add` of `sqlalchemy>=2.1.8` and `psycopg[binary]>=3.3.9`. The lock gained exactly 4 packages: sqlalchemy 2.1.8, psycopg 3.3.9, psycopg-binary 3.3.9 (libpq 18.4), tzdata 2026.6. No greenlet. `uv lock --check` passed.
+- **Files:**
+  - new: `app/records/__init__.py`, `app/records/db.py`, `tests/test_db.py`, `tests/test_architecture.py`, `tests/integration/test_db_integration.py`;
+  - changed: `app/core/errors.py` (`DatabaseError` with `kind`), `app/core/health.py` (`database_connection`; stale `database_tcp` text fixed), `app/main.py` (sanitized database errors at the entry point, no traceback), `pyproject.toml` (deps; `integration` marker deselected by default), `uv.lock`, `tests/conftest.py` (blocks real psycopg connections in unit tests; `fake_probe`, `failing_engine`), `tests/test_health.py`, `tests/test_main.py`, plus README and docs.
+- **Verified (actually run):**
+  - unit suite with PostgreSQL stopped: **125 passed**, 5 deselected; Ruff check and format clean; `git diff --check` clean;
+  - first integration run: 3 passed, **2 failed** (wrong password and missing database reported as "unreachable"); after the fix, **5 passed** (run by the owner), and health with the database running reported all checks ok;
+  - pool: 5 connections held, the 6th waited 5.01 s and failed; after return 2 stay open, 0 after dispose;
+  - `pool_pre_ping`: after `docker compose restart db` (healthy in 6.1 s), the same engine answered in 0.03 s;
+  - `docker stats`: 54.6 MiB idle → 62.0 MiB with 5 connections (1 GiB limit);
+  - read-only snapshots (tables, extensions, roles, schemas, databases) **identical** at the start and end: 0 tables, `plpgsql` only, 17 roles, 4 schemas, 4 databases;
+  - health with the database stopped: `database_connection` warn "Database unreachable or timed out (ConnectionTimeout)", exit 0, about 4.4 s;
+  - a mutation check: reintroducing the old bug made 11 of the new tests fail.
+- **Final state:** container **stopped**, volume `medimind_pgdata` **kept**. `.env` and `.env.example` unchanged. Not committed.
+- **Learned:**
+  - **libpq reports failed logins without an SQLSTATE.** With psycopg 3.3.9 / libpq 18.4, a wrong password and a missing database are both a plain `OperationalError`, `sqlstate=None`, in about 0.03 s. The SQLSTATE exists only in the message text, which we never read. Fix ("Option A"): one bounded TCP check tells "rejected" (port open → `connection_rejected`, fail) from "unreachable" (warn). Unit tests built from guessed exception shapes had passed; only the live database showed the truth.
+  - **On Windows a refused port looks like a timeout:** psycopg raises `ConnectionTimeout` after the full `connect_timeout`. libpq treats anything below 2 s as 2 s.
+  - **NullPool rejects pool-sizing arguments** (`TypeError`), so the throwaway engine gets none.
+  - **`InvalidCatalogName` (3D000) is a `ProgrammingError`**, not an `OperationalError`.
+  - **Sanitized errors are raised outside `except`,** so no driver message rides along as `__cause__`/`__context__`.
 
 ### Task 1.5: Docker Compose PostgreSQL + pgvector
 - **Git housekeeping first.** The stale rebase metadata was confirmed stale: nothing done, only `noop` left, HEAD = `main` = `origin/main` = `b732040`.
@@ -203,8 +226,9 @@ Only work that actually happened and was verified is recorded.
   - The owner committed Task 1.1's doc updates as `b732040`. The architecture-decision doc updates are uncommitted.
 
 ### Next
-1. Task 1.6: SQLAlchemy connection and authenticated database health (plan first, owner approval).
-2. Tasks 1.7–1.8: baseline migration (enables `vector`), patient-scoped repositories with cross-patient isolation tests.
+1. ~~Task 1.6~~ done (see the Task 1.6 section above); owner review and commit pending.
+2. Task 1.7: initialize Alembic (moved from 1.6, D1) and the baseline migration (enables `vector`).
+3. Task 1.8: patient-scoped repositories with cross-patient isolation tests.
 4. Phase 2 starts with the Docling runtime smoke test (ADR-026).
 
 ---
