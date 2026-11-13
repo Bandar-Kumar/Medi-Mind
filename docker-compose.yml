@@ -1,0 +1,40 @@
+# MediMind local infrastructure: PostgreSQL only (ADR-009). The application runs natively on Windows.
+#
+# Values come from .env (git-ignored); see .env.example. Start with: docker compose up -d
+# WARNING: `docker compose down -v` deletes the database volume and ALL its data.
+
+name: medimind
+
+services:
+  db:
+    # pgvector 0.8.7 on PostgreSQL 18 (Debian trixie). Pinned by the multi-platform index digest,
+    # verified against Docker Hub on 2026-11-13; the tag is kept for readability, the digest is
+    # what Docker enforces. To update: inspect the new tag's digest, then change both together.
+    image: pgvector/pgvector:0.8.7-pg18-trixie@sha256:ab49524d18df7200b74ac9a475e1db6297fc1eb57da4c214c63d10ecc4b754fa
+    environment:
+      POSTGRES_USER: ${MEDIMIND_DB_USER:-medimind}
+      POSTGRES_DB: ${MEDIMIND_DB_NAME:-medimind}
+      # Required: Compose refuses to start if this is unset or empty.
+      POSTGRES_PASSWORD: ${MEDIMIND_DB_PASSWORD:?Set MEDIMIND_DB_PASSWORD in .env before starting the database}
+    ports:
+      # Bound to 127.0.0.1 only: reachable from this machine, not from the network.
+      - "127.0.0.1:${MEDIMIND_DB_PORT:-5432}:5432"
+    volumes:
+      # PostgreSQL 18 images keep data in /var/lib/postgresql/18/docker (PGDATA) and declare
+      # /var/lib/postgresql as the volume, so the named volume is mounted there (not .../data).
+      - medimind_pgdata:/var/lib/postgresql
+    healthcheck:
+      # $$ passes a literal $ to the container, so pg_isready reads the container's own variables.
+      test: ["CMD-SHELL", "pg_isready -U \"$${POSTGRES_USER}\" -d \"$${POSTGRES_DB}\""]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+      start_period: 10s
+    # Initial limit, to be adjusted only after measuring real usage with `docker stats`.
+    mem_limit: 1g
+    # Runs only when started explicitly, to save RAM on a 16 GB laptop.
+    restart: "no"
+
+volumes:
+  medimind_pgdata:
+    name: medimind_pgdata

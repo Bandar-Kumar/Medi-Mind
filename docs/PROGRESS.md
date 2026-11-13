@@ -2,7 +2,7 @@
 
 ## Current phase
 
-**Phase 1: Development environment and project foundation.** Tasks 1.1 (dependency compatibility, resolution only) and 1.2 (project foundation) are complete. Phase 0 is complete, but some Proposed ADRs are still open.
+**Phase 1: Development environment and project foundation.** Tasks 1.1 (dependency compatibility, resolution only), 1.2 (project foundation) and 1.5 (Docker Compose PostgreSQL + pgvector) are complete. Phase 0 is complete, but some Proposed ADRs are still open.
 
 ## Completed
 
@@ -59,20 +59,49 @@
 - **Project unchanged:** `pyproject.toml`, `uv.lock`, `.venv` and git state were all checked unchanged.
 - **Runtime compatibility is not yet established.** Docling's OCR backend is missing from the resolution. The runtime smoke test is the first step of the Phase 2 Docling spike (ADR-026).
 
+### 2026-11-13: Architecture decisions finalized
+- **Accepted by the owner:**
+  - **ADR-009:** Docker Compose for PostgreSQL infrastructure only; the app is not containerized.
+  - **ADR-016:** patient-scoped repositories. Isolation is enforced in every query and service, with mandatory cross-patient read, update and delete tests.
+  - **ADR-020:** PostgreSQL infrastructure in Phase 1.
+  - **ADR-002:** SQLAlchemy, Alembic and psycopg.
+  - **ADR-025:** India as the initial region and intended privacy/data-protection jurisdiction. The architecture stays adaptable, and **no legal or regulatory compliance is claimed**.
+- **Unchanged:** ADR-026 stays "Accepted — resolution verified (runtime not yet tested)".
+- **Docs updated:** `docs/DECISIONS.md` (the history of each ADR kept), this file, `SUMMARY.md`, and one line in `docs/PROJECT_BRIEF.md`.
+
+### 2026-11-13: Phase 1, Task 1.5: Docker Compose PostgreSQL + pgvector ✅
+- **Built:**
+  - `docker-compose.yml`: one `db` service, `pgvector/pgvector:0.8.7-pg18-trixie`, pinned by digest `sha256:ab49524d…b754fa`;
+  - volume `medimind_pgdata` at `/var/lib/postgresql`, port bound to `127.0.0.1` only, required password, `pg_isready` health check, `mem_limit: 1g`, `restart: "no"`;
+  - `MEDIMIND_DB_*` settings (the password is a `SecretStr` and is never displayed);
+  - `database_tcp` and `database_password` health checks (**warnings only**; TCP reachability only);
+  - 14 new tests (47 total) and a README "Database (Docker)" section.
+- **Verified (measured):**
+  - the pulled image's digest matches the pin;
+  - healthy about 6 s after start;
+  - PostgreSQL 18.7;
+  - `vector` 0.8.7 available but not installed;
+  - bound to `127.0.0.1:5432` only;
+  - `system_identifier` unchanged across `stop`/`start` and `down`/`up` (persistence);
+  - idle memory 23–26 MiB of the 1 GiB limit;
+  - app health ok while running, `database_tcp` warn while stopped (exit 0 both times);
+  - 47 tests pass, Ruff clean.
+- **Not in this task:** no SQLAlchemy connection, extension, tables or migrations.
+- **Left stopped**, with the volume kept.
+
 ## Next steps
 
-1. The owner decides ADRs 009, 016 and 020 and the remaining ADR-002 additions. These are needed before the database tasks (1.5–1.8).
-2. Task 1.5: Docker Compose for Postgres + pgvector, once those ADRs are decided.
-3. The owner confirms ADR-025 (India).
-4. At the start of Phase 2: the runtime smoke test (ADR-026), with owner approval.
+1. **Task 1.6:** SQLAlchemy connection and authenticated database health (the plan needs owner approval).
+2. Then Tasks 1.7–1.8: baseline migration (which enables `vector`) and patient-scoped repositories with cross-patient read, update and delete isolation tests.
+3. At the start of Phase 2: the runtime smoke test (ADR-026), with owner approval.
 
 ## Open questions
 
 | # | Question | Status |
 |---|---|---|
-| Q3 | India / English / DD/MM/YYYY region profile | **Awaiting final confirmation** (ADR-025) |
+| Q3 | India / English / DD/MM/YYYY region profile | **Resolved**: accepted 2026-11-13 (ADR-025) |
 | Q5 | LLM provider | Deferred to the start of Phase 3 (ADR-024) |
 | Q10 | LangGraph record-analysis use case | Deferred (ADR-012) |
 | Q12 | Auto-accept an ambiguous date when the same document confirms DD/MM order? | Open. Default: no, always flag. Decide with Phase 3 flag-rate data. |
-| — | Proposed ADRs still to be decided: 002 (additions), 007, 008, 009, 011, 016, 017, 020, 021, 027 | Awaiting owner review |
+| — | Proposed ADRs still to be decided: 002 (BGE-small, MiniLM cross-encoder), 007, 008, 011, 017, 021, 027 | Awaiting owner review |
 | — | Hosting target for the public demo | Decided in Phase 9, or at the ADR-027 checkpoint |

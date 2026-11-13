@@ -23,7 +23,7 @@ Medical information is spread across lab reports, prescriptions, discharge summa
 
 The prototype is single-user and runs locally (ADR-013, Accepted).
 
-**Initial region:** India, English-only documents, DD/MM/YYYY dates (ADR-025, awaiting final confirmation). Regional settings are configurable so other regions can be added later.
+**Initial region:** India, English-only documents, DD/MM/YYYY dates (ADR-025, accepted). India is also the initial intended privacy and data-protection jurisdiction. MediMind makes no claim of legal or regulatory compliance. Regional settings are configurable so other regions can be added later.
 
 ## 4. Capabilities
 

@@ -11,7 +11,7 @@ from functools import lru_cache
 from pathlib import Path
 from typing import Any, Literal
 
-from pydantic import ValidationError
+from pydantic import Field, SecretStr, ValidationError
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 from app.core.errors import ConfigurationError
@@ -19,8 +19,17 @@ from app.core.errors import ConfigurationError
 ENV_PREFIX = "MEDIMIND_"
 ENV_FILE = Path(".env")
 
-# Only these fields may ever be printed or logged. Secrets are never added here.
-SAFE_TO_DISPLAY: tuple[str, ...] = ("app_env", "log_level", "log_format", "data_dir")
+# Only these fields may ever be printed or logged. Secrets (db_password) are never added here.
+SAFE_TO_DISPLAY: tuple[str, ...] = (
+    "app_env",
+    "log_level",
+    "log_format",
+    "data_dir",
+    "db_host",
+    "db_port",
+    "db_name",
+    "db_user",
+)
 
 
 class Settings(BaseSettings):
@@ -38,6 +47,17 @@ class Settings(BaseSettings):
     log_format: Literal["text", "json"] = "text"
     # Required application data directory; data/synthetic inside it is optional demo data.
     data_dir: Path = Path("data")
+
+    # PostgreSQL (Docker Compose, Task 1.5). docker-compose.yml reads the same MEDIMIND_DB_*
+    # variables from .env. 127.0.0.1 rather than "localhost": the container port is bound to IPv4
+    # loopback only, and "localhost" can resolve to IPv6 (::1) first on Windows.
+    db_host: str = "127.0.0.1"
+    db_port: int = Field(default=5432, ge=1, le=65535)
+    db_name: str = "medimind"
+    db_user: str = "medimind"
+    # Secret: never displayed or logged. Optional here so the app still starts without it; the
+    # health check warns, and Docker Compose refuses to start the database without it.
+    db_password: SecretStr | None = None
 
     def safe_summary(self) -> dict[str, Any]:
         """Return only the allow-listed, non-secret settings, for display or logging."""

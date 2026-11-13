@@ -77,8 +77,53 @@ def test_safe_summary_contains_only_allow_listed_fields() -> None:
 
 def test_every_field_is_classified_as_displayable_or_secret() -> None:
     # Forces a conscious decision for each new setting: allow-list it, or make it a SecretStr.
+    secret_types = (SecretStr, SecretStr | None)
     for name, field in Settings.model_fields.items():
-        assert name in SAFE_TO_DISPLAY or field.annotation is SecretStr, name
+        assert name in SAFE_TO_DISPLAY or field.annotation in secret_types, name
+    assert "db_password" not in SAFE_TO_DISPLAY
+
+
+def test_database_defaults() -> None:
+    settings = Settings()
+    assert settings.db_host == "127.0.0.1"
+    assert settings.db_port == 5432
+    assert settings.db_name == "medimind"
+    assert settings.db_user == "medimind"
+    assert settings.db_password is None
+
+
+@pytest.mark.parametrize("port", ["1", "65535"])
+def test_database_port_accepts_valid_range_bounds(
+    monkeypatch: pytest.MonkeyPatch, port: str
+) -> None:
+    monkeypatch.setenv("MEDIMIND_DB_PORT", port)
+    assert get_settings().db_port == int(port)
+
+
+@pytest.mark.parametrize("port", ["0", "65536", "99999", "-7"])
+def test_database_port_outside_range_is_rejected_without_echoing_it(
+    monkeypatch: pytest.MonkeyPatch, port: str
+) -> None:
+    monkeypatch.setenv("MEDIMIND_DB_PORT", port)
+    with pytest.raises(ConfigurationError) as excinfo:
+        get_settings()
+    message = str(excinfo.value)
+    assert "MEDIMIND_DB_PORT" in message
+    if port != "0":  # "0" is too short to check as a substring meaningfully
+        assert port not in message
+
+
+def test_database_password_is_never_in_safe_output(monkeypatch: pytest.MonkeyPatch) -> None:
+    fake_password = "FAKE-DB-PASSWORD-for-tests-only-91c2"
+    monkeypatch.setenv("MEDIMIND_DB_PASSWORD", fake_password)
+    settings = get_settings()
+
+    assert settings.db_password is not None
+    assert settings.db_password.get_secret_value() == fake_password
+    assert "db_password" not in settings.safe_summary()
+    assert fake_password not in str(settings.safe_summary())
+    assert fake_password not in repr(settings)
+    assert fake_password not in settings.model_dump_json()
 
 
 def test_env_example_documents_every_setting() -> None:

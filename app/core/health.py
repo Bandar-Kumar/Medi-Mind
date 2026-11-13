@@ -1,9 +1,10 @@
 """Environment health checks: a quick answer to "is my setup broken?".
 
-Each check is a plain function ``(Settings) -> CheckResult``. To add one (e.g. a database check
-in the PostgreSQL task), write the function and append it to ``CHECKS``.
+Each check is a plain function ``(Settings) -> CheckResult``. To add one, write the function and
+append it to ``CHECKS``.
 """
 
+import socket
 import sys
 from collections.abc import Callable
 from dataclasses import dataclass
@@ -14,6 +15,9 @@ from app.core.config import ENV_FILE, Settings
 Status = Literal["ok", "warn", "fail"]
 
 SUPPORTED_PYTHON = (3, 12)  # keep in sync with requires-python in pyproject.toml (ADR-026)
+
+DB_TCP_TIMEOUT_SECONDS = 1.0
+TCP_ONLY_NOTE = "TCP reachability only, not an authenticated database check (Task 1.6)"
 
 
 @dataclass(frozen=True)
@@ -58,12 +62,50 @@ def check_synthetic_data(settings: Settings) -> CheckResult:
     return CheckResult("synthetic_data", "warn", f"{synthetic} not found (optional demo data)")
 
 
+def check_database_tcp(settings: Settings) -> CheckResult:
+    """Is anything accepting TCP connections on the database port?
+
+    This proves only that the port is open. It does not log in or run a query: authenticated
+    database health arrives with the SQLAlchemy connection in Task 1.6. Until then a closed port is
+    a warning, not a failure, because nothing in the app uses the database yet.
+    """
+    address = f"{settings.db_host}:{settings.db_port}"
+    try:
+        with socket.create_connection(
+            (settings.db_host, settings.db_port), timeout=DB_TCP_TIMEOUT_SECONDS
+        ):
+            pass
+    except OSError as exc:  # refused, timed out, or host not resolvable
+        return CheckResult(
+            "database_tcp",
+            "warn",
+            f"{address} not reachable ({type(exc).__name__}); start it with "
+            f"`docker compose up -d`. {TCP_ONLY_NOTE}",
+        )
+    return CheckResult("database_tcp", "ok", f"{address} accepts connections. {TCP_ONLY_NOTE}")
+
+
+def check_database_password(settings: Settings) -> CheckResult:
+    """Warn if the database password is missing or empty. Never reveals the value."""
+    password = settings.db_password
+    if password is None or not password.get_secret_value():
+        return CheckResult(
+            "database_password",
+            "warn",
+            "MEDIMIND_DB_PASSWORD is not set in .env (Docker Compose will refuse to start the "
+            "database)",
+        )
+    return CheckResult("database_password", "ok", "MEDIMIND_DB_PASSWORD is set (value hidden)")
+
+
 CHECKS: list[Callable[[Settings], CheckResult]] = [
     check_python_version,
     check_configuration,
     check_env_file,
     check_data_dir,
     check_synthetic_data,
+    check_database_tcp,
+    check_database_password,
 ]
 
 

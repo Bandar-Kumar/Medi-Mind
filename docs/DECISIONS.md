@@ -16,30 +16,30 @@ A Proposed or Deferred ADR is not a final decision.
 | ADR | Title | Status | Source |
 |---|---|---|---|
 | 001 | Modular monolith | Accepted | CLAUDE.md |
-| 002 | Core technology stack | Accepted (base; `pydantic-settings`, `pytest`, `ruff`) / Proposed (other additions) | CLAUDE.md, brief, Task 1.2 |
+| 002 | Core technology stack | Accepted (base; `pydantic-settings`, `pytest`, `ruff`; **SQLAlchemy, Alembic, psycopg**) / Proposed (BGE-small, MiniLM cross-encoder) | CLAUDE.md, brief, Task 1.2, Owner 2026-11-13 |
 | 003 | Deterministic numerical computation | Accepted | CLAUDE.md |
 | 004 | Incremental project structure | Accepted (amended by 018) | Owner, 2026-11-12 |
 | 005 | Synthetic data only | Accepted | CLAUDE.md |
 | 006 | Phase-scoped documentation | Superseded by 018 | — |
 | 007 | Query router + parameterized SQL tools | Proposed | Review |
 | 008 | Deterministic grounding check | Proposed | Review |
-| 009 | Docker for the database only | Proposed | Review |
+| 009 | Docker for the database only | **Accepted** | Owner, 2026-11-13 |
 | 010 | Synthetic ground truth; pure-Python generator first | **Accepted** (Synthea **Deferred**) | Q8 |
 | 011 | Narrow use of LangChain | Proposed | Review |
 | 012 | LangGraph scope | **Accepted** (appointment prep) / **Deferred** (record analysis) | Brief, Q10 |
 | 013 | Single-user local deployment | **Accepted** | Q1 |
 | 014 | Synthetic-only public demo | **Accepted** | Q2 |
 | 015 | Optional local-only LLM provider | Superseded by 024 | — |
-| 016 | Patient-scoped repositories | Proposed | Review |
+| 016 | Patient-scoped repositories | **Accepted** | Owner, 2026-11-13 |
 | 017 | Custom evaluation primary, RAGAS optional | Proposed | Review |
 | 018 | All eight design docs in Phase 0 | Accepted | Owner, 2026-11-12 |
 | 019 | Lab reports first | **Accepted** | Q4 |
-| 020 | Database foundation in Phase 1 | Proposed | Review |
+| 020 | Database foundation in Phase 1 | **Accepted** | Owner, 2026-11-13 |
 | 021 | Class-table inheritance for extracted facts | Proposed | Review |
 | 022 | Records-only copilot | **Accepted** | Q6 |
 | 023 | Fact status lifecycle; review flagged extractions | **Accepted** | Q7 |
 | 024 | LLM provider selected by evaluation, free preferred | **Deferred** to the start of Phase 3 | Q5 |
-| 025 | India region profile | **Proposed, awaiting owner's final confirmation** | Q3 |
+| 025 | India region profile and initial jurisdiction | **Accepted** | Q3, Owner 2026-11-13 |
 | 026 | Python 3.12 + uv | **Accepted — resolution verified** (runtime not yet tested) | Q11, Task 1.1 |
 | 027 | Full-time schedule; portfolio checkpoint at the MVP | Proposed | Q9 |
 
@@ -54,7 +54,14 @@ A Proposed or Deferred ADR is not a final decision.
 - **Status:**
   - **Accepted (base, from CLAUDE.md):** Python, Streamlit, PostgreSQL + pgvector, Docling, Pydantic, LangChain, LangGraph.
   - **Accepted with the Task 1.2 plan (2026-11-13):** `pydantic-settings` (configuration), `pytest` and `ruff` (development only).
-  - **Proposed (additions from the brief):** SQLAlchemy 2.x, Alembic, psycopg 3, BGE-small-en-v1.5, MiniLM cross-encoder, Docker (database only).
+  - **Accepted by the owner (2026-11-13):** SQLAlchemy 2.x, Alembic, psycopg 3. Docker (database only) is accepted separately in ADR-009.
+  - **Proposed (still open):** BGE-small-en-v1.5, MiniLM cross-encoder.
+  - *History:* SQLAlchemy, Alembic, psycopg and Docker were listed as Proposed additions from the brief until 2026-11-13.
+- **Rationale for the database packages:**
+  - **SQLAlchemy 2.x:** typed models and a session layer, so database access is plain, testable Python.
+  - **Alembic:** versioned, reviewable schema migrations, so every database change is recorded in git.
+  - **psycopg 3:** the PostgreSQL driver. Its binary build ships a ready-made Windows wheel (verified in Task 1.1).
+  - All three are added when Task 1.6 first needs them.
 - **Excluded unless a concrete need is shown:** FastAPI, Redis, Celery, Kubernetes, extra databases, hosted tracing.
 - **Rule:** Each dependency is added in the phase that first needs it.
 
@@ -85,9 +92,14 @@ A Proposed or Deferred ADR is not a final decision.
 - **Trade-off:** OCR noise can cause false failures, which means extra review work. That is preferable to silently accepting hallucinated values.
 
 ## ADR-009: Docker for the database only
-- **Status:** Proposed
+- **Status:** **Accepted** (owner, 2026-11-13; previously Proposed)
 - **Decision:** One Postgres + pgvector container. The app runs natively.
 - **Trade-off:** Docker Desktop and WSL2 use memory, but in exchange we get a reproducible database without a native Postgres install on Windows.
+- **Decision (2026-11-13):**
+  - Docker Compose is used for PostgreSQL infrastructure only, at first.
+  - The application, Streamlit and workers are **not** containerized.
+  - Containerizing more needs a new, concrete reason and a new ADR.
+  - Implemented in Task 1.5.
 
 ## ADR-010: Synthetic ground truth; pure-Python generator first
 - **Status:** **Accepted** (Q8). Synthea is **Deferred**.
@@ -138,8 +150,14 @@ A Proposed or Deferred ADR is not a final decision.
 - **Status:** Superseded by ADR-024. A local model is now one of the candidates evaluated there.
 
 ## ADR-016: Patient-scoped repositories
-- **Status:** Proposed
+- **Status:** **Accepted** (owner, 2026-11-13; previously Proposed)
 - **Decision:** All database and retrieval access goes through repositories that require `patient_id`. Child rows use composite foreign keys (`document_id`, `patient_id`). Isolation tests are mandatory. Postgres row-level security is optional, in Phase 8.
+- **Decision (2026-11-13):** patient isolation is enforced in **every database query and every application service**.
+  - **Repositories:** every method requires `patient_id`. There are no unscoped query methods.
+  - **Services:** they pass the patient scope through and never bypass it.
+  - **Retrieval:** every search is filtered by `patient_id`.
+  - **Tests:** mandatory cross-patient tests for read, update and delete. Patient A's scope must never read, change or delete patient B's rows.
+- **Rationale:** caregivers manage several patients, so leaking data between profiles is the main privacy risk in a single-user app.
 
 ## ADR-017: Custom evaluation primary, RAGAS optional
 - **Status:** Proposed
@@ -163,9 +181,14 @@ A Proposed or Deferred ADR is not a final decision.
   - The fact tables for other types are designed now and created through migrations in Phase 6.
 
 ## ADR-020: Database foundation in Phase 1
-- **Status:** Proposed
+- **Status:** **Accepted** (owner, 2026-11-13; previously Proposed)
 - **Decision:** Postgres, SQLAlchemy and an Alembic baseline (`patients`, `documents`, `pipeline_runs`) come in Phase 1.
 - **Trade-off:** Docker and Postgres are set up earlier. This avoids throwaway JSON storage in Phases 2–3.
+- **Decision (2026-11-13):** the PostgreSQL infrastructure is set up in Phase 1, in this order:
+  - **Task 1.5:** the Docker Compose database;
+  - **Task 1.6:** the SQLAlchemy connection;
+  - **Task 1.7:** the baseline migration;
+  - **Task 1.8:** the patient-scoped repositories.
 
 ## ADR-021: Class-table inheritance for extracted facts
 - **Status:** Proposed
@@ -233,8 +256,17 @@ A Proposed or Deferred ADR is not a final decision.
   - Cost is still logged (0 for free tiers).
   - The comparison results are recorded in this ADR when it is decided.
 
-## ADR-025: India region profile
-- **Status:** **Proposed, awaiting the owner's final confirmation** (Q3)
+## ADR-025: India region profile and initial jurisdiction
+- **Status:** **Accepted** (owner, 2026-11-13). *History:* "Proposed, awaiting the owner's final confirmation" (Q3) until 2026-11-13.
+- **Decision (2026-11-13):**
+  - **Jurisdiction:** India is MediMind's **initial intended privacy and data-protection jurisdiction**.
+  - **Adaptable:** the architecture stays adaptable for future international expansion. Region and jurisdiction are configuration (the region profile), not hard-coded logic.
+  - **No compliance claim:** MediMind **does not claim legal or regulatory compliance** with any law.
+    - India's Digital Personal Data Protection Act 2023 is used only as a design *reference*: consent, purpose limitation, deletion, keeping data to a minimum.
+    - It is not a certification or a compliance claim.
+  - **Region profile:** the profile below (English documents, DD/MM/YYYY, ambiguous dates flagged, original units and ranges kept) is accepted as written.
+  - **Q12** (relaxing ambiguous-date flagging) stays open.
+- *Original proposal (kept for history):*
 - **Decision:**
   - The initial region is **India**, with **English-only** documents.
   - The expected date format is **DD/MM/YYYY**. `12-Mar-2024` and `12.03.2024` are also accepted.

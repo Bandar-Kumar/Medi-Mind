@@ -22,9 +22,60 @@ Only work that actually happened and was verified is recorded.
 
 ---
 
-## 2026-11-13: Phase 1, Tasks 1.2 and 1.1: Project foundation and dependency compatibility
+## 2026-11-13: Phase 1, Tasks 1.2, 1.1 and 1.5, plus architecture decisions
 
 **Phase:** 1, development environment and project foundation
+
+### Task 1.5: Docker Compose PostgreSQL + pgvector
+- **Git housekeeping first.** The stale rebase metadata was confirmed stale: nothing done, only `noop` left, HEAD = `main` = `origin/main` = `b732040`.
+  - Claude ran `git rebase --quit` only, never `--abort`.
+  - The owner's uncommitted doc changes were byte-for-byte identical before and after (same diff SHA-256).
+- **Environment (owner-installed):** Docker Desktop 4.99.0, Engine 29.9.3, Compose v5.7.0, WSL2 Ubuntu-24.04. Docker reports 16 CPUs and about 7.6 GiB of memory.
+  - Docker's CLI is on the *user* PATH (`%LOCALAPPDATA%\Programs\DockerDesktop\resources\bin`). Terminals opened before the install need reopening.
+- **Image:**
+  - `pgvector/pgvector:0.8.7-pg18-trixie`, pinned by its multi-platform index digest `sha256:ab49524d18df7200b74ac9a475e1db6297fc1eb57da4c214c63d10ecc4b754fa` (amd64 manifest `sha256:a5b06db7…3760`).
+  - The image's own config shows `PGDATA=/var/lib/postgresql/18/docker` and declares the volume `/var/lib/postgresql`, so the named volume is mounted there.
+- **Files:**
+  - new: `docker-compose.yml`;
+  - changed: `.env.example` (5 `MEDIMIND_DB_*` keys, password left empty on purpose), `app/core/config.py` (database settings; port 1–65535; `db_password: SecretStr | None`, never on the display list), `app/core/health.py` (`database_tcp`, `database_password`), `tests/conftest.py` (`tcp_listener` and `closed_port` fixtures, 0.1 s test timeout), `tests/test_config.py`, `tests/test_health.py`, `README.md` ("Database (Docker)" section), `docs/IMPLEMENTATION_PLAN.md`, `docs/PROGRESS.md`.
+  - **No dependencies, `pyproject.toml` or `uv.lock` changes**: both hashes still match the Task 1.1 baseline.
+- **`.env`:** the owner added the 5 keys and set their own password. Claude only checked the keys were present and non-empty, using line counts, and never read, printed or changed the value.
+- **Verified (actually run):**
+  - `docker compose config --quiet`: with no password, refused with our message (exit 1); with the owner's `.env`, valid (exit 0).
+  - Pull: the image's `RepoDigests` = `sha256:ab49524d…b754fa`, the same as the pin and the live registry; linux/amd64; Docker reports 677,229,047 bytes.
+  - `up -d`: **healthy** after about 6 s. `ps` shows `127.0.0.1:5432->5432/tcp`.
+  - `SELECT version()`: **PostgreSQL 18.7** (Debian 18.7-1.pgdg13+2). `data_directory` = `/var/lib/postgresql/18/docker`.
+  - `pg_available_extensions`: `vector` **0.8.7**, `installed_version` empty (not created). Installed extensions: `plpgsql` only.
+  - `docker compose port db 5432`: `127.0.0.1:5432`. Port bindings: HostIp `127.0.0.1` only.
+  - **Persistence:** `system_identifier` = `7707590115500060715`, unchanged after `stop`/`start` and after `down`/`up`. `down` removed the container and kept the `medimind_pgdata` volume. `down -v` was never used.
+  - `docker stats` (idle, 3 samples): **23.34–26.11 MiB** of the 1 GiB limit (2.28–2.55%). Limit enforced: 1073741824 bytes. Restart policy: `no`.
+  - App health: database running, every check **ok** (exit 0); database stopped, `database_tcp` **warn** (`TimeoutError`) and overall OK (exit 0).
+  - `uv run pytest`: **47 passed**. `ruff check`: passed. `ruff format --check`: 25 files formatted. `git diff --check`: clean.
+  - `.env` ignored and untracked; `.env.example` and `docker-compose.yml` not ignored. No database files inside the repo.
+- **Final state:** container `medimind-db-1` **stopped** (Exited 0), volume `medimind_pgdata` **kept**.
+- **Learned:**
+  - **Windows and closed ports:** on Windows, a closed loopback port is refused only after about **2.06 s** (measured), because of connection retries. The health check's 1 s timeout fires first, so a stopped database shows `TimeoutError` and adds about 1 s. Tests use a 0.1 s timeout via the isolation fixture, which took the suite from 9.8 s to 1.3 s.
+  - **PostgreSQL 18's data folder:** `PGDATA` is a versioned subfolder, so the volume must be mounted at `/var/lib/postgresql`, not `.../data`.
+  - **Persistence without test data:** `system_identifier` proves the data survived without creating any test data.
+
+### Architecture decisions finalized (documentation only)
+- **Accepted by the owner:**
+  - **ADR-009:** Docker Compose for PostgreSQL infrastructure only; the application is not containerized.
+  - **ADR-016:** patient-scoped repositories. Isolation is enforced in every query and service, with mandatory cross-patient read, update and delete tests.
+  - **ADR-020:** PostgreSQL infrastructure in Phase 1 (Tasks 1.5–1.8).
+  - **ADR-002:** SQLAlchemy, Alembic and psycopg. BGE-small and the MiniLM cross-encoder stay Proposed.
+  - **ADR-025:** India as the initial region and intended privacy/data-protection jurisdiction. The architecture stays adaptable for other countries, and **no legal or regulatory compliance is claimed**. India's DPDP Act 2023 is a design reference only. Q12 stays open.
+- **Unchanged:** ADR-026, "Accepted — resolution verified (runtime not yet tested)".
+- **Files changed:** `docs/DECISIONS.md` (earlier wording kept, with dated decision blocks), `docs/PROGRESS.md`, `docs/PROJECT_BRIEF.md` (one line), this file. No code, dependencies, `pyproject.toml` or `uv.lock` changed. Nothing installed.
+- **Task 1.5** (Docker Compose for PostgreSQL + pgvector) is approved in principle, with the owner's refinements. Its implementation checklist is waiting for separate approval.
+- **Current state:**
+  - Tasks 1.1 and 1.2 are complete.
+  - HEAD = `origin/main` = `b732040`, the owner's commit of the Task 1.1 docs.
+  - Docker is **not installed** yet; WSL2 with Ubuntu-24.04 is available.
+- **Git housekeeping:** stale rebase bookkeeping (`.git/rebase-merge`, onto `e9f708f`) was still present when rechecked on 2026-11-13.
+  - The safe fix is `git rebase --quit`, which leaves the branch and files alone.
+  - **Do not run `git rebase --abort`:** it would move `main` back to the removed commit `e9f708f`.
+  - Not touched, because that's the owner's decision.
 
 ### Task 1.1: Dependency compatibility (resolution only)
 - **Method:**
@@ -140,21 +191,21 @@ Only work that actually happened and was verified is recorded.
 
 ### Issues / blockers
 - None open for this task.
-- Still outstanding:
-  - the ADR-026 Docling resolution check (task 1.1);
-  - ADRs 009, 016 and 020 must be decided before the database tasks;
-  - ADR-025 (India) is unconfirmed.
+- Outstanding at the time; **all since resolved the same day:**
+  - the ADR-026 Docling resolution check, done in Task 1.1;
+  - ADRs 009, 016 and 020, now accepted;
+  - ADR-025 (India), now accepted.
 - **Git:**
   - Claude's commit `e9f708f` included a co-author trailer. At the owner's request, Claude removed it from GitHub with `reset --soft` and `push --force-with-lease`, keeping the files.
   - Separately, an accidental `git reset` and an unfinished rebase had hidden the Task 1.2 files. Claude recovered them with `git rebase --abort`, before that removal.
   - The owner then committed Task 1.2 as `58033ec`, "Foundation ok".
   - Claude no longer adds attribution lines to commits.
-  - Task 1.1's doc updates are uncommitted.
+  - The owner committed Task 1.1's doc updates as `b732040`. The architecture-decision doc updates are uncommitted.
 
 ### Next
-1. The owner decides ADRs 009, 016 and 020 and the remaining ADR-002 additions.
-2. Task 1.5: Docker Compose for Postgres + pgvector.
-3. Phase 2 starts with the Docling runtime smoke test (ADR-026).
+1. Task 1.6: SQLAlchemy connection and authenticated database health (plan first, owner approval).
+2. Tasks 1.7–1.8: baseline migration (enables `vector`), patient-scoped repositories with cross-patient isolation tests.
+4. Phase 2 starts with the Docling runtime smoke test (ADR-026).
 
 ---
 

@@ -58,6 +58,52 @@ Create your local settings file (git-ignored) from the template:
 - **VS Code (optional, local only):** `.vscode/` is git-ignored, so it isn't included when you clone the repo. To have VS Code load `.env` into new terminals, add `"python.terminal.useEnvFile": true` to your own `.vscode/settings.json`. If you change `.env`, open a new terminal so the change is picked up.
 - **Health-check exit codes:** `0` healthy, `1` a check failed, `2` invalid configuration.
 
+## Database (Docker)
+
+MediMind runs PostgreSQL 18 with the pgvector extension in Docker. Only the database runs in Docker; the app runs natively (ADR-009). It needs [Docker Desktop](https://docs.docker.com/desktop/) with the WSL2 backend.
+
+**Image:** `pgvector/pgvector:0.8.7-pg18-trixie`, pinned by its multi-platform digest `sha256:ab49524d18df7200b74ac9a475e1db6297fc1eb57da4c214c63d10ecc4b754fa`. To update it, look up the new tag's digest (`docker buildx imagetools inspect <tag>`) and change the tag and digest together in `docker-compose.yml`.
+
+### 1. Configure `.env`
+Copy the `MEDIMIND_DB_*` lines from `.env.example` into your `.env`, and **set your own strong password** in `MEDIMIND_DB_PASSWORD`.
+- The value in `.env.example` is deliberately empty. Docker Compose refuses to start the database until a password is set.
+- `.env` is git-ignored. Never commit a real password.
+- Keep `MEDIMIND_DB_HOST=127.0.0.1`. The port is bound to IPv4 loopback only, and on Windows `localhost` can resolve to IPv6 first.
+
+### 2. Everyday commands
+Run these from the project root:
+
+| Task | Command |
+|---|---|
+| Start (in the background) | `docker compose up -d` |
+| Status (look for `healthy`) | `docker compose ps` |
+| Stop (keeps all data) | `docker compose stop` |
+| Start again after `stop` | `docker compose start` |
+| Logs | `docker compose logs db` (add `-f` to follow) |
+| SQL shell | `docker compose exec db sh -c 'psql -U "$POSTGRES_USER" -d "$POSTGRES_DB"'` |
+| Check the app can reach it | `uv run python -m app health` (the `database_tcp` line) |
+
+The `psql` command connects through the container's local socket, so you don't need to type the password.
+
+`database_tcp` only checks that the port accepts connections. It does **not** log in. Authenticated database health arrives in Task 1.6.
+
+### 3. Verify pgvector is available (without enabling it)
+```bash
+docker compose exec db sh -c 'psql -U "$POSTGRES_USER" -d "$POSTGRES_DB" -c "SELECT name, default_version, installed_version FROM pg_available_extensions WHERE name = '"'"'vector'"'"';"'
+```
+- You should see `vector | 0.8.7 |`. The empty `installed_version` means the extension is available but not enabled.
+- Enabling it is done by a migration in Task 1.7.
+
+### 4. Confirm the port is reachable from this machine only
+```bash
+docker compose port db 5432      # expected: 127.0.0.1:5432
+```
+
+### 5. Preserve your data
+- Data lives in the Docker volume `medimind_pgdata`, which Docker stores outside this repo.
+- `docker compose stop` / `start` and `docker compose down` / `up -d` keep the data.
+- ⚠️ **`docker compose down -v` deletes the `medimind_pgdata` volume and ALL database data, permanently.** Don't use `-v` unless you really mean to wipe the database.
+
 ## Repository layout
 
 | Path | Purpose |
