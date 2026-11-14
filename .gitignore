@@ -32,3 +32,9 @@ Thumbs.db
 # Ignore everything under data/ except data/synthetic/.
 data/*
 !data/synthetic/
+
+# --- Database backups ---
+# Dumps can contain patient data: never commit them. Keep backups outside the repository
+# (%USERPROFILE%\MediMind-backups); these rules are a safety net.
+backups/
+*.dump

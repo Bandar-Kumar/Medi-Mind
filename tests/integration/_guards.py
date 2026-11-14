@@ -14,7 +14,7 @@ import pytest
 from alembic import command
 from sqlalchemy import Connection, Engine, text
 
-from app.records.migrations import alembic_config
+from app.records.migrations import CONFIRM_DOWNGRADE_KEY, alembic_config
 
 TEST_DATABASE = "medimind_test"
 CREATE_TEST_DATABASE_HINT = (
@@ -40,15 +40,25 @@ def assert_is_test_database(connection: Connection, app_database: str) -> None:
         pytest.fail(f"Refusing a destructive database test: {reason}", pytrace=False)
 
 
-def run_alembic(engine: Engine, app_database: str, action: str, target: str) -> None:
-    """Upgrade or downgrade ``medimind_test`` on an explicit, guarded connection."""
+def run_alembic(
+    engine: Engine, app_database: str, action: str, target: str, *, confirm: bool = True
+) -> None:
+    """Upgrade, downgrade or stamp ``medimind_test`` on an explicit, guarded connection.
+
+    Backward operations need the downgrade guard's confirmation; it is supplied (``confirm``)
+    only AFTER the name guard has proven the connection is ``medimind_test``.
+    """
     with engine.begin() as connection:
         assert_is_test_database(connection, app_database)
         config = alembic_config(connection)
+        if confirm:
+            config.attributes[CONFIRM_DOWNGRADE_KEY] = TEST_DATABASE
         if action == "upgrade":
             command.upgrade(config, target)
         elif action == "downgrade":
             command.downgrade(config, target)
+        elif action == "stamp":
+            command.stamp(config, target)
         else:  # pragma: no cover
             raise ValueError(action)
 

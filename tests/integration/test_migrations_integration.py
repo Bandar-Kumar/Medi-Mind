@@ -9,7 +9,7 @@ from alembic import command
 from sqlalchemy import Connection, Engine, text
 
 from app.core.config import Settings
-from app.records.migrations import alembic_config
+from app.records.migrations import DowngradeNotConfirmed, alembic_config
 from app.records.models import Base
 from tests.integration._guards import assert_is_test_database, run_alembic
 
@@ -172,3 +172,27 @@ def test_pgvector_extension_version(test_engine: Engine, schema_at_head: None) -
             text("SELECT extversion FROM pg_extension WHERE extname = 'vector'")
         ).scalar_one()
     assert version == "0.8.7"
+
+
+# --- Downgrade guard regression (backstop on a supplied connection) ----------------------------
+
+
+@pytest.mark.parametrize("target", ["-1", "base"])
+def test_unconfirmed_downgrade_is_refused_and_schema_stays_at_head(
+    test_engine: Engine, app_settings: Settings, schema_at_head: None, target: str
+) -> None:
+    """No confirmation -> the per-step backstop refuses and the transaction rolls back."""
+    with pytest.raises(DowngradeNotConfirmed, match="Refusing to downgrade"):
+        run_alembic(test_engine, app_settings.db_name, "downgrade", target, confirm=False)
+    tables, vector, version = _state(test_engine)
+    assert version == "0003"
+    assert tables == MEDIMIND_TABLES
+    assert vector == "0.8.7"
+
+
+def test_unconfirmed_backward_stamp_is_refused_and_revision_is_unchanged(
+    test_engine: Engine, app_settings: Settings, schema_at_head: None
+) -> None:
+    with pytest.raises(DowngradeNotConfirmed, match="Refusing to stamp backwards"):
+        run_alembic(test_engine, app_settings.db_name, "stamp", "0001", confirm=False)
+    assert _state(test_engine)[2] == "0003"

@@ -124,6 +124,88 @@ docker compose port db 5432      # expected: 127.0.0.1:5432
 - `docker compose stop` / `start` and `docker compose down` / `up -d` keep the data.
 - ⚠️ **`docker compose down -v` deletes the `medimind_pgdata` volume and ALL database data, permanently.** Don't use `-v` unless you really mean to wipe the database.
 
+## Migrations and backups
+
+The schema is created and changed only by the Alembic migrations in `migrations/versions/`. `alembic.ini` holds no database URL: every command connects with the settings in your `.env`.
+
+Run the commands below from the project root, in **PowerShell or Git Bash** (not cmd: the `sh -c '…'` quoting needs one of those two). The database must be running (`docker compose start`), except for the SQL preview.
+
+### 1. Check the current revision
+```bash
+uv run alembic current        # e.g. "0003 (head)"; empty output = no migrations applied yet
+uv run alembic history        # every revision, newest first
+uv run python -m app health   # the database_schema line: ok, warn (behind / not migrated) or fail
+```
+
+### 2. Preview the SQL (offline, no database needed)
+```bash
+uv run alembic upgrade head --sql
+```
+Prints the exact SQL an upgrade would run, without connecting anywhere. Read it before migrating.
+
+### 3. Apply migrations
+```bash
+uv run python -m app migrate
+```
+- It only upgrades, to the latest revision. Running it again at the latest revision changes nothing.
+- The whole upgrade runs in **one transaction**: if any step fails, nothing is applied.
+- **Take a backup first** (section 5) once the database holds data you care about.
+
+### 4. Downgrades need an exact confirmation
+A downgrade **destroys data**: it drops the tables of every revision it undoes. Alembic refuses any downgrade unless you confirm the name of the database you are connected to:
+```bash
+uv run alembic -x confirm_downgrade=medimind downgrade -1
+```
+- `-x confirm_downgrade=…` goes **before** `downgrade`, and must match the connected database's name exactly (case-sensitive, given once). Otherwise the command stops with `FAILED: Refusing to downgrade database …` and changes nothing.
+- This applies to every target, including `base`, `-1` and a specific revision. Moving the recorded revision backwards with `alembic stamp`, or `alembic stamp --purge`, needs the same confirmation. Forward stamps don't.
+- `--sql` previews (`uv run alembic downgrade 0003:0002 --sql`) only print SQL and need no confirmation.
+- **Back up before any downgrade** (section 5).
+
+### 5. Create a backup
+Backups use PostgreSQL's **custom format** (`-Fc`, compressed, restorable with `pg_restore`). Keep them **outside this repository**, in `%USERPROFILE%\MediMind-backups`. (`backups/` and `*.dump` are git-ignored as a safety net, because dumps can contain patient data.)
+
+> ⚠️ **Windows PowerShell 5.1 corrupts binary output redirected with `>`** (it re-encodes it as text). Never write a dump with `docker compose exec … pg_dump … > file.dump`. Instead, write the dump **inside the container**, then copy it out with `docker compose cp`, as below.
+
+PowerShell:
+```powershell
+New-Item -ItemType Directory -Force "$env:USERPROFILE\MediMind-backups" | Out-Null
+docker compose exec -T db sh -c 'pg_dump -U "$POSTGRES_USER" -d "$POSTGRES_DB" -Fc -f /tmp/medimind_backup.dump'
+docker compose cp db:/tmp/medimind_backup.dump "$env:USERPROFILE\MediMind-backups\medimind_2026-11-14_before_migrate.dump"
+docker compose exec -T db rm /tmp/medimind_backup.dump
+```
+Git Bash: the same, but use `mkdir -p "$USERPROFILE/MediMind-backups"` and the destination `"$USERPROFILE/MediMind-backups/medimind_2026-11-14_before_migrate.dump"`.
+
+Name each file with the date and the reason (for example `before_migrate`, `before_downgrade`).
+
+### 6. Verify a backup by restoring it into a scratch database
+A backup you have never restored is not proven. Restore it into a **separate** database, `medimind_restore_check`, never into `medimind`:
+```powershell
+docker compose cp "$env:USERPROFILE\MediMind-backups\medimind_2026-11-14_before_migrate.dump" db:/tmp/restore.dump
+docker compose exec -T db sh -c 'pg_restore --list /tmp/restore.dump > /dev/null && echo "archive readable"'
+docker compose exec -T db sh -c 'createdb -U "$POSTGRES_USER" medimind_restore_check'
+docker compose exec -T db sh -c 'pg_restore -U "$POSTGRES_USER" -d medimind_restore_check --exit-on-error /tmp/restore.dump'
+```
+Compare the restored copy with the original. The revision, table count and key row counts must match:
+```powershell
+docker compose exec -T db sh -c 'for d in medimind medimind_restore_check; do psql -U "$POSTGRES_USER" -d "$d" -At -c "SELECT current_database(), (SELECT version_num FROM alembic_version), (SELECT count(*) FROM information_schema.tables WHERE table_schema = '"'"'public'"'"'), (SELECT count(*) FROM patients), (SELECT count(*) FROM documents)"; done'
+```
+Then remove the scratch copy. **Type the name exactly: never `dropdb … medimind`.**
+```powershell
+docker compose exec -T db sh -c 'dropdb -U "$POSTGRES_USER" medimind_restore_check && rm /tmp/restore.dump'
+```
+
+### 7. After a migration: verify
+1. `uv run python -m app health`: `database_schema` is **ok** ("at revision … (latest)").
+2. `uv run alembic current` shows the latest revision with `(head)`.
+3. `uv run alembic check` reports no differences between the models and the database.
+4. `docker compose restart db`, then `uv run alembic current` again: the revision persists.
+
+### 8. Rollback and recovery
+- **A migration fails:** it rolls back by itself (one transaction). Fix the cause and run `migrate` again.
+- **A migration applied but is wrong, and the database holds no data you need:** take a backup anyway, then run a confirmed downgrade to the previous revision (section 4).
+- **A migration applied and data must be recovered:** stop anything using the database, take a fresh backup of the current state, verify the earlier backup (section 6), then restore it, for example with `pg_restore -U "$POSTGRES_USER" -d medimind --clean --if-exists --exit-on-error /tmp/restore.dump` (run inside the container after copying the dump in). Then repeat the checks in section 7.
+- **Never use `docker compose down -v` as a recovery step.** It deletes the whole volume, including every database in it, permanently. Recovery always goes through migrations or a verified backup.
+
 ## Repository layout
 
 | Path | Purpose |

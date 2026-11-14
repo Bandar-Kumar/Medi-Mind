@@ -7,21 +7,27 @@ root; ``alembic.ini`` has no database URL.
 - ``run_upgrade(settings)``: upgrade the configured database to the latest revision. Upgrade only:
   downgrading destroys data and is left to the explicit ``alembic downgrade`` command.
 - ``schema_status(settings)``: read-only check of ``alembic_version`` for the health check.
+- Downgrade guard (used by ``migrations/env.py``): every operation that moves the database
+  backwards (a downgrade, a backward ``stamp``, or ``stamp --purge``) requires an exact
+  confirmation of the CONNECTED database's name, e.g.
+  ``uv run alembic -x confirm_downgrade=medimind downgrade -1``.
 
 Database errors are re-raised (``run_upgrade``) or converted to a sanitized ``DatabaseError``
 (``schema_status``); raw driver messages are never logged.
 """
 
 import logging
-from collections.abc import Iterator
+from collections.abc import Callable, Iterator, Mapping, Sequence
 from contextlib import contextmanager
 from dataclasses import dataclass
 from enum import StrEnum
 from pathlib import Path
+from typing import Any
 
 from alembic import command
 from alembic.config import Config
 from alembic.script import ScriptDirectory
+from alembic.util import CommandError
 from sqlalchemy import Connection, text
 from sqlalchemy.exc import DBAPIError
 
@@ -141,3 +147,80 @@ def schema_status(settings: Settings) -> SchemaStatus:
     else:
         state = SchemaState.UNKNOWN_REVISION
     return SchemaStatus(state=state, current=current, head=head)
+
+
+# --- Downgrade guard (used by migrations/env.py) ---------------------------------------------
+
+CONFIRM_DOWNGRADE_KEY = "confirm_downgrade"
+
+
+class DowngradeNotConfirmed(CommandError):
+    """A backward migration operation without an exact database-name confirmation.
+
+    Subclasses Alembic's ``CommandError``, so the alembic command line prints a clean
+    ``FAILED: ...`` line (no traceback). The message names the database (not secret) and nothing
+    else.
+    """
+
+
+def confirmation_values(x_args: Sequence[str], attributes: Mapping[str, Any]) -> list[str]:
+    """Every ``confirm_downgrade`` value supplied, from ``-x`` arguments and from code.
+
+    ``-x confirm_downgrade`` without ``=`` is recorded as an empty (malformed) value. Code (the
+    integration-test helper) supplies it as ``config.attributes["confirm_downgrade"]``.
+    """
+    values: list[str] = []
+    for argument in x_args:
+        key, separator, value = argument.partition("=")
+        if key == CONFIRM_DOWNGRADE_KEY:
+            values.append(value if separator else "")
+    supplied = attributes.get(CONFIRM_DOWNGRADE_KEY)
+    if supplied is not None:
+        values.append(supplied if isinstance(supplied, str) else "")
+    return values
+
+
+def downgrade_refusal(values: Sequence[str], current_database: str) -> str | None:
+    """Why a backward operation must be refused (None = confirmed). Exact match only."""
+    usage = f"add `-x {CONFIRM_DOWNGRADE_KEY}={current_database}` before the alembic command"
+    if not values:
+        return f"no confirmation given; {usage}"
+    if len(values) > 1:
+        return f"confirmation given {len(values)} times; give it exactly once"
+    value = values[0]
+    if value == "":
+        return f"malformed confirmation (expected {CONFIRM_DOWNGRADE_KEY}=<database name>)"
+    if value != current_database:
+        return f"confirmation {value!r} does not match the connected database"
+    return None
+
+
+def require_confirmation(action: str, values: Sequence[str], current_database: str) -> None:
+    reason = downgrade_refusal(values, current_database)
+    if reason is not None:
+        raise DowngradeNotConfirmed(
+            f"Refusing to {action} database {current_database!r}: {reason}. "
+            "Back up the database first (see README, 'Migrations and backups')."
+        )
+
+
+def is_cli_downgrade(cmd_opts: Any) -> bool:
+    """True when the alembic command line is running ``downgrade`` (any target)."""
+    cmd = getattr(cmd_opts, "cmd", None)
+    return bool(cmd) and getattr(cmd[0], "__name__", "") == "downgrade"
+
+
+def backward_step_guard(values: Sequence[str], current_database: str) -> Callable[..., None]:
+    """Alembic ``on_version_apply`` callback refusing any backward step without confirmation.
+
+    The backstop for every path, including Python API calls: down migrations and backward stamps
+    report ``is_upgrade=False``; forward steps and forward stamps pass. The callback runs after
+    the step inside the single migration transaction, so raising rolls the step back.
+    """
+
+    def on_version_apply(*, ctx: Any, step: Any, heads: Any, run_args: Any) -> None:
+        if not step.is_upgrade:
+            action = "stamp backwards" if step.is_stamp else "downgrade"
+            require_confirmation(action, values, current_database)
+
+    return on_version_apply
