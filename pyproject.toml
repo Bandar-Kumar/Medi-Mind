@@ -7,9 +7,12 @@ readme = "README.md"
 requires-python = ">=3.12,<3.13"
 dependencies = [
     "alembic>=1.20.1",
+    "docling==2.150.1",
     "pgvector>=0.5.1",
     "psycopg[binary]>=3.3.9",
+    "pydantic>=2.14.3",
     "pydantic-settings>=2.16.2",
+    "pypdfium2>=5.15.2",
     "sqlalchemy>=2.1.8",
 ]
 
@@ -24,9 +27,11 @@ testpaths = ["tests"]
 pythonpath = ["."]
 # -ra: summary of skipped/failed tests; --strict-markers: typos in markers are errors.
 # Integration tests need the real database and are opt-in: `uv run pytest -m integration`.
-addopts = "-ra --strict-markers -m 'not integration'"
+# Docling tests load torch and Docling's models (slow) and are opt-in: `uv run pytest -m docling`.
+addopts = "-ra --strict-markers -m 'not integration and not docling'"
 markers = [
     "integration: needs the running PostgreSQL container (opt-in, read-only)",
+    "docling: needs Docling and its downloaded models (opt-in, slow)",
 ]
 
 [tool.ruff]
@@ -44,6 +49,8 @@ select = ["E", "F", "I", "UP", "B"]
 
 [dependency-groups]
 dev = [
+    "pillow>=13.0.0",
     "pytest>=9.2.0",
+    "reportlab>=5.1.0",
     "ruff>=0.17.5",
 ]

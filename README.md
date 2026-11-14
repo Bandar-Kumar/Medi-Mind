@@ -17,7 +17,7 @@ All demo data is **fictional and synthetic**.
 
 ## Status
 
-**Phase 1: Development environment and project foundation.** The project foundation is in place: configuration, logging, error handling, a health check and tests, plus a local PostgreSQL + pgvector database and an authenticated, read-only database connection. There are no AI features yet. See [docs/PROGRESS.md](docs/PROGRESS.md).
+**Phase 2: Medical document intelligence.** The foundation is in place: configuration, logging, error handling, a health check and tests, plus a local PostgreSQL + pgvector database, an authenticated connection and migrations. Phase 2 adds PDF validation, read-only storage of original files, and Docling parsing (layout, tables, OCR) into a versioned intermediate representation. Parsing runs only from the tests so far: there is no ingest command or UI, and parse results are not saved yet. There are no LLM features yet. See [docs/PROGRESS.md](docs/PROGRESS.md).
 
 ### Roadmap
 | Phase | Focus |
@@ -45,6 +45,8 @@ uv run python -m app health      # check the environment: exit code 0 = healthy
 uv run pytest                    # run the tests
 uv run ruff check .              # lint
 ```
+
+`uv sync` installs Docling and a CPU-only PyTorch, so `.venv` is about 1.2 GB. Docling's and RapidOCR's models are **not** part of the install; they are downloaded the first time the parser runs (see [Document parsing (Docling)](#document-parsing-docling)).
 
 Create your local settings file (git-ignored) from the template:
 
@@ -206,6 +208,85 @@ docker compose exec -T db sh -c 'dropdb -U "$POSTGRES_USER" medimind_restore_che
 - **A migration applied and data must be recovered:** stop anything using the database, take a fresh backup of the current state, verify the earlier backup (section 6), then restore it, for example with `pg_restore -U "$POSTGRES_USER" -d medimind --clean --if-exists --exit-on-error /tmp/restore.dump` (run inside the container after copying the dump in). Then repeat the checks in section 7.
 - **Never use `docker compose down -v` as a recovery step.** It deletes the whole volume, including every database in it, permanently. Recovery always goes through migrations or a verified backup.
 
+## Document parsing (Docling)
+
+MediMind parses PDFs with [Docling](https://github.com/docling-project/docling) on the CPU, with OCR (RapidOCR, PyTorch backend) and table-structure recognition always on (ADR-028).
+
+**Documents are processed locally.** Parsing runs on this machine with Docling's remote services turned off; no document, page or text is sent to an external service. Network access is needed only to **download the models**, once, during setup or first use (below).
+
+### Settings
+| Setting | Default | Meaning |
+|---|---|---|
+| `MEDIMIND_MAX_UPLOAD_BYTES` | `20971520` (20 MB) | Larger files are rejected before parsing |
+| `MEDIMIND_MAX_PAGES` | `20` | PDFs with more pages are rejected |
+| `MEDIMIND_PARSE_TIMEOUT_SECONDS` | `600` | Docling stops parsing a document after this long. The limit is checked between pages, so one slow page can overrun it |
+| `MEDIMIND_DATA_DIR` | `data` | Original files are stored read-only under `<data_dir>/uploads/`; `<data_dir>/parsed/` is reserved for parse output (Task 2.5) |
+
+### Models are downloaded on first use, by two separate mechanisms
+The models are not bundled with MediMind. The first time a parser starts (today: the first run of the Docling tests below), it loads all of them, downloading any that are missing; about 540 MB in total. Loading happens at start-up, so a download never happens in the middle of parsing a document.
+
+**1. Docling's models, through Hugging Face** (the `huggingface_hub` client):
+
+| Model | Size | Saved to |
+|---|---|---|
+| Layout model `docling-project/docling-layout-heron` | ~164 MB | Hugging Face cache: `%USERPROFILE%\.cache\huggingface\hub` (Windows) or `~/.cache/huggingface/hub`; `HF_HOME` moves it |
+| Table-structure models `docling-project/docling-models` | ~342 MB | same |
+
+**2. RapidOCR's models, through ModelScope** (RapidOCR's own downloader, from `modelscope.cn`, checked by SHA-256):
+
+| Model | Size | Saved to |
+|---|---|---|
+| PP-OCRv6 text detection and recognition, text-direction classifier, character dictionary (PyTorch format) | ~32 MB | the installed environment's `rapidocr/models` directory, for example `.venv\Lib\site-packages\rapidocr\models` on Windows |
+
+- RapidOCR downloads only files that are missing.
+- Because these files live inside the installed environment, deleting or recreating `.venv` (or reinstalling `rapidocr`) removes them, and the next start downloads them again.
+- If a model can't be loaded or downloaded, the parser stops with a `models_unavailable` error and asks you to run once with network access.
+
+### Offline mode
+`HF_HUB_OFFLINE=1` tells the Hugging Face client to use only its local cache and make no network requests. **It does not affect RapidOCR:** if RapidOCR's model files are missing, RapidOCR still tries to download them from ModelScope, and without network access that fails.
+
+**Fully offline operation needs both:**
+1. the Hugging Face cache populated with Docling's models, and
+2. RapidOCR's model files already present in the installed environment (`.venv`).
+
+Run once with network access to get both, then set `HF_HUB_OFFLINE=1` for later runs.
+
+`HF_HUB_OFFLINE` must be set in the shell. Putting it in `.env` has no effect: MediMind reads only `MEDIMIND_` settings from `.env`.
+
+### Docling tests (optional, slow)
+`uv run pytest` skips them. They parse synthetic, fictional PDFs with the real models.
+
+First run (needs network access; downloads any missing models), any shell:
+```bash
+uv run pytest -m docling tests/docling -q
+```
+
+Later runs, offline:
+
+Windows PowerShell (the variable stays set for this terminal; `Remove-Item Env:HF_HUB_OFFLINE` clears it):
+```powershell
+$env:HF_HUB_OFFLINE = "1"
+uv run pytest -m docling tests/docling -q
+```
+
+Windows CMD (set the variable on its own line; `set HF_HUB_OFFLINE=` clears it):
+```bat
+set HF_HUB_OFFLINE=1
+uv run pytest -m docling tests/docling -q
+```
+
+Git Bash / Linux / macOS (applies to this one command only):
+```bash
+HF_HUB_OFFLINE=1 uv run pytest -m docling tests/docling -q
+```
+
+To confirm nothing was downloaded, compare the size of the Hugging Face cache before and after, for example `du -sh ~/.cache/huggingface/hub` in Git Bash.
+
+**Measured on the development laptop (CPU only; not requirements):**
+- about 10 s per native page and 20 s per scanned page (warm, Task 2.1);
+- peak memory about 1.1 GB for a native page and 2.1 GB for a scanned page (Task 2.1);
+- the offline Docling test run: 48 tests in about 3 minutes.
+
 ## Repository layout
 
 | Path | Purpose |
@@ -213,7 +294,8 @@ docker compose exec -T db sh -c 'dropdb -U "$POSTGRES_USER" medimind_restore_che
 | `docs/` | Project brief, roadmap, decisions and progress log |
 | `app/` | Application code. `app/main.py` is the entry point, and `app/core/` holds configuration, logging, errors and health checks |
 | `app/records/` | Database access (SQLAlchemy + psycopg). The **only** code allowed to talk to the database (ADR-016) |
-| `tests/` | Automated tests (pytest). `tests/integration/` needs the running database and is opt-in |
+| `app/ingestion/` | PDF validation, read-only storage of originals, Docling parsing and the versioned parse IR (ADR-029). No database access |
+| `tests/` | Automated tests (pytest). `tests/integration/` needs the running database and `tests/docling/` needs Docling's and RapidOCR's models; both are opt-in |
 | `data/synthetic/` | Fictional demo records only. Never put real patient data here. |
 
 ## Documentation

@@ -40,8 +40,12 @@ A Proposed or Deferred ADR is not a final decision.
 | 023 | Fact status lifecycle; review flagged extractions | **Accepted** | Q7 |
 | 024 | LLM provider selected by evaluation, free preferred | **Deferred** to the start of Phase 3 | Q5 |
 | 025 | India region profile and initial jurisdiction | **Accepted** | Q3, Owner 2026-11-13 |
-| 026 | Python 3.12 + uv | **Accepted — resolution verified** (runtime not yet tested) | Q11, Task 1.1 |
+| 026 | Python 3.12 + uv | **Accepted — dependency resolution verified; Docling runtime verified** (sentence-transformers runtime unverified) | Q11, Task 1.1, Task 2.1 |
 | 027 | Full-time schedule; portfolio checkpoint at the MVP | Proposed | Q9 |
+| 028 | Docling parser configuration | **Accepted** | Owner, 2026-11-14 (Tasks 2.1, 2.2, 2.4) |
+| 029 | Versioned parse IR; the original PDF is authoritative | **Accepted** (IR schema version 1) / Proposed (general schema-versioning policy) | Owner, 2026-11-14 (Tasks 2.3, 2.4) |
+| 030 | Parser text issues are flagged, never repaired | **Accepted** | Owner, 2026-11-14 (Task 2.4) |
+| 031 | OCR provenance from Docling's OCR cells | **Accepted** (with a known limitation) | Owner, 2026-11-14 (Task 2.4) |
 
 ---
 
@@ -301,8 +305,9 @@ A Proposed or Deferred ADR is not a final decision.
   - If real data were ever used, India's Digital Personal Data Protection Act 2023 would apply. This is out of scope for the synthetic-only prototype.
 
 ## ADR-026: Python 3.12 + uv
-- **Status:** **Accepted — resolution verified** (Q11; Task 1.1, approved 2026-11-13).
-  - **Runtime compatibility has not been established yet.** This ADR is revisited if the Phase 2 runtime smoke test fails.
+- **Status:** **Accepted — dependency resolution verified; Docling runtime verified** (Q11; Task 1.1, approved 2026-11-13; Task 2.1, approved 2026-11-14).
+  - *History:* "Accepted — resolution verified. Runtime compatibility has not been established yet; this ADR is revisited if the Phase 2 runtime smoke test fails" until 2026-11-14.
+  - Loading sentence-transformers with transformers 5.x is **not yet verified** at runtime; it is checked when embeddings are first needed.
 - **Reasoning:**
   - Python 3.12 is mature, and ML libraries (torch, Docling, sentence-transformers) publish wheels for it. Some ML wheels lag behind for 3.13.
   - uv is fast, uses a lockfile, reads `pyproject.toml` natively and installs Python versions on Windows.
@@ -336,6 +341,19 @@ A Proposed or Deferred ADR is not a final decision.
     - first-run model downloads;
     - peak memory.
   - **If it fails:** first fix it by adjusting packages or extras; fall back to Python 3.11 only if needed.
+- **Task 2.1 result: step 2 (Docling runtime) passed (2026-11-14, owner approved).**
+  - **What was run:** a Docling spike in a throwaway folder outside the repository, converting one native and one scanned synthetic lab report on the CPU.
+  - **Outcome:**
+
+    | | Native PDF | Scanned PDF (OCR) |
+    |---|---|---|
+    | Table cells | 28/28 exact | 20/28 exact; all 6 values correct |
+    | Warm conversion, 1 page | 10.5–11.3 s | 20.2 s |
+    | Peak memory | about 1.1 GB | 2.11 GB |
+
+  - **The OCR backend limitation is resolved:** RapidOCR runs on its PyTorch backend, so no `onnxruntime` is needed. MediMind sets this backend explicitly (ADR-028).
+  - **Installed in Task 2.2:** `docling==2.150.1` (Task 1.1 had resolved 2.150.0) with PyTorch 2.15.0+cpu and no CUDA packages; `.venv` grew from 79 MB to 1,181 MB.
+  - No fallback to Python 3.11 was needed.
 
 ## ADR-027: Full-time schedule; portfolio checkpoint at the MVP
 - **Status:** Proposed
@@ -343,6 +361,74 @@ A Proposed or Deferred ADR is not a final decision.
 - **Decision:** Add a **portfolio checkpoint at the end of Phase 5 (the MVP)**. It brings the demo mode, a README with an architecture diagram and *measured* evaluation results, and a short walkthrough video forward from Phase 9. That way job applications can start while Phases 6–9 continue.
 - **Trade-off:** Some README and demo work is done twice. In return, the project becomes presentable about halfway through the timeline instead of at the end.
 - **Consequence:** The calendar estimates in [ROADMAP.md](ROADMAP.md) assume full-time work.
+
+## ADR-028: Docling parser configuration
+- **Status:** **Accepted** (owner, 2026-11-14; Tasks 2.1, 2.2, 2.4)
+- **Decision:** PDFs are parsed with Docling 2.150.1 (exact pin), configured explicitly in `app/ingestion/parsing.py`:
+  - **OCR always on:** RapidOCR 3.10.0 with its PyTorch backend and default model (`lang=[]`). The backend is set explicitly because Docling's default would need `onnxruntime`, which is not installed.
+  - **Table structure always on** (TableFormer, in Docling's default `accurate` mode).
+  - **CPU only**, 4 threads; external plugins off.
+  - **Limits from settings:** `MEDIMIND_MAX_UPLOAD_BYTES`, `MEDIMIND_MAX_PAGES`, `MEDIMIND_PARSE_TIMEOUT_SECONDS`.
+  - **One converter per batch:** all models, RapidOCR's included, load at warm-up, so no download can happen mid-document.
+- **Local processing vs model downloads:**
+  - **Document processing is local.** Docling's remote services are turned off; documents, pages and extracted text are never sent to an external service.
+  - **Model downloads are external, during setup or first use only.** Missing models are downloaded once (about 540 MB) by two separate mechanisms: Docling's models from Hugging Face into the Hugging Face cache, and RapidOCR's models from ModelScope into the installed environment (`.venv`). Only model files are downloaded; no document data is sent.
+  - **Offline afterwards:** `HF_HUB_OFFLINE=1` stops Hugging Face requests but not RapidOCR's downloader. Fully offline operation therefore needs both the Hugging Face cache and RapidOCR's model files already present (see the README).
+- **Reasoning:**
+  - The Task 2.1 spike showed exact table cells on native PDFs and correct values on a scan, within the laptop's memory.
+  - It is free and processes documents locally (ADR-013, ADR-025).
+- **Trade-offs:**
+  - About 1.2 GB of installed packages plus about 540 MB of models.
+  - About 10 s per native page and 20 s per scanned page on the development laptop's CPU.
+  - Docling's timeout is cooperative: it is checked between pages, so one slow page can overrun it. A hard limit would need a subprocess per document; it is not used unless measurements show it is needed.
+  - Docling changes some characters before MediMind receives them, and this cannot be switched off (see ADR-030).
+- **Consequences:**
+  - Eager RapidOCR model loading uses private RapidOCR methods, so it is allowed only for the verified version (3.10.0); any other version is refused as `parser_misconfigured`.
+  - Upgrading Docling or RapidOCR requires re-running the opt-in Docling tests.
+
+## ADR-029: Versioned parse IR; the original PDF is authoritative
+- **Status:**
+  - **Accepted (owner, 2026-11-14; Tasks 2.3, 2.4):** IR schema version 1, as defined in `app/ingestion/ir.py`.
+  - **Proposed (not yet adopted):** the general schema-versioning policy, i.e. when and how later IR versions are introduced.
+- **Decision:**
+  - The parser's output is a Pydantic intermediate representation, **schema version 1** (`app/ingestion/ir.py`): per page, the text, parse method (`native`/`ocr`), visible native character count, OCR provenance, tables as cell grids and review flags; plus document-level review flags.
+  - Models are frozen and reject unknown fields. Validation errors never contain input values.
+  - The IR is stored as a versioned JSON file next to Docling's own full JSON output. Tables stay in these files: there is no database table for them (no migration 0004).
+  - IR text is Docling's extracted, normalized text, not the raw PDF text. **The stored original PDF is the authoritative source.**
+  - The schema stays at version 1 until Task 2.5 writes the first file.
+- **Reasoning:** One validated contract between Docling and the rest of MediMind. Docling's output can change between versions, while the IR stays stable and testable without the models.
+- **Trade-off:** Table contents can't be queried with SQL until a later phase extracts facts from them. In return, no schema is designed before its first use.
+- **Consequences:**
+  - Pages are matched by page number, never by list position. Missing or duplicate pages are refused.
+  - An item spanning pages is split only when Docling's character spans check out exactly; otherwise it is placed on no page and flagged.
+
+## ADR-030: Parser text issues are flagged, never repaired
+- **Status:** **Accepted** (owner, 2026-11-14; Task 2.4: Option C, P1, visibility-aware signals, `invisible_text_layer`)
+- **Context (measured in Task 2.4):**
+  - Docling's PDF text extractor turns `–` and `−` into `-`. Its text normalization rewrites quotes and ligatures and joins hyphenated lines (`4.0-`/`6.0` became `4.06.0`). Neither can be switched off.
+  - OCR confidence is not accuracy: a scan with a mean confidence of 0.979 had only 25 of 40 cells exact.
+  - Some PDFs contain text that is not drawn, for example the OCR layer of a "searchable scan".
+- **Decision:**
+  1. Docling's text is copied **verbatim**; MediMind never corrects it. Anything unusual becomes a review flag, stored in the IR with the text it describes (unique, sorted; any other form is rejected).
+  2. **`docling_normalized_text`** (Option C): set when a watched character (such as `–`, `−`, `’`) occurs fewer times in Docling's page text than in the PDF's visible text layer read with PDFium, or when Docling's visible line cells contain characters it rewrites or a line-end hyphen it may drop.
+  3. **`ocr_text_unverified`** (P1): on every OCR page, whatever its confidence. `low_ocr_confidence` (minimum below 0.80) is a separate diagnostic. Look-alike-character detection (P3) and per-page confidence counts (P4) are deferred.
+  4. **Visibility:** PDFium associates each character with its text object. Render modes 3 (invisible) and 7 (clip only) are invisible; every other mode, including "unknown", counts as visible. Invisible text is excluded from `native_char_count`, `mixed_native_and_ocr` and both normalization checks.
+  5. **`invisible_text_layer`:** a page-level flag, set when PDFium finds invisible non-whitespace characters, whether or not Docling kept that text. It means the PDF holds text a reader cannot see, not that the text is wrong. The text is kept.
+- **Trade-offs:**
+  - More review work, and some false flags: counts are compared, not positions.
+  - No unnormalized copy of the text is kept; the original PDF is the reference (ADR-029).
+- **Consequences:** Flags never change text. Downstream extraction must treat flagged pages with care, and the review rules of ADR-023 apply to facts extracted from them.
+
+## ADR-031: OCR provenance from Docling's OCR cells
+- **Status:** **Accepted** (owner, 2026-11-14; Task 2.4), with the known limitation below.
+- **Decision:**
+  - A page is an OCR page (`parse_method = ocr`, with OCR provenance and `ocr_text_unverified`) **only** when Docling's line cells for that page include at least one non-blank cell marked `from_ocr`. Otherwise it is `native`.
+  - "No visible native text" is **not** evidence of OCR. A blank page, or a page with only invisible text, is `native`.
+  - A page with OCR cells and visible native text is also flagged `mixed_native_and_ocr`.
+  - OCR confidences come only from those cells; missing or invalid values stay empty and are flagged `ocr_confidence_unavailable`.
+- **Evidence:** only the OCR engine creates `from_ocr` cells (one per recognized line), and Docling's merge keeps them only where OCR text is used. Docling's own per-page `ocr_score` is computed from the same cells. On every test fixture the two agreed.
+- **Known limitation (accepted):** Docling does not record whether OCR was *attempted* on a page. OCR that ran but recognized nothing therefore looks the same as no OCR: the page is `native`, and `empty_page` if it has no text. An image-presence signal from PDFium could tell these apart later; it is not designed, and would need a new decision.
+- **Trade-off:** Provenance is never guessed, at the cost of not labelling unreadable scans as OCR pages.
 
 ## Open questions linked to ADRs
 - **Q12** (from ADR-025): Should an ambiguous date be auto-accepted when the *same document* contains an unambiguous date confirming DD/MM order (for example `25/03/2024`)? This would reduce review work, but adds an inference rule. **Default: no. Always flag.**

@@ -22,9 +22,191 @@ Only work that actually happened and was verified is recorded.
 
 ---
 
-## 2026-11-13: Phase 1, Tasks 1.2, 1.1, 1.5 and 1.6, plus architecture decisions
+## 2026-11-14: Migration safety committed; Phase 2 started (Tasks 2.1–2.3 done, Task 2.4 implementation approved, its documentation outstanding)
+
+**Phase:** 1 (closing work), then 2, document intelligence
+
+### Done
+- **Migration safety (A, B, C), committed as `86721df`, not pushed:**
+  - **A:** the downgrade guard: `-x confirm_downgrade=<database>` must exactly match the connected database. Command-line downgrades and `stamp --purge` are refused before anything runs, and a per-step backstop catches any other backward step. The `.env` path now uses `engine.begin()`.
+  - **B:** `.gitignore` ignores `backups/` and `*.dump`.
+  - **C:** a "Migrations and backups" section in the README.
+  - 39 new unit tests (`tests/test_downgrade_guard.py`); 249 unit tests passed. The 3 new integration tests are **written but not run**.
+- **Task 2.1: Docling spike** (outside the repository, `%TEMP%\medimind-phase2-spike`, kept):
+
+  | | Native PDF | Scanned PDF (OCR) |
+  |---|---|---|
+  | Table cells | 28/28 exact | 20/28 exact; all 6 values correct |
+  | Warm conversion, 1 page | 10.5–11.3 s | 20.2 s |
+  | Peak memory | about 1.1 GB | 2.11 GB |
+
+  RapidOCR used its PyTorch backend; no onnxruntime is needed. Owner approved.
+- **Task 2.2: dependencies and settings (approved):**
+  - `docling==2.150.1` and the dev dependency `reportlab>=5.1.0`; `uv.lock` was byte-identical to the reviewed preview, and no existing package changed.
+  - PyTorch 2.15.0+cpu, with 0 CUDA packages; packages 22 → 115; `.venv` 79 MB → 1,181 MB.
+  - New settings `max_upload_bytes` (20 MB), `max_pages` (20) and `parse_timeout_seconds` (600), plus `uploads_dir` and `parsed_dir`.
+  - New errors `DocumentValidationError` and `DocumentParseError`.
+  - A `docling` test marker, opt-in.
+  - A lazy-import test: importing `app` loads no `docling`, `torch` or `transformers`.
+- **Task 2.3: IR, PDF validation and storage (approved):**
+  - `app/ingestion/` holds the Pydantic IR (schema v1), `validate_pdf` (8 reason codes, including owner-password-only PDFs) and write-once, read-only, content-addressed storage.
+  - Fixtures are built in code with ReportLab, using fictional data.
+  - `pydantic` and `pypdfium2` are declared; 108 focused tests passed.
+  - Two follow-up fixes, each with a test that fails without it:
+    - an identical stored file gets its read-only flag restored on retry;
+    - IR error messages are sanitized.
+- **Task 2.4: Docling parser (implementation and verification approved; README, IMPLEMENTATION_PLAN and DECISIONS updates outstanding):**
+  - **New modules:** `docling_mapping.py` (pure mapping) and `parsing.py` (one converter per batch, lazy imports).
+  - **Pinned configuration:** `RapidOcrOptions(backend="torch", lang=[])`, remote services off, CPU.
+  - **Page numbers:** pages are matched by number, never by position.
+  - **Multi-page items:** split only when Docling's character spans check out exactly; otherwise placed on no page and flagged.
+  - **Errors:** classified by class name, with no raw messages and no chained exceptions.
+  - **Models:** downloaded once, 536 MB in total: 506 MB of Docling models in the Hugging Face cache and 31 MB of RapidOCR models in `.venv`. Later runs are offline (`HF_HUB_OFFLINE=1`). RapidOCR's models now load during warm-up.
+  - **Pillow:** declared as a dev dependency.
+  - **Owner decisions applied:**
+    - **Option C:** `–` and `−` lost by docling-parse are detected against PDFium's text layer, by occurrence counts, and flagged `docling_normalized_text`, never repaired.
+    - **P1:** every OCR page carries `ocr_text_unverified`.
+    - Review flags moved into the IR.
+  - **Audit hardening:**
+    - IR errors hide input values;
+    - pages are built inside the sanitizing boundary;
+    - stricter flag rules;
+    - tuple collections, with unchanged JSON;
+    - non-canonical flags rejected;
+    - PDFium pages always closed.
+  - **Visibility-aware signals (approved):**
+    - PDFium checks each character's text-object render mode, and modes 3 and 7 count as invisible. Docling's line cells use the same rule.
+    - The searchable-scan fixture no longer gives a false `mixed_native_and_ocr` or `docling_normalized_text` flag; its `native_char_count` is 0, down from 307.
+  - **Verification after the visibility change:**
+
+    | Check | Result |
+    |---|---|
+    | Regression tests | 328 passed |
+    | Opt-in Docling tests, offline | 35 passed |
+    | Ruff, `uv lock --check`, `git diff --check` | Clean |
+  - **`invisible_text_layer` flag (owner approved):**
+    - New page-level review reason. It is set when PDFium finds non-whitespace characters drawn in render mode 3 (invisible) or 7 (clip only), whether or not Docling kept that text.
+    - It applies to fully invisible pages and to mixed visible/invisible pages. It is never a document-level flag (the existing document validator rejects it).
+    - It means the PDF holds text a reader cannot see, not that the text is wrong. Text is never removed or corrected.
+    - PDFium's pass now yields (character, visible) pairs; `TextLayerStats` and `PageSignals` gain `invisible_char_count`. The visible counts are unchanged.
+  - **OCR provenance fixed:**
+    - A page is OCR only when Docling's line cells include at least one non-blank `from_ocr` cell. Only the OCR engine creates these cells, and Docling's own `ocr_score` is computed from the same cells.
+    - The old fallback ("no visible native text" counted as OCR) is removed, along with the `ocr_enabled` parameter it needed.
+    - Result: a page with only invisible text and no image is now `native` with `invisible_text_layer`, not `ocr`. The blank page is now `native` with `empty_page`. Scanned, mixed and searchable-scan pages keep `ocr_text_unverified`.
+  - **Closure verification (offline):**
+
+    | Check | Result |
+    |---|---|
+    | Focused IR, mapping and parsing tests | 235 passed, 1 deselected |
+    | Default suite | 565 passed, 101 deselected |
+    | Opt-in Docling tests (`HF_HUB_OFFLINE=1`) | 48 passed |
+    | Ruff check, Ruff format, `uv lock --check --offline`, `git diff --check` | Clean |
+    | Hugging Face cache | 530,104,282 bytes before and after (no downloads) |
+
+    - Every Docling fixture has an explicit expected parse method and flag set.
+    - With the old OCR rule restored and the flag disabled (scratch copy), 13 of the new or updated tests failed.
+
+### Decisions
+- **Docling setup:** Docling 2.150.1 with RapidOCR on PyTorch; OCR and table structure always on; remote services off.
+- **No migration 0004:** tables go into versioned IR and Docling JSON files.
+- **IR text is Docling's extracted, normalized text.** The stored original PDF is the authoritative source. Normalization is detected and flagged, never repaired.
+- **Option C** for the lost dashes, with occurrence counts.
+- **P1:** every OCR page carries `ocr_text_unverified`. The 0.80 threshold is unchanged. P3 (look-alike characters) and P4 (per-page confidence counts) are deferred.
+- **IR schema stays at version 1** until Task 2.5 writes the first file; a versioning policy is proposed, not yet adopted.
+- **`invisible_text_layer` added** as a page-only flag. No other new flags; the IR JSON layout is unchanged. Schema version stays 1, because no IR file has been written yet.
+- **OCR provenance = non-blank `from_ocr` cells.** "No visible native text" is not evidence of OCR.
+- **Known limitation accepted for now:** OCR that runs but recognizes nothing can't be told apart from OCR that didn't run. Such a page is `native` (and `empty_page` if it has no text). A possible later fix is an image-presence signal from PDFium; it isn't designed or approved.
+
+### Learned
+- **docling-parse turns `–` and `−` into `-`,** and Docling doesn't let us turn that off. Its line cells are not raw PDF text.
+- **Docling's de-hyphenation corrupts wrapped values:** `4.0-`/`6.0` became `4.06.0`, and `Anti-`/`HBs` became `AntiHBs`.
+- **OCR confidence is not accuracy.** On the scan, the mean confidence was 0.979, yet only 25 of 40 cells were exact. `g/dL` → `7p/6` scored 0.887; `µ` → `μ` and `°C` → `℃` also occurred.
+- **RapidOCR loads its models lazily**, on the first OCR call, unless they are preloaded.
+- **Docling's timeout is cooperative:** with a 1 s limit it stopped after 1.8 s.
+- **Invisible text:**
+  - PDFium maps every character to its text object, so its visibility can be checked exactly.
+  - docling-parse merges a line that mixes visible and invisible text into one cell.
+  - Docling keeps invisible text in its output whenever no image is OCR'd over it.
+- **OCR provenance in Docling:**
+  - RapidOCR creates `TextCell(from_ocr=True)` only for lines it recognized, and Docling's merge keeps that flag on the final line cells.
+  - Docling doesn't record per page whether OCR was attempted, only whether it produced cells.
+
+### Issues / blockers
+- ~~Task 2.4 is not closed~~ **Resolved for implementation:** the visibility change was approved, and the `invisible_text_layer` flag and the OCR provenance fix were implemented, verified and approved.
+- **Documentation still outstanding for Tasks 2.2–2.4:** README (first-run model download, `HF_HUB_OFFLINE`), IMPLEMENTATION_PLAN and DECISIONS have **not** been updated. PROGRESS has a Task 2.4 entry.
+- **Uncommitted:** the Tasks 2.2–2.4 code and this SUMMARY file. `86721df` is not pushed.
+- **Not run:** the 3 migration-safety integration tests and the `.env`-path downgrade check against `medimind_test`.
+- **Temporary folders kept until the owner allows deletion:** the spike folder (1.75 GB), the preview folder and the lockfile backups in `%TEMP%`.
+
+### Next
+1. ~~Review the visibility change and decide on the `invisible_text_layer` flag.~~ Done.
+2. Finish the outstanding Task 2.2–2.4 documentation (README section, IMPLEMENTATION_PLAN, DECISIONS), then commit (owner).
+3. Task 2.5 (**not started**): persist the IR and Docling JSON files (freeze schema version 1) and write `pages` rows.
+4. With approval, run the 52 integration tests against `medimind_test`.
+
+---
+
+## 2026-11-13: Phase 1, Tasks 1.2, 1.1, 1.5 and 1.6 done, Task 1.7 nearly done, plus architecture decisions
 
 **Phase:** 1, development environment and project foundation
+
+### Task 1.7: Database schema and migrations (in progress: implementation committed, final checks pending)
+- **Planning:**
+  - The first plan (baseline tables only, as ADR-020 said) was reviewed. **The owner chose the full 16-table schema now**, in three ordered migrations, with PostgreSQL 18 `uuidv7()` keys.
+  - **The owner's revision (v2):**
+    - destructive tests run only in a separate **`medimind_test`** database, behind a hard-coded name guard;
+    - subtype tables take their patient from `extracted_facts` instead of carrying `patient_id`;
+    - one date-precision rule (`day`, `month`, `year`; both or neither; normalized) on all 5 date columns;
+    - `is_synthetic` has no default;
+    - `review_decisions` are append-only at the application level only, documented, with no trigger.
+  - **Recommendations U1–U6 accepted:**
+    - U1: ADR-021 (shared fact base table) accepted;
+    - U2: `vector(384)` (BGE-small);
+    - U3: the `pgvector` package;
+    - U4: deleting a patient is RESTRICTed;
+    - U5: removed the `chunks.doc_type`/`doc_date` copies (join `documents` instead);
+    - U6: added the `python -m app migrate` command and the `database_schema` health check.
+- **Database checks (owner-approved; read-only except one `createdb`):**
+  - `SELECT uuidv7()` works (version-7 IDs); `vector` 0.8.7 available, not installed; the database user is a superuser.
+  - `createdb medimind_test` ran once. The databases are now medimind, medimind_test, postgres, template0 and template1. `medimind` still had 0 tables. The container was stopped and the volume kept.
+- **Dependencies:** the preview matched what was applied: exactly 4 new packages (alembic 1.20.1, mako 1.4.3, markupsafe 3.0.4, pgvector 0.5.1), no existing package changed. `uv lock --check` passed.
+- **Built:**
+  - `app/records/models.py`: 16 tables, joined-table inheritance for facts, CHECK constraints built from Python enums, composite foreign keys for patient isolation, evidence foreign keys to `pages`, `vector(384)`, a generated `tsvector`;
+  - `alembic.ini` with **no database URL**;
+  - `migrations/env.py`: the app's sanitized engine, or an explicitly passed connection (tests), or a dialect-only URL for `--sql` previews;
+  - frozen migrations `0001_core`, `0002_facts`, `0003_retrieval`;
+  - `app/records/migrations.py` (`run_upgrade`, `schema_status`);
+  - the `migrate` command and the `database_schema` health check;
+  - the architecture guard now forbids `alembic` outside `app/records/`;
+  - Alembic's plugin startup log noise silenced.
+- **Verified (actually run):**
+  - **Unit suite:** **210 passed**. Ruff check and format clean; `git diff --check` clean.
+  - **Offline SQL render:** 16 tables, 16 indexes and the extension, all in **one** `BEGIN … COMMIT`.
+  - **Health with the database stopped:** `database_schema` warns "skipped: … (PortClosed)", exit 0. The check now takes **5.6–6.5 s**, up from 4.4 s.
+  - **Integration runs (run by the owner, all inside `medimind_test`):**
+    - run 1: 11 passed, **38 errors**, all in the constraint-test transaction fixture;
+    - run 2: 47 passed, **2 failed** (expected `23503`, got `23001`);
+    - run 3: 48 passed, **1 failed** (expected `23503`, got `23505`).
+
+    All three were test bugs, each fixed test-only (see Learned). The migration tests passed every time:
+    - fresh setup from nothing;
+    - step-by-step round trip;
+    - `alembic check`;
+    - **models vs migrations compared definition by definition**;
+    - pgvector 0.8.7.
+
+    No run reported an error from the check that `medimind` was unchanged.
+  - The final rerun after the third fix was not yet reported back to Claude.
+- **Learned:**
+  - **SQLAlchemy 2.x starts a transaction automatically:** any statement opens one, so calling `connection.begin()` after the database-name check raised `InvalidRequestError`. Fix: begin the outer transaction first, then run the check (`rolled_back_connection`), plus 4 regression tests on SQLite.
+  - **`ON DELETE RESTRICT` reports `23001`** (`restrict_violation`). `23503` is for the default `NO ACTION`, and for inserts pointing at missing rows.
+  - **PostgreSQL checks UNIQUE while inserting a row, and foreign keys at the end of the statement.** A row breaking both reports `23505`, so each test now breaks exactly one rule.
+  - **`alembic check` does not compare CHECK constraints.** A catalog comparison (`pg_get_constraintdef`, `pg_get_indexdef`) between the migrated schema and one built from the models catches what it misses.
+  - **Small surprises:**
+    - pgvector 0.5.1 no longer pulls in numpy;
+    - Alembic 1.20 logs 7 INFO lines *while it is imported*, so the fix had to go in the app's logging setup;
+    - an offline downgrade keeps Alembic's own version table, only deleting its row.
+- **Git:** the owner committed Task 1.6 as `15a8b04` and the Task 1.7 work as `f60f4b5`. The working tree was clean at wrap-up.
 
 ### Task 1.6: SQLAlchemy connection + authenticated database health
 - **Decisions (owner):** D1 Alembic moves to Task 1.7; D2 `database_connection` warns when unreachable and fails on rejected logins; D3 integration tests read `.env` in memory, read-only; D4 Task 1.5 committed first (`715d77b`); D5 `session_scope()` now, records layer only. Later: "Option A" (`connection_rejected`, see Learned).
@@ -225,9 +407,20 @@ Only work that actually happened and was verified is recorded.
   - Claude no longer adds attribution lines to commits.
   - The owner committed Task 1.1's doc updates as `b732040`. The architecture-decision doc updates are uncommitted.
 
+### Issues / blockers at wrap-up
+- **Task 1.7 is not yet complete:**
+  - the integration rerun after the `23505` test fix has not been reported (expected 49 passed);
+  - `python -m app migrate` on the real `medimind` database needs the owner's separate approval;
+  - the completion docs (README, DATABASE_DESIGN, DECISIONS, IMPLEMENTATION_PLAN, PROGRESS) are not updated yet.
+- **Docker Desktop was paused** (from its own menu, not by Claude) at wrap-up, so the container state could not be checked. Resume it before the next database step. Never `down -v`.
+
 ### Next
-1. ~~Task 1.6~~ done (see the Task 1.6 section above); owner review and commit pending.
-2. Task 1.7: initialize Alembic (moved from 1.6, D1) and the baseline migration (enables `vector`).
+1. ~~Task 1.6~~ done and committed (`15a8b04`).
+2. **Finish Task 1.7:**
+   1. rerun `uv run pytest -m integration` (expect 49 passed), then `docker compose stop`;
+   2. with approval, run `python -m app migrate` on `medimind`, then check that health shows `database_schema` ok;
+   3. a persistence check across `docker compose restart db`;
+   4. update the docs with the measured results.
 3. Task 1.8: patient-scoped repositories with cross-patient isolation tests.
 4. Phase 2 starts with the Docling runtime smoke test (ADR-026).
 

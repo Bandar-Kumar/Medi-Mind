@@ -45,7 +45,14 @@ class JsonFormatter(logging.Formatter):
         return json.dumps(payload, default=str)
 
 
-_QUIET_LOGGERS: dict[str, int] = {"alembic.runtime.plugins": logging.WARNING}
+# Third-party loggers whose INFO output is startup/progress noise. Docling logs per-document
+# progress; RapidOCR ("RapidOCR" logger, its own console handler) logs model paths. Neither is given
+# document content by us (Docling only ever sees the neutral stream name "document.pdf").
+_QUIET_LOGGERS: dict[str, int] = {
+    "alembic.runtime.plugins": logging.WARNING,
+    "docling": logging.WARNING,
+    "RapidOCR": logging.WARNING,
+}
 
 
 def configure_logging(

@@ -1,0 +1,17 @@
+warning: in the working copy of '.env.example', LF will be replaced by CRLF the next time Git touches it
+[1mdiff --git a/.env.example b/.env.example[m
+[1mindex 5a91639..09c680a 100644[m
+[1m--- a/.env.example[m
+[1m+++ b/.env.example[m
+[36m@@ -26,3 +26,11 @@[m [mMEDIMIND_DB_USER=medimind[m
+ # It is intentionally empty here: Docker Compose refuses to start the database while it is empty.[m
+ # Never commit a real password, and never put one in this file.[m
+ MEDIMIND_DB_PASSWORD=[m
+[32m+[m
+[32m+[m[32m# --- Document ingestion (Phase 2) ---------------------------------------------------------------[m
+[32m+[m[32m# Uploads larger than this are rejected before parsing (bytes; 20971520 = 20 MB).[m
+[32m+[m[32mMEDIMIND_MAX_UPLOAD_BYTES=20971520[m
+[32m+[m[32m# PDFs with more pages are rejected. About 10 s/page native, 20 s/page scanned (CPU, Task 2.1).[m
+[32m+[m[32mMEDIMIND_MAX_PAGES=20[m
+[32m+[m[32m# Docling stops parsing one document after this many seconds; the document is marked failed.[m
+[32m+[m[32mMEDIMIND_PARSE_TIMEOUT_SECONDS=600[m

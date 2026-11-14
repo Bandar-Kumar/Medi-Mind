@@ -70,3 +70,13 @@ def test_alembic_plugin_startup_noise_is_quieted() -> None:
     configure_logging("INFO", "text")
     assert logging.getLogger("alembic.runtime.plugins").level == logging.WARNING
     assert logging.getLogger("alembic.runtime.migration").level == logging.NOTSET  # kept
+
+
+def test_docling_and_rapidocr_progress_noise_is_quieted() -> None:
+    import logging
+
+    from app.core.logging import configure_logging
+
+    configure_logging("INFO", "text")
+    assert logging.getLogger("docling").level == logging.WARNING
+    assert logging.getLogger("RapidOCR").level == logging.WARNING

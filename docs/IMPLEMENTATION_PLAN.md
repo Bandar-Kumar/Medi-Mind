@@ -65,7 +65,7 @@ Every phase follows the same template: **Objective · Subtasks · Dependencies �
 
 ---
 
-## Phase 2: Medical document intelligence (outline)
+## Phase 2: Medical document intelligence (in progress)
 
 - **Objective:** Turn uploaded files into stored pages, text and tables, with a document type, duplicate detection and an identity check.
 - **Subtasks:**
@@ -82,6 +82,18 @@ Every phase follows the same template: **Objective · Subtasks · Dependencies �
   - Synthetic lab reports, both native and scanned variants, are parsed with correct page numbers.
   - Classification accuracy is measured and reported.
 - **Risks:** Docling resource use; OCR quality on degraded scans.
+
+### Tasks (refined as the phase runs)
+
+The first tasks cover the outline's "Docling spike", "upload validation", "storage and hashing" and the parsing part of "parse into `pages`, with OCR fallback". The other subtasks (rule-based classifier, identity check, upload and document library UI) are not yet broken into tasks.
+
+| # | Task | Status | Output |
+|---|---|---|---|
+| 2.1 | Docling spike: runtime smoke test (ADR-026) and speed, memory and accuracy on a native and a scanned synthetic PDF, outside the repository | ✅ Done, owner approved (2026-11-14) | Measurements in SUMMARY.md and ADR-026 |
+| 2.2 | Dependencies and settings: `docling==2.150.1` (CPU PyTorch), dev dependency `reportlab`; settings `max_upload_bytes`, `max_pages`, `parse_timeout_seconds`, `uploads_dir`, `parsed_dir`; errors `DocumentValidationError`, `DocumentParseError`; opt-in `docling` test marker | ✅ Done, approved (2026-11-14) | `pyproject.toml`, `uv.lock`, `app/core/` |
+| 2.3 | Parse IR (schema v1), PDF validation, write-once read-only content-addressed storage of originals | ✅ Done, approved (2026-11-14) | `app/ingestion/ir.py`, `validation.py`, `storage.py`; fixtures built in code |
+| 2.4 | Docling parser: pinned configuration, mapping to the IR, review flags (ADR-028–031) | Implementation and verification approved (2026-11-14). The documentation checkpoint (README, this plan, DECISIONS) is complete when the owner approves these documentation updates | `app/ingestion/parsing.py`, `docling_mapping.py`; unit tests and opt-in Docling tests |
+| 2.5 | Persist the IR and Docling JSON files (freezes IR schema version 1) and write `pages` rows | **Not started** | — |
 
 ## Phase 3: Structured clinical extraction (outline)
 

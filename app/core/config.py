@@ -29,7 +29,16 @@ SAFE_TO_DISPLAY: tuple[str, ...] = (
     "db_port",
     "db_name",
     "db_user",
+    "max_upload_bytes",
+    "max_pages",
+    "parse_timeout_seconds",
 )
+
+# Ingestion limits (Phase 2). Starting values from the Task 2.1 Docling spike: about 10 s per page
+# for native PDFs and 20 s per page for scanned PDFs on CPU, so 20 pages fit within 600 s.
+DEFAULT_MAX_UPLOAD_BYTES = 20 * 1024 * 1024  # 20 MB (PROJECT_BRIEF)
+DEFAULT_MAX_PAGES = 20
+DEFAULT_PARSE_TIMEOUT_SECONDS = 600
 
 
 class Settings(BaseSettings):
@@ -58,6 +67,21 @@ class Settings(BaseSettings):
     # Secret: never displayed or logged. Optional here so the app still starts without it; the
     # health check warns, and Docker Compose refuses to start the database without it.
     db_password: SecretStr | None = None
+
+    # Document ingestion (Phase 2). Checked before parsing; the timeout bounds one document.
+    max_upload_bytes: int = Field(default=DEFAULT_MAX_UPLOAD_BYTES, ge=1, le=200 * 1024 * 1024)
+    max_pages: int = Field(default=DEFAULT_MAX_PAGES, ge=1, le=500)
+    parse_timeout_seconds: int = Field(default=DEFAULT_PARSE_TIMEOUT_SECONDS, ge=10, le=3600)
+
+    @property
+    def uploads_dir(self) -> Path:
+        """Read-only original files, stored by content hash: <data_dir>/uploads/<patient>/<sha>."""
+        return self.data_dir / "uploads"
+
+    @property
+    def parsed_dir(self) -> Path:
+        """Versioned parse outputs per document: IR JSON (with tables) and full Docling JSON."""
+        return self.data_dir / "parsed"
 
     def safe_summary(self) -> dict[str, Any]:
         """Return only the allow-listed, non-secret settings, for display or logging."""

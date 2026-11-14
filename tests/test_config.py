@@ -135,3 +135,43 @@ def test_env_example_documents_every_setting() -> None:
     }
     expected = {f"{ENV_PREFIX}{name.upper()}" for name in Settings.model_fields}
     assert documented == expected
+
+
+# --- Ingestion limits (Phase 2) ------------------------------------------------------------------
+
+
+def test_ingestion_limit_defaults_from_the_docling_spike() -> None:
+    settings = Settings()
+    assert settings.max_upload_bytes == 20 * 1024 * 1024
+    assert settings.max_pages == 20
+    assert settings.parse_timeout_seconds == 600
+
+
+def test_ingestion_directories_derive_from_data_dir(tmp_path: Path) -> None:
+    settings = Settings(data_dir=tmp_path / "d")
+    assert settings.uploads_dir == tmp_path / "d" / "uploads"
+    assert settings.parsed_dir == tmp_path / "d" / "parsed"
+
+
+def test_ingestion_limits_are_configurable(monkeypatch: pytest.MonkeyPatch) -> None:
+    monkeypatch.setenv("MEDIMIND_MAX_PAGES", "5")
+    monkeypatch.setenv("MEDIMIND_PARSE_TIMEOUT_SECONDS", "120")
+    settings = Settings()
+    assert (settings.max_pages, settings.parse_timeout_seconds) == (5, 120)
+
+
+@pytest.mark.parametrize(
+    ("name", "value"),
+    [
+        ("MEDIMIND_MAX_PAGES", "0"),
+        ("MEDIMIND_MAX_PAGES", "501"),
+        ("MEDIMIND_PARSE_TIMEOUT_SECONDS", "5"),
+        ("MEDIMIND_MAX_UPLOAD_BYTES", "0"),
+    ],
+)
+def test_ingestion_limits_out_of_range_are_rejected(
+    monkeypatch: pytest.MonkeyPatch, name: str, value: str
+) -> None:
+    monkeypatch.setenv(name, value)
+    with pytest.raises(ConfigurationError, match=name):
+        get_settings()

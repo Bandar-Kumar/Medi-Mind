@@ -161,3 +161,18 @@ def test_migrate_database_errors_are_logged_sanitized(
     assert record.exc_info is None
     assert "Database error while running 'migrate'" in record.getMessage()
     assert fake_secret not in caplog.text
+
+
+def test_document_errors_carry_stable_codes_and_are_expected_failures() -> None:
+    from app.core.errors import DocumentParseError, DocumentStorageError, DocumentValidationError
+
+    invalid = DocumentValidationError("File is not a PDF", reason="not_pdf")
+    failed = DocumentParseError("Parsing failed (RuntimeError)", kind="parser_failed")
+    stored = DocumentStorageError("Stored file differs", kind="integrity_mismatch")
+    assert (invalid.reason, failed.kind, stored.kind) == (
+        "not_pdf",
+        "parser_failed",
+        "integrity_mismatch",
+    )
+    for error in (invalid, failed, stored):
+        assert isinstance(error, MediMindError)

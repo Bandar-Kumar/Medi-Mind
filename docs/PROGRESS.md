@@ -2,7 +2,9 @@
 
 ## Current phase
 
-**Phase 1: Development environment and project foundation.** Tasks 1.1 (dependency compatibility, resolution only), 1.2 (project foundation), 1.5 (Docker Compose PostgreSQL + pgvector) and 1.6 (SQLAlchemy connection + authenticated database health) are complete. Phase 0 is complete, but some Proposed ADRs are still open.
+**Phase 2: Medical document intelligence.** Tasks 2.1–2.3 are complete. Task 2.4's implementation and verification are approved; its README, IMPLEMENTATION_PLAN and DECISIONS updates are still outstanding. Task 2.5 has not started. Phase 0 is complete, but some Proposed ADRs are still open.
+
+> This file has no entries for Task 1.7, migration safety, or Tasks 2.1–2.3. Their record is in [SUMMARY.md](../SUMMARY.md) (2026-11-13 and 2026-11-14).
 
 ## Completed
 
@@ -108,11 +110,30 @@
   - with the database stopped: `database_connection` warn, exit 0, about 4.4 s.
 - **Left stopped**, with the volume kept.
 
+### 2026-11-14: Phase 2, Task 2.4: Docling parser (implementation and verification approved; documentation outstanding)
+- **Built:** Docling parsing into the versioned IR (`app/ingestion/parsing.py`, `app/ingestion/docling_mapping.py`):
+  - pages matched by number;
+  - Docling's text passed through verbatim;
+  - normalization detected and flagged, never repaired;
+  - review flags stored in the IR.
+- **Invisible PDF text:**
+  - PDFium checks each character's render mode. Modes 3 (invisible) and 7 (clip only) are excluded from `native_char_count`, `mixed_native_and_ocr` and both `docling_normalized_text` checks.
+  - Their presence sets the page-level `invisible_text_layer` flag. Text is never removed or changed.
+- **OCR provenance:** a page is `ocr` only when Docling has a non-blank `from_ocr` line cell for it. "No visible native text" no longer counts as OCR, so a page with only invisible text is `native`.
+- **Verified (offline, measured):**
+  - 235 focused tests passed (1 deselected); 565 default-suite tests passed (101 deselected); 48 opt-in Docling tests passed;
+  - Ruff check and format, `uv lock --check --offline` and `git diff --check` clean;
+  - Hugging Face cache unchanged, so no model downloads.
+- **Known limitation:** OCR that runs but recognizes no text can't be distinguished from OCR not running; such a page is `native` (and `empty_page` if it has no text).
+- **Outstanding:** the README section (first-run model download, `HF_HUB_OFFLINE`) and the IMPLEMENTATION_PLAN and DECISIONS updates. These have not been written.
+- **Not started:** Task 2.5.
+
 ## Next steps
 
-1. **Task 1.7:** initialize Alembic, then the baseline migration (`patients`, `documents`, `pipeline_runs`; enable `vector`).
-2. **Task 1.8:** patient-scoped repositories with cross-patient read, update and delete isolation tests.
-3. At the start of Phase 2: the runtime smoke test (ADR-026), with owner approval.
+1. **Finish the Task 2.2–2.4 documentation:** the README section (first-run model download, `HF_HUB_OFFLINE`), IMPLEMENTATION_PLAN and DECISIONS. Then the owner commits Tasks 2.2–2.4.
+2. **Task 2.5** (not started): persist the IR and Docling JSON files (freeze schema version 1) and write `pages` rows.
+3. **Task 1.8** (pending): patient-scoped repositories with cross-patient read, update and delete isolation tests.
+4. With approval, run the integration tests against `medimind_test`.
 
 ## Open questions
 
