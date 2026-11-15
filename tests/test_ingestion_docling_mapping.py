@@ -854,3 +854,132 @@ def test_invisible_text_layer_is_never_a_document_flag() -> None:
     assert result.document.review_flags == ()
     assert ReviewFlag(2, ReviewReason.INVISIBLE_TEXT_LAYER) in result.review_flags
     assert ReviewFlag(1, ReviewReason.INVISIBLE_TEXT_LAYER) not in result.review_flags
+
+
+# --- replacement_character (D7) -------------------------------------------------------------------
+
+FFFD = "\ufffd"
+
+
+def test_replacement_character_in_text_is_flagged_and_kept() -> None:
+    document = _doc(1)
+    _text(document, 1, f"Result: {FFFD}{FFFD} g/dL")
+    result = _map(document, _signals(1))
+    page = result.document.pages[0]
+    assert page.text == f"Result: {FFFD}{FFFD} g/dL"  # never stripped or replaced
+    assert _reasons(result, 1) == {ReviewReason.REPLACEMENT_CHARACTER}
+    assert result.document.review_flags == ()
+
+
+def test_replacement_character_in_a_table_cell_is_flagged_and_kept() -> None:
+    document = _doc(1)
+    cells = [_cell(0, 0, "Haemoglobin"), _cell(0, 1, f"13.5 g/{FFFD}L")]
+    _table(document, 1, cells, rows=1, cols=2)
+    result = _map(document, _signals(1))
+    page = result.document.pages[0]
+    assert page.tables[0].cells[1].text == f"13.5 g/{FFFD}L"
+    assert ReviewReason.REPLACEMENT_CHARACTER in _reasons(result, 1)
+
+
+def test_replacement_character_in_an_invalid_table_is_flagged_through_its_text() -> None:
+    document = _doc(1)
+    _table(document, 1, [_cell(0, 0, f"a{FFFD}", cols=3)], rows=1, cols=2)  # too wide
+    result = _map(document, _signals(1))
+    page = result.document.pages[0]
+    assert not page.has_tables and f"a{FFFD}" in page.text
+    assert _reasons(result, 1) == {
+        ReviewReason.TABLE_STRUCTURE_INVALID,
+        ReviewReason.REPLACEMENT_CHARACTER,
+    }
+
+
+def test_replacement_character_on_a_mixed_ocr_page_is_flagged_with_the_ocr_flags() -> None:
+    # Native text with an unmapped glyph next to OCR text: the flag is not an OCR flag.
+    document = _doc(1)
+    _text(document, 1, f"Result: {FFFD} 13.5")
+    signals = {
+        1: PageSignals(1, 40, (LineCell(f"Result: {FFFD}", False, None), _ocr("13.5", 0.97)))
+    }
+    result = _map(document, signals)
+    page = result.document.pages[0]
+    assert page.parse_method == ParseMethod.OCR
+    assert page.review_flags == (
+        ReviewReason.MIXED_NATIVE_AND_OCR,
+        ReviewReason.OCR_TEXT_UNVERIFIED,
+        ReviewReason.REPLACEMENT_CHARACTER,
+    )
+
+
+def test_replacement_character_is_flagged_per_page() -> None:
+    document = _doc(3)
+    _text(document, 1, "Glucose 92 mg/dL")
+    _text(document, 2, f"TSH 2.5 {FFFD}IU/mL")
+    _text(document, 3, "Sodium 140 mmol/L")
+    result = _map(document, _signals(3))
+    flagged = [f.page_number for f in result.review_flags]
+    assert flagged == [2]
+    assert ReviewFlag(2, ReviewReason.REPLACEMENT_CHARACTER) in result.review_flags
+
+
+@pytest.mark.parametrize(
+    "text",
+    [
+        "Result ? g/dL",
+        "Result □ g/dL",  # white square
+        "Result \ue000 g/dL",  # private-use character
+        "Result U+FFFD g/dL",  # the name written as text
+        "• Haemoglobin 13.5",  # a mapped bullet
+    ],
+)
+def test_look_alikes_of_the_replacement_character_are_not_flagged(text: str) -> None:
+    document = _doc(1)
+    _text(document, 1, text)
+    result = _map(document, _signals(1))
+    assert result.document.pages[0].text == text
+    assert ReviewReason.REPLACEMENT_CHARACTER not in _reasons(result, 1)
+
+
+def test_replacement_character_only_in_a_dropped_invisible_cell_is_not_flagged() -> None:
+    # Detection reads the page's final text, not Docling's cells: text Docling did not use for the
+    # page (here an invisible cell) does not set the flag; the invisible layer has its own flag.
+    document = _doc(1)
+    _text(document, 1, "Glucose 92")
+    cells = [
+        _raw("Glucose 92", False, rendering_mode=0),
+        _raw(f"hidden {FFFD}", False, rendering_mode=3),
+    ]
+    signals = _build_signals([_page(1, cells)], {1: "Glucose 92"}, 1, invisible={1: "hidden x"})
+    result = _map(document, signals)
+    assert _reasons(result, 1) == {ReviewReason.INVISIBLE_TEXT_LAYER}
+
+
+def test_replacement_character_in_an_unplaced_item_sets_no_page_flag() -> None:
+    document = _doc(1)
+    document.add_text(label=DocItemLabel.TEXT, text=f"stray {FFFD}")  # no provenance
+    result = _map(document, _signals(1))
+    assert ReviewReason.REPLACEMENT_CHARACTER not in _reasons(result, 1)
+    assert result.document.review_flags == (ReviewReason.UNPLACED_ITEM,)
+
+
+def test_replacement_character_in_an_unplaced_multi_page_table_sets_no_flag() -> None:
+    document = _doc(2)
+    table = _table(document, 1, [_cell(0, 0, f"13.5 {FFFD}")], rows=1, cols=1)
+    table.prov.append(_prov(2))
+    result = _map(document, _signals(2))
+    for page in (1, 2):
+        assert ReviewReason.REPLACEMENT_CHARACTER not in _reasons(result, page)
+        assert ReviewReason.MULTI_PAGE_ITEM_UNPLACED in _reasons(result, page)
+
+
+# --- lone surrogates (Task 2.5d) ------------------------------------------------------------------
+
+
+@pytest.mark.parametrize("surrogate", [chr(0xD800), chr(0xDFFF)])
+def test_docling_text_with_a_lone_surrogate_is_sanitized_unexpected_output(surrogate: str) -> None:
+    document = _doc(1)
+    _text(document, 1, f"Test Person 13.5 {surrogate}")
+    with pytest.raises(DocumentParseError) as caught:
+        _map(document, _signals(1))
+    assert caught.value.kind == "unexpected_output"
+    assert "Test Person" not in str(caught.value) and "input_value" not in str(caught.value)
+    assert caught.value.__cause__ is None and caught.value.__context__ is None

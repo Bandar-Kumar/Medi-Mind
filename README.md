@@ -220,7 +220,7 @@ MediMind parses PDFs with [Docling](https://github.com/docling-project/docling) 
 | `MEDIMIND_MAX_UPLOAD_BYTES` | `20971520` (20 MB) | Larger files are rejected before parsing |
 | `MEDIMIND_MAX_PAGES` | `20` | PDFs with more pages are rejected |
 | `MEDIMIND_PARSE_TIMEOUT_SECONDS` | `600` | Docling stops parsing a document after this long. The limit is checked between pages, so one slow page can overrun it |
-| `MEDIMIND_DATA_DIR` | `data` | Original files are stored read-only under `<data_dir>/uploads/`; `<data_dir>/parsed/` is reserved for parse output (Task 2.5) |
+| `MEDIMIND_DATA_DIR` | `data` | Original files are stored read-only under `<data_dir>/uploads/`; persisted parse outputs (IR, Docling JSON, manifest) are written once under `<data_dir>/parsed/<patient_id>/<document_id>/v1/` (ADR-032) |
 
 ### Models are downloaded on first use, by two separate mechanisms
 The models are not bundled with MediMind. The first time a parser starts (today: the first run of the Docling tests below), it loads all of them, downloading any that are missing; about 540 MB in total. Loading happens at start-up, so a download never happens in the middle of parsing a document.

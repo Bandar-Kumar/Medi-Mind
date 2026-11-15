@@ -10,12 +10,14 @@ Credentials come from the existing .env, read in memory only and never printed.
 """
 
 import socket
+import uuid
 from collections.abc import Iterator
 from pathlib import Path
 
 import pytest
-from sqlalchemy import Engine, text
+from sqlalchemy import Engine, event, text
 from sqlalchemy.exc import DBAPIError
+from sqlalchemy.orm import Session, sessionmaker
 
 from app.core.config import Settings
 from app.records import db
@@ -75,6 +77,12 @@ _MAIN_SNAPSHOT_SQL = text(
 )
 
 
+# Row counts of the tables Task 2.5 code writes, when they exist in the application database.
+# Secondary safety net only: the primary boundary is the per-connection check in
+# ``test_db_session_factory``.
+_WATCHED_TABLES = ("patients", "documents", "pages", "pipeline_runs")
+
+
 def _main_snapshot(app_settings: Settings) -> tuple:
     engine = db.create_db_engine(app_settings, pooled=False, read_only=True)
     try:
@@ -82,7 +90,15 @@ def _main_snapshot(app_settings: Settings) -> tuple:
             assert connection.execute(text("SELECT current_database()")).scalar_one() == (
                 app_settings.db_name
             )
-            return tuple(connection.execute(_MAIN_SNAPSHOT_SQL).one())
+            schema = tuple(connection.execute(_MAIN_SNAPSHOT_SQL).one())
+            rows = []
+            for table in _WATCHED_TABLES:  # fixed names, never user input
+                if connection.execute(
+                    text("SELECT to_regclass(:name) IS NOT NULL"), {"name": f"public.{table}"}
+                ).scalar_one():
+                    count = connection.execute(text(f"SELECT count(*) FROM {table}")).scalar_one()
+                    rows.append((table, count))
+            return (*schema, tuple(rows))
     finally:
         engine.dispose()
 
@@ -94,3 +110,116 @@ def main_database_unchanged(app_settings: Settings) -> Iterator[None]:
     yield
     after = _main_snapshot(app_settings)
     assert after == before, f"application database changed: {before} -> {after}"
+
+
+# --- Task 2.5: repositories and services against medimind_test ---------------------------------
+
+
+class _DatabaseIdentityLog:
+    """Every database name seen by connections of the redirected session factory."""
+
+    def __init__(self) -> None:
+        self.databases: list[str] = []
+
+
+@pytest.fixture
+def test_db_session_factory(
+    test_engine: Engine,
+    schema_at_head: None,
+    app_settings: Settings,
+    monkeypatch: pytest.MonkeyPatch,
+) -> Iterator[tuple[sessionmaker[Session], _DatabaseIdentityLog]]:
+    """Redirect the records layer's default sessions to ``medimind_test``.
+
+    Services call repositories without a session factory, so they would use the process-wide
+    engine built from the application settings. This fixture replaces that factory with one bound
+    to the guarded ``test_engine`` and makes ``get_engine`` unusable, so nothing can fall back to
+    the application database.
+
+    Primary safety boundary: ``test_engine`` uses NullPool, so every session opens a NEW
+    connection, and a ``connect`` listener checks ``current_database()`` on each one before any
+    statement runs. A connection to any other database raises immediately (nothing is written)
+    and fails the test. Every database name seen is recorded so tests can assert it.
+    """
+    log = _DatabaseIdentityLog()
+
+    def check_database(dbapi_connection: object, _record: object) -> None:
+        cursor = dbapi_connection.cursor()  # type: ignore[attr-defined]
+        try:
+            cursor.execute("SELECT current_database()")
+            name = cursor.fetchone()[0]
+        finally:
+            cursor.close()
+        dbapi_connection.rollback()  # type: ignore[attr-defined]
+        log.databases.append(name)
+        if name != TEST_DATABASE or name == app_settings.db_name:
+            raise RuntimeError(f"Refusing a repository connection to {name!r}")
+
+    event.listen(test_engine, "connect", check_database)
+
+    def no_application_engine() -> Engine:
+        raise RuntimeError("The application engine must not be used in integration tests")
+
+    factory = sessionmaker(bind=test_engine, expire_on_commit=False)
+    monkeypatch.setattr(db, "_get_session_factory", lambda: factory)
+    monkeypatch.setattr(db, "get_engine", no_application_engine)
+    try:
+        yield factory, log
+    finally:
+        event.remove(test_engine, "connect", check_database)
+    assert log.databases, "no repository connection was opened"
+    assert set(log.databases) == {TEST_DATABASE}, f"unexpected databases: {set(log.databases)}"
+
+
+@pytest.fixture
+def test_patient(
+    test_db_session_factory: tuple[sessionmaker[Session], _DatabaseIdentityLog],
+    test_engine: Engine,
+    app_settings: Settings,
+) -> Iterator[uuid.UUID]:
+    """A fictional patient in ``medimind_test``, removed with everything it owns afterwards.
+
+    Repository functions commit, so tests cannot run inside one rolled-back transaction. Cleanup
+    deletes only this patient's rows, after re-checking the connection is ``medimind_test``:
+    documents first (pages and pipeline runs cascade), then the patient.
+    """
+    patient_id = _insert_patient(test_engine, app_settings)
+    try:
+        yield patient_id
+    finally:
+        _delete_patient(test_engine, app_settings, patient_id)
+
+
+def _insert_patient(engine: Engine, app_settings: Settings) -> uuid.UUID:
+    with engine.begin() as connection:
+        assert_is_test_database(connection, app_settings.db_name)
+        return connection.execute(
+            text(
+                "INSERT INTO patients (display_name, is_synthetic) "
+                "VALUES ('Fictional Test Patient', true) RETURNING id"
+            )
+        ).scalar_one()
+
+
+def _delete_patient(engine: Engine, app_settings: Settings, patient_id: uuid.UUID) -> None:
+    with engine.begin() as connection:
+        assert_is_test_database(connection, app_settings.db_name)
+        connection.execute(text("DELETE FROM documents WHERE patient_id = :p"), {"p": patient_id})
+        connection.execute(
+            text("DELETE FROM pipeline_runs WHERE patient_id = :p"), {"p": patient_id}
+        )
+        connection.execute(text("DELETE FROM patients WHERE id = :p"), {"p": patient_id})
+
+
+@pytest.fixture
+def second_patient(
+    test_db_session_factory: tuple[sessionmaker[Session], _DatabaseIdentityLog],
+    test_engine: Engine,
+    app_settings: Settings,
+) -> Iterator[uuid.UUID]:
+    """Another fictional patient, for isolation tests."""
+    patient_id = _insert_patient(test_engine, app_settings)
+    try:
+        yield patient_id
+    finally:
+        _delete_patient(test_engine, app_settings, patient_id)

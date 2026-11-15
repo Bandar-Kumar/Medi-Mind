@@ -19,6 +19,12 @@ Rules:
   text always needs verification against the original. A page is an OCR page only when OCR
   contributed text to it (see ``docling_mapping``); a page without visible text is not assumed to
   be OCR.
+- A page whose text or table cells contain U+FFFD (REPLACEMENT CHARACTER) carries
+  ``replacement_character``, and only such a page does (validated both ways). U+FFFD can come
+  from Docling (docling-parse reports a glyph it cannot map to Unicode, which Docling turns into
+  U+FFFD) or from the PDF itself (its own Unicode mapping stores U+FFFD); the stored text cannot
+  tell these apart, so the flag records presence, not origin. Either way the character does not
+  show what is printed there. The U+FFFD stays in the text.
 - Text fields are excluded from ``repr()``, so a model that ends up in a log line or traceback
   never shows medical content.
 - Models are frozen, use tuples for collections (immutable after validation; JSON arrays on disk)
@@ -38,6 +44,20 @@ from app.core.errors import DocumentParseError
 
 IR_SCHEMA_VERSION = 1
 _SHA256_HEX = re.compile(r"[0-9a-f]{64}")
+REPLACEMENT_CHARACTER = "\ufffd"
+_SURROGATES = range(0xD800, 0xE000)  # U+D800-U+DFFF: never a character on its own
+
+
+def _reject_lone_surrogates(value: str) -> str:
+    """Reject a string holding a lone UTF-16 surrogate code point; never repair it.
+
+    A Python string holds a supplementary character (e.g. U+1D707) as one code point, and JSON
+    loading joins a valid surrogate *pair* into one, so only an unpaired half reaches this check.
+    Such a string cannot be encoded as UTF-8: it could not be written to the IR file or stored.
+    """
+    if any(ord(character) in _SURROGATES for character in value):
+        raise ValueError("contains a lone surrogate code point")
+    return value
 
 
 class ParseMethod(StrEnum):
@@ -65,6 +85,11 @@ class TableCell(_Model):
     text: str = Field(repr=False)  # exact cell text, including units as printed
     column_header: bool = False
     row_header: bool = False
+
+    @field_validator("text")
+    @classmethod
+    def _text_has_no_lone_surrogates(cls, value: str) -> str:
+        return _reject_lone_surrogates(value)
 
 
 class ParsedTable(_Model):
@@ -99,6 +124,11 @@ class OcrProvenance(_Model):
     mean_confidence: float | None = Field(default=None, ge=0, le=1)
     min_confidence: float | None = Field(default=None, ge=0, le=1)
 
+    @field_validator("engine", "engine_version", "backend")
+    @classmethod
+    def _names_have_no_lone_surrogates(cls, value: str) -> str:
+        return _reject_lone_surrogates(value)
+
 
 class ReviewReason(StrEnum):
     """Why a page or document needs a human look. Flags never change the text."""
@@ -118,6 +148,10 @@ class ReviewReason(StrEnum):
     # "invisible" or 7 "clip only"; detected with PDFium), whether or not Docling kept that text.
     # It says the PDF holds text a reader cannot see, not that the text is wrong. Page-level only.
     INVISIBLE_TEXT_LAYER = "invisible_text_layer"
+    # The page text or a table cell contains U+FFFD: a character the parser could not map to
+    # Unicode, or one the PDF itself stores as U+FFFD (the origin cannot be told apart). Compare
+    # with the original; the text is kept unchanged. Page-level only, on native and OCR pages.
+    REPLACEMENT_CHARACTER = "replacement_character"
 
 
 # Flags that only make sense on a page whose text came (at least partly) from OCR.
@@ -145,6 +179,13 @@ def canonical_flags(reasons: Iterable[ReviewReason]) -> tuple[ReviewReason, ...]
     return tuple(sorted(set(reasons), key=lambda reason: reason.value))
 
 
+def contains_replacement_character(text: str, tables: Iterable[ParsedTable]) -> bool:
+    """True if U+FFFD occurs in the page text or in any table cell text (detection only)."""
+    return REPLACEMENT_CHARACTER in text or any(
+        REPLACEMENT_CHARACTER in cell.text for table in tables for cell in table.cells
+    )
+
+
 def _require_canonical(value: tuple[ReviewReason, ...]) -> tuple[ReviewReason, ...]:
     if value != canonical_flags(value):
         raise ValueError("review_flags must be unique and sorted by value")
@@ -167,6 +208,11 @@ class ParsedPage(_Model):
     def _flags_are_canonical(cls, value: tuple[ReviewReason, ...]) -> tuple[ReviewReason, ...]:
         return _require_canonical(value)
 
+    @field_validator("text")
+    @classmethod
+    def _text_has_no_lone_surrogates(cls, value: str) -> str:
+        return _reject_lone_surrogates(value)
+
     @model_validator(mode="after")
     def _ocr_provenance_matches_method(self) -> Self:
         is_ocr = self.parse_method is ParseMethod.OCR
@@ -188,6 +234,13 @@ class ParsedPage(_Model):
             ReviewReason.MULTI_PAGE_ITEM not in flags
         ):
             raise ValueError("multi_page_item_unplaced requires multi_page_item")
+        if (ReviewReason.REPLACEMENT_CHARACTER in flags) != contains_replacement_character(
+            self.text, self.tables
+        ):
+            raise ValueError(
+                "replacement_character must be set exactly on pages whose text or table cells "
+                "contain U+FFFD"
+            )
         return self
 
     @property
@@ -204,6 +257,22 @@ class ParserInfo(_Model):
     name: str = Field(min_length=1)  # e.g. "docling"
     version: str = Field(min_length=1)
     options: dict[str, bool | int | str] = Field(default_factory=dict)
+
+    @field_validator("name", "version")
+    @classmethod
+    def _names_have_no_lone_surrogates(cls, value: str) -> str:
+        return _reject_lone_surrogates(value)
+
+    @field_validator("options")
+    @classmethod
+    def _options_have_no_lone_surrogates(
+        cls, value: dict[str, bool | int | str]
+    ) -> dict[str, bool | int | str]:
+        for key, option in value.items():
+            _reject_lone_surrogates(key)
+            if isinstance(option, str):
+                _reject_lone_surrogates(option)
+        return value
 
 
 class ParsedDocument(_Model):

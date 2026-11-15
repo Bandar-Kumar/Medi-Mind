@@ -43,9 +43,11 @@ A Proposed or Deferred ADR is not a final decision.
 | 026 | Python 3.12 + uv | **Accepted — dependency resolution verified; Docling runtime verified** (sentence-transformers runtime unverified) | Q11, Task 1.1, Task 2.1 |
 | 027 | Full-time schedule; portfolio checkpoint at the MVP | Proposed | Q9 |
 | 028 | Docling parser configuration | **Accepted** | Owner, 2026-11-14 (Tasks 2.1, 2.2, 2.4) |
-| 029 | Versioned parse IR; the original PDF is authoritative | **Accepted** (IR schema version 1) / Proposed (general schema-versioning policy) | Owner, 2026-11-14 (Tasks 2.3, 2.4) |
-| 030 | Parser text issues are flagged, never repaired | **Accepted** | Owner, 2026-11-14 (Task 2.4) |
+| 029 | Versioned parse IR; the original PDF is authoritative | **Accepted** (IR schema version 1, **frozen 2026-11-15**) / Proposed (general schema-versioning policy) | Owner, 2026-11-14 (Tasks 2.3, 2.4); freeze 2026-11-15 (Task 2.5) |
+| 030 | Parser text issues are flagged, never repaired | **Accepted** (amended 2026-11-15: `replacement_character`) | Owner, 2026-11-14 (Task 2.4); amendment 2026-11-15 (D7) |
 | 031 | OCR provenance from Docling's OCR cells | **Accepted** (with a known limitation) | Owner, 2026-11-14 (Task 2.4) |
+| 032 | Parse persistence and retry protocol | **Accepted** | Owner, 2026-11-15 (Task 2.5) |
+| 033 | Document upload protocol and minimal patient repository | **Accepted** | Owner, 2026-11-15 (Task 2.6, decisions Q1–Q7) |
 
 ---
 
@@ -389,13 +391,40 @@ A Proposed or Deferred ADR is not a final decision.
 ## ADR-029: Versioned parse IR; the original PDF is authoritative
 - **Status:**
   - **Accepted (owner, 2026-11-14; Tasks 2.3, 2.4):** IR schema version 1, as defined in `app/ingestion/ir.py`.
-  - **Proposed (not yet adopted):** the general schema-versioning policy, i.e. when and how later IR versions are introduced.
+  - **Frozen (owner, 2026-11-15; Task 2.5):** version 1 is final, as described in "Version 1 contract" below. Task 2.5 writes the first IR files.
+  - **Proposed (not yet adopted):** the general schema-versioning policy, i.e. when and how later IR versions are introduced, and how existing files are re-processed (decision D6, deferred; see ADR-032).
 - **Decision:**
   - The parser's output is a Pydantic intermediate representation, **schema version 1** (`app/ingestion/ir.py`): per page, the text, parse method (`native`/`ocr`), visible native character count, OCR provenance, tables as cell grids and review flags; plus document-level review flags.
   - Models are frozen and reject unknown fields. Validation errors never contain input values.
   - The IR is stored as a versioned JSON file next to Docling's own full JSON output. Tables stay in these files: there is no database table for them (no migration 0004).
   - IR text is Docling's extracted, normalized text, not the raw PDF text. **The stored original PDF is the authoritative source.**
-  - The schema stays at version 1 until Task 2.5 writes the first file.
+  - *(Superseded 2026-11-15: "The schema stays at version 1 until Task 2.5 writes the first file." Task 2.5 now writes IR files, and version 1 is frozen.)*
+- **Version 1 contract (frozen 2026-11-15; `app/ingestion/ir.py`):**
+  - **Structure:**
+    - `ParsedDocument`: `schema_version` (always 1), `sha256` (of the original, lowercase hex), `page_count` (≥ 1), `parser` (`name`, `version`, `options`), `pages`, `review_flags` (document level).
+    - `ParsedPage`: `page_number` (≥ 1), `text`, `parse_method` (`native` | `ocr`), `native_char_count` (≥ 0), `ocr` (provenance or null), `tables`, `review_flags`.
+    - `OcrProvenance`: `engine`, `engine_version`, `backend`, `mean_confidence` and `min_confidence` (each null or 0–1).
+    - `ParsedTable`: `table_index`, `num_rows`, `num_cols`, `cells`; `TableCell`: `row`, `col`, `row_span`, `col_span`, `text`, `column_header`, `row_header`.
+  - **Serialization:** `dump_ir()` writes UTF-8 JSON (2-space indentation, field order fixed by the models). It is deterministic: dumping a loaded file gives the same bytes again. `load_ir()` validates and fails with a sanitized `ir_invalid` error.
+  - **Validation:** models are frozen, reject unknown fields and never put input values into errors. Pages are numbered 1..`page_count` without gaps. Table cells fit their grid without overlap; table indexes run 0, 1, 2, … per page.
+  - **OCR provenance (ADR-031):** present exactly on OCR pages; every OCR page carries `ocr_text_unverified`.
+  - **Review flags:** 13 values: `docling_normalized_text`, `empty_page`, `invisible_text_layer`, `low_ocr_confidence`, `mixed_native_and_ocr`, `multi_page_item`, `multi_page_item_unplaced`, `ocr_confidence_unavailable`, `ocr_text_unverified`, `replacement_character`, `table_structure_invalid`, `unmapped_item`, `unplaced_item`. Each list is unique and sorted by value; any other form is rejected, never rewritten. Scope rules:
+    - OCR-only flags (`ocr_text_unverified`, `low_ocr_confidence`, `ocr_confidence_unavailable`, `mixed_native_and_ocr`) only on OCR pages;
+    - document level: only `unplaced_item` and `unmapped_item`; `unplaced_item` only there;
+    - `empty_page` only on a page with no text and no tables;
+    - `multi_page_item_unplaced` requires `multi_page_item`;
+    - `replacement_character` exactly when the page text or a table cell contains U+FFFD (ADR-030, decision 6).
+  - **Unicode:** a lone surrogate code point (U+D800–U+DFFF) is rejected in every text field, never repaired (Task 2.5d). U+FFFD and valid supplementary characters (e.g. U+1D707) are kept.
+  - **Text preservation:** the characters of Docling's text are stored exactly as received: never stripped, normalized, corrected or replaced by MediMind. Serialization does encode them, as JSON in UTF-8 (with the escaping JSON requires), and loading restores exactly the same characters. Changes Docling made before MediMind received the text are flagged, not repaired (ADR-030). Text the database cannot store (NUL, lone surrogate) is rejected, never altered (ADR-032).
+  - **Compatibility:** loaders accept only `schema_version` 1 and reject unknown fields, so a stored version 1 file is never edited or upgraded in place. **Schema version 2 is required for:**
+    - adding, removing, renaming or retyping any field;
+    - adding or removing a review flag value;
+    - any validation change that alters which files are valid;
+    - any change to the bytes `dump_ir()` writes for the same content;
+    - any change to the meaning of stored text (e.g. normalizing it).
+
+    **Not a new IR version:** a Docling upgrade that still produces valid version 1 (recorded in `parser`), and changes to the parse-output manifest (it has its own `manifest_version`; ADR-032). Re-processing existing documents after a parser upgrade is deferred (D6).
+  - **Storage:** `data/parsed/<patient_id>/<document_id>/v1/` holding `ir.v1.json`, `docling.json` and `manifest.json`, published write-once (ADR-032).
 - **Reasoning:** One validated contract between Docling and the rest of MediMind. Docling's output can change between versions, while the IR stays stable and testable without the models.
 - **Trade-off:** Table contents can't be queried with SQL until a later phase extracts facts from them. In return, no schema is designed before its first use.
 - **Consequences:**
@@ -403,7 +432,7 @@ A Proposed or Deferred ADR is not a final decision.
   - An item spanning pages is split only when Docling's character spans check out exactly; otherwise it is placed on no page and flagged.
 
 ## ADR-030: Parser text issues are flagged, never repaired
-- **Status:** **Accepted** (owner, 2026-11-14; Task 2.4: Option C, P1, visibility-aware signals, `invisible_text_layer`)
+- **Status:** **Accepted** (owner, 2026-11-14; Task 2.4: Option C, P1, visibility-aware signals, `invisible_text_layer`). **Amended** (owner, 2026-11-15; D7 step 0): decision 6, `replacement_character`.
 - **Context (measured in Task 2.4):**
   - Docling's PDF text extractor turns `–` and `−` into `-`. Its text normalization rewrites quotes and ligatures and joins hyphenated lines (`4.0-`/`6.0` became `4.06.0`). Neither can be switched off.
   - OCR confidence is not accuracy: a scan with a mean confidence of 0.979 had only 25 of 40 cells exact.
@@ -414,6 +443,16 @@ A Proposed or Deferred ADR is not a final decision.
   3. **`ocr_text_unverified`** (P1): on every OCR page, whatever its confidence. `low_ocr_confidence` (minimum below 0.80) is a separate diagnostic. Look-alike-character detection (P3) and per-page confidence counts (P4) are deferred.
   4. **Visibility:** PDFium associates each character with its text object. Render modes 3 (invisible) and 7 (clip only) are invisible; every other mode, including "unknown", counts as visible. Invisible text is excluded from `native_char_count`, `mixed_native_and_ocr` and both normalization checks.
   5. **`invisible_text_layer`:** a page-level flag, set when PDFium finds invisible non-whitespace characters, whether or not Docling kept that text. It means the PDF holds text a reader cannot see, not that the text is wrong. The text is kept.
+  6. **`replacement_character`** (amendment, 2026-11-15; this is decision **D7** of the Task 2.5 review, listed in ADR-032): a page-level flag, set **exactly** when the page's final text or any of its table cells contains U+FFFD. The IR validator rejects the flag without the character and the character without the flag.
+     - **Where U+FFFD comes from:**
+       - Docling: by its source, docling-parse emits NUL for a glyph it cannot map, and Docling's default PDF backend replaces it with U+FFFD in both `text` and `orig`;
+       - the PDF itself: its own Unicode mapping can store U+FFFD.
+     - **The origin is not claimed:** Docling's output keeps no raw value, so the two cases look identical. PDFium does not resolve this either: in the D7 spike it reported unmappable Type3 glyphs as their raw character codes (1 and 2), not as U+FFFD, so the two libraries disagree on unmapped glyphs.
+     - **OCR:** RapidOCR builds its text only from its recognition dictionary. The dictionary loaded at runtime (18,709 emittable single characters) contains no U+FFFD and no control characters, so a U+FFFD on an OCR page comes from native text on that page. The flag does not depend on the parse method: it is not an OCR-only flag.
+     - **Scope:** page-level only, never a document flag. Text of an unplaced item is covered by `unplaced_item`; text Docling did not use for the page (e.g. a dropped invisible cell) does not set it.
+     - The U+FFFD stays in the text; nothing is normalized, stripped or replaced. A U+FFFD genuinely present in the source is also flagged: the flag means "compare with the original", not "the parser failed".
+     - Docling's `replace_broken_text_layer` (OCR instead of a broken text layer) stays off; ADR-028 is unchanged.
+     - IR schema version stays 1: no IR file had been written yet (ADR-029), and the JSON layout is unchanged.
 - **Trade-offs:**
   - More review work, and some false flags: counts are compared, not positions.
   - No unnormalized copy of the text is kept; the original PDF is the reference (ADR-029).
@@ -429,6 +468,79 @@ A Proposed or Deferred ADR is not a final decision.
 - **Evidence:** only the OCR engine creates `from_ocr` cells (one per recognized line), and Docling's merge keeps them only where OCR text is used. Docling's own per-page `ocr_score` is computed from the same cells. On every test fixture the two agreed.
 - **Known limitation (accepted):** Docling does not record whether OCR was *attempted* on a page. OCR that ran but recognized nothing therefore looks the same as no OCR: the page is `native`, and `empty_page` if it has no text. An image-presence signal from PDFium could tell these apart later; it is not designed, and would need a new decision.
 - **Trade-off:** Provenance is never guessed, at the cost of not labelling unreadable scans as OCR pages.
+
+## ADR-032: Parse persistence and retry protocol
+- **Status:** **Accepted** (owner, 2026-11-15; Task 2.5, decisions D1–D8 and A1–A8 of the Task 2.5 review).
+- **Context:** Task 2.4 produced a validated IR and Docling's JSON in memory only. Task 2.5 stores them, writes `pages` rows and must survive crashes, retries and two workers claiming the same document, without a migration.
+- **Decision (D1–D8):**
+  - **D1:** a minimal subset of Task 1.8 is built inside Task 2.5 (`app/records/repositories.py`: document creation and the parse-claim functions, all patient-scoped). The upload service is a separate task (2.6). Patient repositories and the rest of Task 1.8 stay open.
+  - **D2:** parse outputs are found by a path derived from the IDs, `data/parsed/<patient_id>/<document_id>/v1/`. No database table or column records them.
+  - **D3:** `pages.review_flags` is deferred to Phase 3; flags stay in the IR file.
+  - **D4:** document status follows the existing architecture (see "Document lifecycle" below).
+  - **D5:** page text containing NUL, or a lone surrogate that cannot be encoded as UTF-8, is rejected with `text_not_storable` before any database write. It is never modified.
+  - **D6:** re-processing after a parser upgrade is deferred (ADR-029's versioning policy stays Proposed).
+  - **D7:** the `replacement_character` flag. Recorded in ADR-030, decision 6; not repeated here.
+  - **D8:** each output directory holds a `manifest.json` (its own `manifest_version` 1): document ID, source SHA-256, the producing parse run's ID, and the SHA-256 and size of `ir.v1.json` and `docling.json`. No timestamps, patient data, filenames or text.
+- **Document lifecycle** (`documents.processing_status`; the state machine is unchanged):
+  - `create_document` → `uploaded` (also the database default).
+  - Claim for parsing → `processing`, and a `running` parse run is inserted. Its ID is the **claim token**.
+  - Parse failure → the run becomes `failed` and the document `failed`. A `failed` document can be claimed again.
+  - **Parse success → the run becomes `succeeded`; the document stays `processing`.** Parse completion is not pipeline completion: `processed` (after chunking and fact extraction) and `needs_review` (identity mismatch) are set by later stages (ARCHITECTURE §4.1). A parsed document cannot be claimed again (its pages exist: `already_parsed`).
+- **Transactions:** Tx A claims (row lock with `SELECT … FOR UPDATE`); parsing and all file work run with **no** transaction open; Tx B re-checks that the claim token is still the active claim, inserts all pages or none and marks the run `succeeded`; on failure Tx C records it.
+  - Tx C runs for ordinary exceptions and `KeyboardInterrupt` only and **never masks the original exception**, even if recording fails or a second interrupt arrives (A5). `SystemExit` and `GeneratorExit` are not handled (A4).
+- **Stale claims:** a fixed threshold of **1,200 seconds** (`STALE_CLAIM_SECONDS`), chosen as the default parse timeout (600 s) plus an equal grace period because Docling's timeout is cooperative. It is a constant: it is **not** derived from the `parse_timeout_seconds` setting and does not change with it. A stale claim is recovered only when the caller explicitly asks (`recover_stale=True`); the stale run is marked `failed` with error kind `abandoned`. A worker whose claim was recovered can never write pages afterwards.
+- **Parse outputs:** written to a temporary directory next to the final one (manifest last) and published with one directory rename, which never replaces an existing directory. Published outputs and page rows are never deleted or overwritten.
+- **Reuse of earlier outputs (A1–A3):** before reuse, the manifest is checked (layout, validity, document ID, source SHA-256); then its producing run must be a parse run of the same patient and document, in any status; then the IR and Docling JSON are **verified against the manifest** (SHA-256 and size) and the IR is fully validated. The original PDF is verified on both the parse and reuse paths (A2): recomputed path, containment, readability, SHA-256, valid PDF, page count equal to the recorded one (the record is authoritative; a missing recorded count is `integrity_mismatch`, A6). The producer's provenance stays in the manifest and its own `pipeline_runs` row; the current run records only the `configured_*` parser versions (A3).
+- **Error kinds:** `already_running`, `already_parsed`, `claim_lost`, `abandoned`, `text_not_storable`, `integrity_mismatch`; plus `document_not_found` (raised, never stored). Unreadable stored files use the existing `write_failed` kind (A7).
+- **Trade-offs and known limitations:**
+  - No database link from pages to the run that produced their outputs: that link is the manifest only.
+  - A failure recording that itself fails (database down) leaves the document `processing` until the 1,200-second threshold passes and recovery is requested.
+  - The fixed threshold does not follow a changed `parse_timeout_seconds`.
+- **Consequences:** Upload (Task 2.6) creates documents with `create_document`; later Phase 2 stages move documents from `processing` to `processed` or `needs_review`.
+
+## ADR-033: Document upload protocol and minimal patient repository
+- **Status:** **Accepted** (owner, 2026-11-15; Task 2.6, decisions Q1–Q7 of the Task 2.6 plan review).
+- **Context:** Task 2.5 can parse a stored document, but nothing created patients or uploaded documents outside tests. Task 2.6 adds the upload service and the smallest patient repository needed for it. The rest of Task 1.8 (listing, updating and deleting patients and documents) stays open. No migration or schema change.
+- **Patient repository** (`app/records/repositories.py`):
+  - `create_patient(display_name, *, is_synthetic, date_of_birth=None) -> PatientRef`. It creates the patient scope, so it is the one repository function without a `patient_id` argument (the exception to ADR-016's "every method requires `patient_id`").
+  - **Display name (Q4):**
+    - surrounding whitespace is stripped; the result must be 1–200 characters;
+    - rejected characters: Unicode category Cc (including NUL, tab and newline), lone surrogates, the bidirectional embedding/override/isolate controls U+202A–U+202E and U+2066–U+2069, zero width space U+200B, and the byte-order mark U+FEFF;
+    - ZWJ (U+200D), ZWNJ (U+200C), LRM (U+200E) and RLM (U+200F) are allowed, because legitimate names in Indic and other scripts need them;
+    - other format characters (category Cf) are not rejected as a class;
+    - there is no Unicode normalization: an accepted name is stored exactly as given, minus surrounding whitespace.
+  - **Date of birth:** optional; it must be a calendar `date` (a `datetime` is rejected) that is not in the future.
+  - **`is_synthetic`** is required, with no default (ADR-005); anything other than a real `bool` raises `TypeError`.
+  - Every input is checked before a database session exists. `PatientRef` holds only `id` and `is_synthetic`: the display name is personal data and is never returned, logged or included in an error.
+  - `patient_exists(patient_id) -> bool` is one read-only `SELECT EXISTS`.
+  - **Errors (Q3):** `PatientError` (`app/core/errors.py`) with `kind` `invalid_display_name`, `invalid_date_of_birth` or `patient_not_found`. Messages are fixed text that may name a limit or an identifier, never a value.
+- **Unknown patient in `create_document` (Q2):** a violation of exactly the foreign key `fk_documents_patient_id_patients` (SQLSTATE 23503 **and** that constraint name) becomes `PatientError(patient_not_found)`, raised outside the `except` block so no driver error is chained. Every other integrity error propagates unchanged, including other foreign keys and CHECK constraints. The unique-violation race path is unchanged. This is the only change to Task 2.5 code; the parse protocol (ADR-032) is unchanged.
+- **Upload service** (`app/services/upload_document.py`). `upload_document(settings, patient_id, data, *, original_filename) -> UploadResult` runs these steps in order:
+  1. type checks (`UUID`, `bytes`, `str`) before any I/O;
+  2. `validate_pdf_bytes` (in memory; PDF only for now);
+  3. `patient_exists`, so an unknown patient stops before any upload directory is created;
+  4. `store_original` (SHA-256 plus write-once, content-addressed publishing that never overwrites);
+  5. `create_document` with the `safe_display_filename` result as metadata (the filename never builds a path).
+
+  Each repository call is its own short transaction, and no transaction is open while files are written. The original is stored before its record, so a record never points to a file that was never stored.
+- **Duplicates (Q1):** there is no separate duplicate pre-check. `store_original` writes nothing for identical bytes already stored, and `create_document` returns the patient's existing record. The database constraint `UNIQUE(patient_id, sha256)` is the race-safe authority. The same bytes uploaded for another patient are a separate file (`uploads/<patient_id>/<sha256>.pdf`) and a separate record.
+- **Result flags.** `UploadResult(document, duplicate, original_stored)`:
+  - `duplicate`: an existing document record was returned; no new record was created;
+  - `original_stored`: this call created the original file;
+  - **both can be true.** This happens when an existing record's file was missing and the identical, hash-verified bytes were published again (Q5; never an overwrite). It also happens when concurrent uploads of the same bytes race: one call writes the file, another creates the record. The service cannot tell these apart, so it logs a warning, "Original file published for an existing document record", with identifiers only, and does not claim which case occurred.
+- **Concurrency and retries:**
+  - concurrent identical uploads produce exactly one file and one record;
+  - if the database fails after the file is stored, the file stays (read-only, content-addressed, harmless); a retry finds it (`original_stored=False`) and creates the record;
+  - different bytes found at the content address raise `integrity_mismatch`; that file is left untouched and no record is created;
+  - upload never deletes or rewrites a file and writes no `pipeline_runs` row.
+- **Separation from processing:** upload stops after creating the record (status `uploaded`). It never claims or parses the document; callers run `process_document` (ADR-032) as a separate step.
+- **Logging:** identifiers, flags, page count and size only; never the filename, a path, a hash, the display name or document content.
+- **Trade-offs and known limitations:**
+  - Orphan originals (stored, no record) can remain after a database failure until a retry; there is no cleanup.
+  - The `duplicate` + `original_stored` warning cannot distinguish a restored original from a concurrent race.
+  - `integrity_mismatch` from `create_document` is a `DocumentProcessingError` even during upload.
+  - "Future" date of birth uses the local machine's date.
+- **Consequences:** a UI (and `DEMO_MODE`, ADR-014) can build on `create_patient`, `upload_document` and `process_document`. Patient listing, update and delete, document listing, and their isolation tests remain in Task 1.8.
 
 ## Open questions linked to ADRs
 - **Q12** (from ADR-025): Should an ambiguous date be auto-accepted when the *same document* contains an unambiguous date confirming DD/MM order (for example `25/03/2024`)? This would reduce review work, but adds an inference rule. **Default: no. Always flag.**

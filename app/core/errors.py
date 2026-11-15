@@ -55,6 +55,32 @@ class DocumentStorageError(MediMindError):
         self.kind = kind
 
 
+class DocumentProcessingError(MediMindError):
+    """A document cannot move to the requested processing state (Phase 2, Task 2.5).
+
+    ``kind`` is a stable short code such as ``"already_running"``, ``"already_parsed"``,
+    ``"claim_lost"``, ``"text_not_storable"`` or ``"integrity_mismatch"``. The message names only
+    identifiers, page numbers and counts: never document content, filenames or patient data.
+    """
+
+    def __init__(self, message: str, *, kind: str) -> None:
+        super().__init__(message)
+        self.kind = kind
+
+
+class PatientError(MediMindError):
+    """A patient profile cannot be created or used (Phase 2, Task 2.6).
+
+    ``kind`` is a stable short code: ``"invalid_display_name"``, ``"invalid_date_of_birth"`` or
+    ``"patient_not_found"``. The message is fixed text and may name a limit or an identifier; it
+    never contains the display name, the date of birth or any other patient data.
+    """
+
+    def __init__(self, message: str, *, kind: str) -> None:
+        super().__init__(message)
+        self.kind = kind
+
+
 class DatabaseError(MediMindError):
     """A database operation failed.
 

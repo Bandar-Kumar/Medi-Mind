@@ -60,8 +60,9 @@ flowchart TD
     B -->|invalid| X["Reject with reason"]
     B --> C["SHA-256 hash"]
     C -->|exact duplicate| D["Link to existing document, stop"]
-    C --> E["Store file, create document row (status=processing)"]
-    E --> F["Docling parse: pages, text, tables"]
+    C --> E["Store file, create document row (status=uploaded)"]
+    E --> E2["Claim for parsing (status=processing; parse run = claim token)"]
+    E2 --> F["Docling parse: pages, text, tables"]
     F -->|no text layer| G["OCR fallback"]
     G --> H
     F --> H["Classify document type"]
@@ -119,7 +120,19 @@ flowchart TD
 - **Classification:** Types are `lab_report`, `prescription`, `discharge_summary`, `consultation_note`, `diagnostic_report` and `other`. Phase 2 starts with rules (keywords and layout cues), with LLM classification as a measured alternative.
 - **Identity check:** Compares the patient name and date of birth found in the document with the selected profile. A mismatch flags the document and never blocks silently.
 - **Duplicates:** An exact duplicate is detected by its SHA-256 hash. A *revised* document is a candidate when the patient, lab, report date and observations overlap. It is linked with `supersedes_document_id` once the user confirms.
+- **Upload (implemented, Task 2.6; ADR-033):** `upload_document`, PDF only so far.
+  - Order: input type checks → PDF validation → patient existence check → write-once original (`uploads/<patient_id>/<sha256>.pdf`, never overwritten) → document record (`uploaded`).
+  - Exact duplicates are detected per patient by the `(patient_id, sha256)` unique constraint, with no separate pre-check. The result reports `duplicate` (an existing record was returned) and `original_stored` (this call created the file).
+  - Upload stops there. Claiming and parsing are a separate `process_document` call (ADR-032).
+  - A minimal patient repository (`create_patient`, `patient_exists`) exists; the rest of the patient and document repositories are still open (Task 1.8).
 - **Processing model:** A synchronous, tracked job with progress shown in the UI. A separate worker process is added only if measured latency makes it necessary.
+- **Document processing status** (`documents.processing_status`; ADR-032):
+  - a new document is `uploaded` (also the database default);
+  - claiming it for parsing sets `processing` and starts a `running` parse run in `pipeline_runs`;
+  - if parsing fails, the parse run and the document become `failed`, and the document can be claimed again;
+  - if parsing succeeds, the **parse run** becomes `succeeded` and its page rows exist, but the **document stays `processing`**: its status describes the whole pipeline, not one stage. `processed` is set after chunking and extraction, and `needs_review` on an identity mismatch (diagram above). A parsed document cannot be claimed for parsing again;
+  - a claim older than a fixed 1,200 seconds is stale and is recovered only on an explicit request. The threshold is a constant, not derived from the `parse_timeout_seconds` setting.
+- **Parse outputs:** the IR and Docling's JSON are stored write-once with a manifest under `data/parsed/<patient_id>/<document_id>/v1/`; before reuse they are verified against the manifest (ADR-029, ADR-032).
 - **Risk:** Docling's resource use on Windows with 16 GB RAM is unknown. **Phase 2 begins with a spike** to measure it.
 
 ## 6. Extraction design
@@ -145,7 +158,7 @@ flowchart TD
 
 ## 7. Storage
 
-PostgreSQL holds the structured records, the vectors (pgvector) and full-text indexes. It is one database. See [DATABASE_DESIGN.md](DATABASE_DESIGN.md). Uploaded files live in a git-ignored local directory, and the database stores their paths and hashes.
+PostgreSQL holds the structured records, the vectors (pgvector) and full-text indexes. It is one database. See [DATABASE_DESIGN.md](DATABASE_DESIGN.md). Uploaded files live in a git-ignored local directory, and the database stores their paths and hashes. Originals are content-addressed per patient, written once and read-only; upload stores the file before creating its record and never deletes or overwrites a file (ADR-033). Parse outputs live in the same data directory (`data/parsed/`); the database does not reference them: their location is derived from the patient and document IDs, and their manifest makes them self-verifying (ADR-032).
 
 ## 8. Longitudinal intelligence (deterministic)
 

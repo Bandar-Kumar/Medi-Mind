@@ -46,7 +46,7 @@ The cost is one join per subtype query, which is negligible at this data volume.
 ### 4.1 Core
 
 **patients** (Phase 1)
-`id` (UUID PK), `display_name`, `date_of_birth` (nullable), `is_synthetic` (bool, default true), `created_at`
+`id` (UUID PK), `display_name`, `date_of_birth` (nullable), `is_synthetic` (bool, required; no database default: it must be set explicitly, ADR-033), `created_at`
 
 **documents** (Phase 1, extended in Phase 2)
 `id`, `patient_id` FK, `original_filename`, `storage_path`, `sha256` (unique per patient), `mime_type`, `page_count`, `doc_type` (enum), `doc_type_confidence`, `document_date` (nullable), `document_date_precision`, `processing_status` (`uploaded | processing | processed | failed | needs_review`), `identity_check` (`match | mismatch | unknown`), `supersedes_document_id` (nullable self-FK), `created_at`

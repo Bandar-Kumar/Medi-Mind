@@ -286,3 +286,100 @@ def invisible_text_pdf() -> bytes:
 def clip_only_text_pdf() -> bytes:
     """A page whose only text is clip-only (mode 7), with no image: nothing is drawn at all."""
     return mixed_visibility_pdf(tuple((text, 7, new_line) for text, _, new_line in VISIBILITY_RUNS))
+
+
+# --- U+FFFD fixtures (D7) -------------------------------------------------------------------------
+# Hand-written PDFs: ReportLab always writes a Unicode mapping, so it cannot produce these.
+
+
+def _raw_pdf(objects: list[bytes]) -> bytes:
+    """A minimal one-revision PDF from numbered object bodies (object 1 is the catalog)."""
+    out = bytearray(b"%PDF-1.7\n%\xe2\xe3\xcf\xd3\n")
+    offsets = []
+    for number, body in enumerate(objects, start=1):
+        offsets.append(len(out))
+        out += f"{number} 0 obj\n".encode() + body + b"\nendobj\n"
+    xref = len(out)
+    out += f"xref\n0 {len(objects) + 1}\n0000000000 65535 f \n".encode()
+    for offset in offsets:
+        out += f"{offset:010d} 00000 n \n".encode()
+    out += (
+        f"trailer\n<< /Size {len(objects) + 1} /Root 1 0 R >>\nstartxref\n{xref}\n%%EOF\n"
+    ).encode()
+    return bytes(out)
+
+
+def _stream(data: bytes) -> bytes:
+    return b"<< /Length %d >>\nstream\n" % len(data) + data + b"\nendstream"
+
+
+_ONE_PAGE = (
+    b"<< /Type /Catalog /Pages 2 0 R >>",
+    b"<< /Type /Pages /Kids [3 0 R] /Count 1 >>",
+    b"<< /Type /Page /Parent 2 0 R /MediaBox [0 0 595 842] /Contents 4 0 R"
+    b" /Resources << /Font << /F1 5 0 R /F2 6 0 R >> >> >>",
+)
+_HELVETICA = b"<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica /Encoding /WinAnsiEncoding >>"
+_HEADER_LINE = b"BT /F1 12 Tf 72 760 Td (Synthetic Diagnostics Lab - fictional report) Tj ET\n"
+
+# Glyphs drawn with the Type3 font of unmapped_glyph_pdf(): codes 1 and 2, five glyphs in all.
+UNMAPPED_GLYPH_CODES = (1, 2, 1, 2, 1)
+
+
+def unmapped_glyph_pdf() -> bytes:
+    """Native text plus five glyphs that no parser can map to Unicode.
+
+    The glyphs use a Type3 font whose encoding names them ``/g1`` and ``/g2`` (not in the Adobe
+    Glyph List) and which has no ToUnicode map. Each glyph is a visible filled square. Measured in
+    the D7 spike: Docling's page text holds U+FFFD for each glyph (by Docling's source,
+    docling-parse emits NUL for an unmapped glyph and Docling replaces it with U+FFFD), while
+    PDFium reports the raw character codes (1 and 2) instead.
+    """
+    glyph = _stream(b"1000 0 0 0 750 750 d1 0 0 750 750 re f")
+    codes = bytes(UNMAPPED_GLYPH_CODES).hex().upper().encode()
+    content = (
+        _HEADER_LINE + b"BT /F1 12 Tf 72 740 Td (Result: ) Tj ET\n"
+        b"BT /F2 12 Tf 140 740 Td <" + codes + b"> Tj ET\n"
+        b"BT /F1 12 Tf 72 720 Td (Platelet count 2.5 lakhs per cumm, fictional) Tj ET\n"
+    )
+    return _raw_pdf(
+        [
+            *_ONE_PAGE,
+            _stream(content),
+            _HELVETICA,
+            b"<< /Type /Font /Subtype /Type3 /FontBBox [0 0 750 750]"
+            b" /FontMatrix [0.001 0 0 0.001 0 0] /CharProcs << /g1 7 0 R /g2 8 0 R >>"
+            b" /Encoding << /Type /Encoding /Differences [1 /g1 /g2] >>"
+            b" /FirstChar 1 /LastChar 2 /Widths [1000 1000] /Resources << >> >>",
+            glyph,
+            glyph,
+        ]
+    )
+
+
+def source_replacement_character_pdf() -> bytes:
+    """Native text where the PDF's own ToUnicode map turns one glyph ("A") into U+FFFD.
+
+    The fallback fixture for D7: a U+FFFD stored in the source itself, not created by a parser.
+    Every other code maps to itself.
+    """
+    cmap = (
+        b"/CIDInit /ProcSet findresource begin 12 dict begin begincmap\n"
+        b"/CIDSystemInfo << /Registry (Adobe) /Ordering (UCS) /Supplement 0 >> def\n"
+        b"/CMapName /Adobe-Identity-UCS def /CMapType 2 def\n"
+        b"1 begincodespacerange <00> <FF> endcodespacerange\n"
+        b"1 beginbfchar <41> <FFFD> endbfchar\n"
+        b"2 beginbfrange <20> <40> <0020> <42> <7E> <0042> endbfrange\n"
+        b"endcmap CMapName currentdict /CMap defineresource pop end end"
+    )
+    content = _HEADER_LINE + b"BT /F2 12 Tf 72 740 Td (Result: 13.5 g/dL flag A, fictional) Tj ET\n"
+    return _raw_pdf(
+        [
+            *_ONE_PAGE,
+            _stream(content),
+            _HELVETICA,
+            b"<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica /Encoding /WinAnsiEncoding"
+            b" /ToUnicode 7 0 R >>",
+            _stream(cmap),
+        ]
+    )

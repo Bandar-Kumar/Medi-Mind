@@ -12,10 +12,13 @@ import hashlib
 import json
 import logging
 import stat
+import unicodedata
 import uuid
 from collections.abc import Callable
 from pathlib import Path
 
+import pypdfium2
+import pypdfium2.raw as pdfium_c
 import pytest
 
 from app.core.config import Settings
@@ -40,6 +43,8 @@ FIXTURES: dict[str, Callable[[], bytes]] = {
     "mixed_visibility": pdfs.mixed_visibility_pdf,
     "invisible_text": pdfs.invisible_text_pdf,
     "clip_only_text": pdfs.clip_only_text_pdf,
+    "unmapped_glyph": pdfs.unmapped_glyph_pdf,
+    "source_replacement_character": pdfs.source_replacement_character_pdf,
 }
 
 
@@ -302,6 +307,77 @@ def test_invisible_text_without_an_image_is_native_and_flagged(
     assert "Haemoglobin" in page.text and "hidden" in page.text
 
 
+REPLACEMENT_CHARACTER = "\ufffd"
+
+
+def _pdfium_code_points(data: bytes) -> list[int]:
+    """Every character code point PDFium reports for page 1 (test diagnostics only)."""
+    document = pypdfium2.PdfDocument(data)
+    try:
+        page = document[0]
+        text_page = page.get_textpage()
+        try:
+            return [
+                pdfium_c.FPDFText_GetUnicode(text_page, i) for i in range(text_page.count_chars())
+            ]
+        finally:
+            text_page.close()
+            page.close()
+    finally:
+        document.close()
+
+
+def test_unmapped_glyphs_reach_the_ir_as_replacement_characters_and_are_flagged(
+    parsed: Callable[[str], ParseResult],
+) -> None:
+    """D7 spike, kept as a test: a Type3 font with unmappable glyph names and no ToUnicode.
+
+    Docling's text holds one U+FFFD per glyph, never NUL; MediMind keeps them and flags the page.
+    PDFium reports the same glyphs as their raw character codes, so PDFium and Docling disagree
+    about unmapped glyphs: PDFium cannot be used to tell where a U+FFFD came from.
+    """
+    page = parsed("unmapped_glyph").document.pages[0]
+    assert page.parse_method == ParseMethod.NATIVE and page.ocr is None
+    assert page.text.count(REPLACEMENT_CHARACTER) == len(pdfs.UNMAPPED_GLYPH_CODES)
+    assert "\x00" not in page.text
+    assert ReviewReason.REPLACEMENT_CHARACTER in page.review_flags
+    assert "Platelet count 2.5" in page.text  # the mapped text around them is unaffected
+    codes = _pdfium_code_points(pdfs.unmapped_glyph_pdf())
+    assert 0xFFFD not in codes
+    assert [c for c in codes if c in (1, 2)] == list(pdfs.UNMAPPED_GLYPH_CODES)
+
+
+def test_a_replacement_character_stored_in_the_source_is_kept_and_flagged(
+    parsed: Callable[[str], ParseResult],
+) -> None:
+    """Fallback fixture: the PDF's own ToUnicode map stores U+FFFD for one glyph.
+
+    The flag means "compare with the original", not "the parser failed": it is set the same way
+    for a U+FFFD that is genuinely in the source (an accepted, documented false positive).
+    """
+    page = parsed("source_replacement_character").document.pages[0]
+    assert page.text.count(REPLACEMENT_CHARACTER) == 1
+    assert page.review_flags == (ReviewReason.REPLACEMENT_CHARACTER,)
+    assert _pdfium_code_points(pdfs.source_replacement_character_pdf()).count(0xFFFD) == 1
+
+
+def test_runtime_ocr_dictionary_cannot_emit_replacement_characters_or_nul(
+    parser: DoclingParser,
+) -> None:
+    """The recognition dictionary RapidOCR actually loaded: OCR text is built only from it."""
+    pipeline = next(iter(parser._converter._converter.initialized_pipelines.values()))
+    decoder = pipeline.ocr_model.reader.text_rec.postprocess_op
+    ignored = set(decoder.get_ignored_tokens())
+    emittable = [c for i, c in enumerate(decoder.character) if i not in ignored]
+    assert len(emittable) > 1000  # a real dictionary, not an empty stand-in
+    joined = "".join(emittable)
+    assert REPLACEMENT_CHARACTER not in joined
+    assert "\x00" not in joined
+    # The whole Unicode Control category: C0 (U+0000-U+001F, including tab and newlines), DEL
+    # (U+007F) and C1 (U+0080-U+009F).
+    assert not [c for c in joined if unicodedata.category(c) == "Cc"]
+
+
 # Expected (parse_method, review flags) for every page of every fixture.
 _N, _O = ParseMethod.NATIVE, ParseMethod.OCR
 _R = ReviewReason
@@ -321,6 +397,8 @@ EXPECTED_PAGES: dict[str, list[tuple[ParseMethod, set[ReviewReason]]]] = {
     "mixed_visibility": [(_N, {_R.DOCLING_NORMALIZED_TEXT, _R.INVISIBLE_TEXT_LAYER})],
     "invisible_text": [(_N, {_R.INVISIBLE_TEXT_LAYER})],
     "clip_only_text": [(_N, {_R.INVISIBLE_TEXT_LAYER})],
+    "unmapped_glyph": [(_N, {_R.REPLACEMENT_CHARACTER})],
+    "source_replacement_character": [(_N, {_R.REPLACEMENT_CHARACTER})],
 }
 
 

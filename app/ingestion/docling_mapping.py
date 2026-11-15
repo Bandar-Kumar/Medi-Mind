@@ -28,6 +28,9 @@ Evidence rules implemented here:
   the PDF's visible text layer (PDFium) more often than in Docling's text for that page; or
   Docling's visible line cells contain characters it rewrites, or a line-end hyphen it may drop.
   It is never repaired here. The stored original PDF remains the authoritative source.
+- **U+FFFD** in a page's final text or table cells sets ``replacement_character``. It means a
+  glyph docling-parse could not map (Docling replaces its NUL with U+FFFD) or a U+FFFD stored in
+  the PDF itself; the two cannot be told apart from Docling's output, so no origin is claimed.
 - **Multi-page items** are split across pages only when Docling's per-page character spans verify
   exactly; otherwise the item is placed on no page, every page it touches is flagged, and it stays
   available in Docling's JSON. Page text never contains text Docling did not place on that page.
@@ -57,6 +60,7 @@ from app.ingestion.ir import (
     ReviewReason,
     TableCell,
     canonical_flags,
+    contains_replacement_character,
     sanitized_problems,
 )
 
@@ -522,6 +526,11 @@ def _build_page(
         # Set from PDFium alone, whatever Docling did with that text (kept it, or OCR'd an image
         # under it). The text is never removed or changed.
         flags.add(number, ReviewReason.INVISIBLE_TEXT_LAYER)
+    if contains_replacement_character(text, builder.tables):
+        # U+FFFD in the final text: from docling-parse (a glyph it could not map, which Docling
+        # turns into U+FFFD) or from the PDF's own Unicode mapping. Docling's cells keep no raw
+        # value, so the origin is not claimed; the U+FFFD stays in the text.
+        flags.add(number, ReviewReason.REPLACEMENT_CHARACTER)
     if not text.strip() and not builder.tables:  # same rule as ParsedPage.is_empty
         flags.add(number, ReviewReason.EMPTY_PAGE)
     return ParsedPage(

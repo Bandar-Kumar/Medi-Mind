@@ -2,7 +2,12 @@
 
 ## Current phase
 
-**Phase 2: Medical document intelligence.** Tasks 2.1–2.3 are complete. Task 2.4's implementation and verification are approved; its README, IMPLEMENTATION_PLAN and DECISIONS updates are still outstanding. Task 2.5 has not started. Phase 0 is complete, but some Proposed ADRs are still open.
+**Phase 2: Medical document intelligence.** Tasks 2.1–2.6 are complete:
+- Task 2.4's documentation was committed in `f42f3f7`.
+- Task 2.5 (parse persistence) was implemented, verified and documented on 2026-11-15, with IR schema version 1 frozen.
+- Task 2.6 (document upload service with a minimal patient repository, ADR-033) was implemented, verified and documented on 2026-11-15.
+
+The Task D7–2.6 work is not committed yet. The remaining Phase 2 subtasks (rule-based classifier, identity check, document library UI) are not yet broken into tasks. Phase 0 is complete, but some Proposed ADRs are still open.
 
 > This file has no entries for Task 1.7, migration safety, or Tasks 2.1–2.3. Their record is in [SUMMARY.md](../SUMMARY.md) (2026-11-13 and 2026-11-14).
 
@@ -127,13 +132,88 @@
 - **Known limitation:** OCR that runs but recognizes no text can't be distinguished from OCR not running; such a page is `native` (and `empty_page` if it has no text).
 - **Outstanding:** the README section (first-run model download, `HF_HUB_OFFLINE`) and the IMPLEMENTATION_PLAN and DECISIONS updates. These have not been written.
 - **Not started:** Task 2.5.
+- **Correction (2026-11-15):** the two lines above are out of date. The README, IMPLEMENTATION_PLAN and DECISIONS updates were written and committed by the owner in `f42f3f7`, and Task 2.5 is now done (next entry). The original wording is kept as history.
+
+### 2026-11-15: Phase 2, Task 2.5: Parse persistence (done; IR schema version 1 frozen)
+
+**Implementation (accepted by the owner, sub-task by sub-task):**
+- **Step 0, D7:** page-level `replacement_character` flag for U+FFFD (ADR-030, decision 6), with a hand-written Type3 fixture and a fallback fixture.
+- **2.5a:** `app/records/repositories.py`: `create_document`, `claim_document_for_parsing`, `persist_parsed_pages`, `record_parse_failure` (later also `parse_run_belongs_to_document`). Patient-scoped, one transaction each, plain dataclasses. New `DocumentProcessingError` in `app/core/errors.py`.
+- **2.5b:** `app/ingestion/parse_outputs.py`: `data/parsed/<patient_id>/<document_id>/v1/` with `ir.v1.json`, `docling.json` and `manifest.json`, published write-once by one directory rename; artifacts are verified against the manifest (SHA-256 and size) before any reuse.
+- **2.5c:** `app/services/parsed_pages.py`: verified IR → `pages` rows, text unchanged.
+- **2.5d:** `app/services/process_document.py`: claim → verify the original → reuse or parse and publish → pages; failures recorded without masking the original error. The IR now rejects lone surrogates.
+- **2.5e (test additions):** `tests/integration/conftest.py` redirect and patient fixtures; the repository also rejects lone surrogates (`text_not_storable`).
+- **Decisions:** D1–D8 and A1–A8, recorded in ADR-032 (D7 in ADR-030). IR version 1 contract and freeze in ADR-029.
+
+**Document lifecycle (ADR-032):** `uploaded` → claim → `processing` with a `running` parse run → on failure the run and the document become `failed` (claimable again); on success the parse run becomes `succeeded` and the **document stays `processing`**, because `processed` / `needs_review` mean the whole pipeline is done and are set by later stages. Stale claims: fixed 1,200-second threshold, explicit recovery only; not linked to `parse_timeout_seconds`.
+
+**Milestone verification (Task 2.5e, measured 2026-11-15):**
+
+| Run | Result |
+|---|---|
+| Default suite (`uv run pytest`) | **685 passed**, 0 failed, 0 skipped, 153 deselected |
+| Opt-in Docling, offline | **58 passed**, 0 skipped; model caches unchanged |
+| Existing integration (`medimind_test`) | **52 passed** (5 database, 8 migrations incl. model/migration parity and `alembic check`, 39 schema constraints) |
+| New integration (`medimind_test`) | **40 passed** (33 repositories, 7 orchestration) |
+| End-to-end, real PostgreSQL + Docling | **3 passed** (native, scanned, retry reusing outputs without Docling) |
+| Ruff, format, `git diff --check` | Clean |
+
+- **Test count:** 593 (after D7) + 8 (Task 2.5d IR tests) + 84 (Task 2.5e unit tests) = 685. The 2.5d report said "10" new IR tests; the correct number is 8.
+- **Database isolation evidence:**
+  - **Primary, connection level:** every repository and service connection in the new integration and end-to-end tests went through a redirected session factory; a listener checked `current_database()` on each new connection before any statement, and each test asserted that the only database seen was `medimind_test`.
+  - **Secondary guard:** the application database's schema and row-count snapshot (`patients`, `documents`, `pages`, `pipeline_runs`, where present) was identical before and after each integration run.
+  - **Separate observation:** the application database `medimind` has no tables in its `public` schema, so these rows could not have been written there in any case.
+  - `medimind_test` held 0 leftover test rows afterwards.
+- Docker was restored to its starting state (engine not running); `data/`, the model caches and every earlier working-tree change were unchanged.
+
+### 2026-11-15: Phase 2, Task 2.6: Document upload service ✅
+
+**Implementation (accepted by the owner, sub-task by sub-task; decisions Q1–Q7 in ADR-033):**
+- **2.6a:** `PatientError` in `app/core/errors.py`. In `app/records/repositories.py`:
+  - `create_patient` returns a `PatientRef` (`id`, `is_synthetic`; never the name);
+  - `patient_exists` is a read-only `SELECT EXISTS`;
+  - in `create_document`, a violation of exactly `fk_documents_patient_id_patients` (SQLSTATE 23503 and that name) becomes `patient_not_found`; every other integrity error propagates unchanged.
+- **Patient validation:**
+  - display name: stripped, 1–200 characters; Cc characters, lone surrogates, the bidi embedding/override/isolate controls, U+200B and U+FEFF are rejected; ZWJ, ZWNJ, LRM and RLM are allowed; no normalization;
+  - date of birth: optional calendar date, not in the future;
+  - `is_synthetic`: required `bool`;
+  - all checked before any database session; errors never contain the values.
+- **2.6b:** `app/services/upload_document.py`. The steps are type checks → `validate_pdf_bytes` → `patient_exists` (before any upload directory exists) → `store_original` (write-once, never overwrites) → `create_document` with the sanitized filename. No transaction is open during file work. Upload **does not start parsing**: `process_document` is a separate call. Three names were added to the architecture allow-list: `PATIENT_NOT_FOUND`, `create_document`, `patient_exists`.
+- **Duplicates and flags:**
+  - duplicate detection is patient-scoped (`UNIQUE(patient_id, sha256)`), with no separate pre-check;
+  - `duplicate` means an existing record was returned; `original_stored` means this call created the file;
+  - both are true when a missing original is published again, or in a concurrent-upload race. That case is logged as a warning with identifiers only, and the warning does not claim which case occurred.
+- **Retries:** a database failure after storing leaves a harmless orphan original, and a retry creates the record. Different bytes at the content address raise `integrity_mismatch`, and the file is left untouched.
+
+**Verification (Task 2.6c, measured 2026-11-15):**
+
+| Run | Result |
+|---|---|
+| Ruff check, `ruff format --check`, `git diff --check` | Clean |
+| Default suite (`uv run pytest`) | **786 passed**, 0 failed, 0 skipped, 176 deselected, no warnings (685 + 66 patient unit tests + 35 upload unit tests) |
+| Integration, `-m "integration and not docling"` (`medimind_test`) | **115 passed**, 0 failed, 0 skipped: 52 database, migrations and schema; 47 repositories (33 + 14 patient); 7 `process_document`; 9 upload |
+| Concurrency and retry tests, repeated 15 times | **105 of 105 passed** (7 tests × 15) |
+
+- **Covered by the integration tests:**
+  - concurrent identical uploads (4 threads) produce one record, one file and no `.part` files;
+  - retry after a database failure;
+  - a missing original published again;
+  - the same bytes for two patients give separate rows and files, and each patient's duplicate check sees only its own;
+  - an unknown patient or an invalid PDF writes nothing;
+  - an uploaded document is then processed separately by `process_document` with a fake parser.
+- The Docling end-to-end tests were not re-run: Task 2.6 changes no parsing code.
+- **Database isolation evidence:**
+  - every repository connection went through the `medimind_test` connection guard;
+  - `main_database_unchanged` ran on every integration test;
+  - `medimind_test` had 0 rows in `patients`, `documents`, `pages` and `pipeline_runs` before and after;
+  - `medimind` had 0 tables in `public` before and after.
+- `data/` was unchanged (same fingerprint), there were no `.part` or `.tmp-` files, and Docker was restored to its starting state (engine not running, container `Exited`).
 
 ## Next steps
 
-1. **Finish the Task 2.2–2.4 documentation:** the README section (first-run model download, `HF_HUB_OFFLINE`), IMPLEMENTATION_PLAN and DECISIONS. Then the owner commits Tasks 2.2–2.4.
-2. **Task 2.5** (not started): persist the IR and Docling JSON files (freeze schema version 1) and write `pages` rows.
-3. **Task 1.8** (pending): patient-scoped repositories with cross-patient read, update and delete isolation tests.
-4. With approval, run the integration tests against `medimind_test`.
+1. **Owner:** review and commit the Task D7–2.6 work.
+2. **Task 1.8** (rest still open): patient listing, update and delete; document listing, update and delete; with isolation tests.
+3. **Phase 2:** break the remaining subtasks (rule-based classifier, identity check, document library UI) into tasks.
 
 ## Open questions
 
@@ -145,3 +225,4 @@
 | Q12 | Auto-accept an ambiguous date when the same document confirms DD/MM order? | Open. Default: no, always flag. Decide with Phase 3 flag-rate data. |
 | — | Proposed ADRs still to be decided: 002 (BGE-small, MiniLM cross-encoder), 007, 008, 011, 017, 021, 027 | Awaiting owner review |
 | — | Hosting target for the public demo | Decided in Phase 9, or at the ADR-027 checkpoint |
+| D6 | Re-processing documents after a parser upgrade (new outputs never overwrite `v1/`) | Deferred (ADR-029 versioning policy, ADR-032) |

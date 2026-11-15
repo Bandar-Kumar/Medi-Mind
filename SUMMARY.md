@@ -22,12 +22,77 @@ Only work that actually happened and was verified is recorded.
 
 ---
 
-## 2026-11-14: Migration safety committed; Phase 2 started (Tasks 2.1–2.3 done, Task 2.4 implementation approved, its documentation outstanding)
+## 2026-11-15: Task 2.5 done (parse persistence); D7 `replacement_character`; IR schema version 1 frozen; Task 2.6 done (document upload)
+
+**Phase:** 2, document intelligence
+
+### Done
+- **D7 (step 0):** page-level `replacement_character` flag, set exactly when page text or a table cell contains U+FFFD (ADR-030, decision 6).
+  - Spike: a hand-written Type3 font without a Unicode map gave 5 × U+FFFD in Docling's text and none of NUL; a fallback fixture whose own Unicode map stores U+FFFD gave 1. Both are opt-in Docling fixtures now.
+  - The runtime RapidOCR recognition dictionary (18,709 emittable characters) contains no U+FFFD and no control characters.
+- **Task 2.5a:** patient-scoped repositories (`app/records/repositories.py`): `create_document`, `claim_document_for_parsing` (claim token = parse run ID, `SELECT … FOR UPDATE`), `persist_parsed_pages`, `record_parse_failure`.
+- **Task 2.5b:** write-once parse outputs (`app/ingestion/parse_outputs.py`) in `data/parsed/<patient_id>/<document_id>/v1/` with a manifest; one directory rename publishes them; artifacts are verified against the manifest before reuse.
+- **Task 2.5c:** verified IR → `pages` rows (`app/services/parsed_pages.py`).
+- **Task 2.5d:** `process_document` orchestration (`app/services/process_document.py`); lone surrogates rejected in the IR; `parse_run_belongs_to_document` and `read_published_manifest` added, so a retry can reuse an earlier run's verified outputs.
+- **Task 2.5e (verification, measured):**
+  - default suite **685 passed**; Docling offline **58**; existing integration **52**; new integration **40**; real PostgreSQL + Docling end-to-end **3**; 0 failures, 0 skips; Ruff, format and `git diff --check` clean;
+  - new tests: 84 unit (46 parse outputs, 7 IR → pages, 29 orchestration, 2 mapping) and 43 integration (33 repositories, 7 orchestration, 3 end-to-end);
+  - the repository now also rejects lone surrogates (`text_not_storable`).
+- **Task 2.5f:** documentation (ADR-029 freeze, new ADR-032, ADR-030 cross-reference, IMPLEMENTATION_PLAN, PROGRESS, ARCHITECTURE lifecycle) and this entry.
+- **Task 2.6a:** minimal patient repository. `PatientError`; `create_patient` (validated display name and date of birth, required `is_synthetic`, returns `PatientRef` without the name); `patient_exists` (read-only `SELECT EXISTS`); exact patient-FK mapping to `patient_not_found` in `create_document`.
+- **Task 2.6b:** `upload_document` service (`app/services/upload_document.py`): type checks → PDF validation → patient check → write-once original → document record. Patient-scoped duplicates; `duplicate` and `original_stored` flags; no automatic parsing.
+- **Task 2.6c (verification, measured):**
+  - default suite **786 passed** (685 + 66 patient + 35 upload unit tests);
+  - integration **115 passed** (52 + 47 repositories incl. 14 patient + 7 `process_document` + 9 upload);
+  - concurrency and retry tests 15× repeated, **105 of 105** passed;
+  - 0 failures, 0 skips, no warnings; Ruff, format and `git diff --check` clean;
+  - `medimind_test` 0 rows before and after; `medimind` 0 tables; `data/` unchanged; Docker restored.
+- **Task 2.6d:** documentation (new ADR-033, IMPLEMENTATION_PLAN, PROGRESS, ARCHITECTURE upload bullet) and this update.
+
+### Decisions
+- **D1–D8, A1–A8** recorded in **ADR-032** (D7 in ADR-030): minimal Task 1.8 subset inside 2.5; no database column for output paths; `pages.review_flags` deferred; NUL and lone surrogates rejected, never modified; parser-upgrade re-processing deferred; manifest with its own version; reuse of a producing run of any status after manifest, ownership and full checks; the original PDF verified on both paths; producer provenance kept in the manifest and its own run row.
+- **Document lifecycle:** `uploaded` → claim → `processing`; on failure `failed` (claimable again); on success the parse run becomes `succeeded` and the **document stays `processing`** until later stages set `processed` or `needs_review`. Stale claims: fixed 1,200 seconds, explicit recovery only, not linked to `parse_timeout_seconds`.
+- **IR schema version 1 frozen** (ADR-029): structure, serialization, validation, flags, Unicode and text-preservation rules, and what requires version 2.
+- **Next task:** 2.6, upload service with a minimal patient-creation repository; the rest of Task 1.8 stays open.
+- **Task 2.6, Q1–Q7, recorded in ADR-033:**
+  - no separate duplicate pre-check (the unique constraint is the authority);
+  - map only the `documents.patient_id` foreign-key violation to `patient_not_found`;
+  - add `PatientError`;
+  - name rules: strip; 1–200 characters; reject Cc characters, lone surrogates, bidi embedding/override/isolate controls, U+200B and U+FEFF; allow ZWJ, ZWNJ, LRM and RLM; no normalization;
+  - publish a missing original again with identical hash-verified bytes, never overwriting;
+  - new ADR-033;
+  - four approval-gated sub-tasks.
+- **Upload flags:** `duplicate` means an existing record was returned; `original_stored` means this call created the file. Both being true is logged as a warning that does not claim a restore, because a concurrent upload race produces the same flags. Upload never starts parsing.
+
+### Learned
+- docling-parse reports a glyph it cannot map as U+FFFD (after Docling replaces its NUL), while PDFium reports the raw character code, so the two libraries cannot be compared to find the origin of a U+FFFD.
+- `dump_ir()` raised an unclassified serialization error on a lone surrogate until the IR rejected them.
+- On NTFS, `os.rename` onto an existing directory raises `FileExistsError` even when that directory is empty (measured).
+- Services call repositories without a session factory, so they use the application's engine; integration tests must redirect sessions to `medimind_test` and check every connection's database.
+- **Database isolation evidence (2.5e):** the primary safety boundary was the per-connection `current_database()` check, with each test asserting only `medimind_test` was used. The application database's snapshot guard (schema plus row counts) was a second check. Separately, `medimind` was observed to have no tables in `public`.
+- **(2.6)** `str.strip()` does not remove U+200B or U+FEFF (they are not whitespace), so a leading byte-order mark survives stripping and needs an explicit rule.
+- **(2.6)** The model's naming convention gives the foreign key a stable name (`fk_documents_patient_id_patients`), and psycopg exposes it as `diag.constraint_name`, so one specific constraint can be mapped without guessing from SQLSTATE alone.
+- **(2.6)** The integration connection log also records the test's own helper queries, so it cannot prove "no connection was opened". That property is proven in unit tests with a session factory that fails if called. A first draft of an integration test got this wrong; the test, not the code, was corrected.
+
+### Issues / blockers
+- **Test-count correction:** the Task 2.5d report said 10 new IR tests; the correct number is 8 (593 + 8 + 84 = 685).
+- Still present and not changed: the stray file `tatus --short` in `f42f3f7`; the older `medimind-*` folders in `%TEMP%` (kept until the owner allows deletion).
+- **Uncommitted:** all D7, Task 2.5 and Task 2.6 work.
+
+### Next
+1. Owner reviews and commits the D7–2.6 work.
+2. ~~Task 2.6: `upload_document` service plus a minimal patient-creation repository function.~~ Done the same day (see above).
+3. The rest of Task 1.8 (patient listing, update and delete; document listing, update and delete; isolation tests).
+4. Break the remaining Phase 2 subtasks (classifier, identity check, document library UI) into tasks.
+
+---
+
+## 2026-11-14: Migration safety committed; Phase 2 started (Tasks 2.1–2.3 done, Task 2.4 implemented, documented and committed as `f42f3f7`)
 
 **Phase:** 1 (closing work), then 2, document intelligence
 
 ### Done
-- **Migration safety (A, B, C), committed as `86721df`, not pushed:**
+- **Migration safety (A, B, C), committed as `86721df`, pushed later the same day:**
   - **A:** the downgrade guard: `-x confirm_downgrade=<database>` must exactly match the connected database. Command-line downgrades and `stamp --purge` are refused before anything runs, and a per-step backstop catches any other backward step. The `.env` path now uses `engine.begin()`.
   - **B:** `.gitignore` ignores `backups/` and `*.dump`.
   - **C:** a "Migrations and backups" section in the README.
@@ -55,7 +120,7 @@ Only work that actually happened and was verified is recorded.
   - Two follow-up fixes, each with a test that fails without it:
     - an identical stored file gets its read-only flag restored on retry;
     - IR error messages are sanitized.
-- **Task 2.4: Docling parser (implementation and verification approved; README, IMPLEMENTATION_PLAN and DECISIONS updates outstanding):**
+- **Task 2.4: Docling parser (implementation and verification approved; README, IMPLEMENTATION_PLAN and DECISIONS updates written; committed by the owner in `f42f3f7`):**
   - **New modules:** `docling_mapping.py` (pure mapping) and `parsing.py` (one converter per batch, lazy imports).
   - **Pinned configuration:** `RapidOcrOptions(backend="torch", lang=[])`, remote services off, CPU.
   - **Page numbers:** pages are matched by number, never by position.
@@ -105,6 +170,16 @@ Only work that actually happened and was verified is recorded.
 
     - Every Docling fixture has an explicit expected parse method and flag set.
     - With the old OCR rule restored and the flag disabled (scratch copy), 13 of the new or updated tests failed.
+- **Task 2.2–2.4 documentation (written at the end of the day; committed by the owner in `f42f3f7`):**
+  - **README:**
+    - Status moved to Phase 2;
+    - new "Document parsing (Docling)" section: local processing vs model downloads, the two download mechanisms (Hugging Face and ModelScope), offline mode, ingestion settings, opt-in Docling test commands for PowerShell, CMD and Bash, development-laptop measurements;
+    - `app/ingestion/` added to the repository layout.
+  - **IMPLEMENTATION_PLAN:** Phase 2 marked in progress, with a task table: 2.1–2.3 done, 2.4 implementation approved, 2.5 not started.
+  - **DECISIONS:**
+    - ADR-026 now reads "dependency resolution verified; Docling runtime verified"; sentence-transformers runtime is still unverified;
+    - new ADR-028 (Docling parser configuration), ADR-029 (versioned parse IR), ADR-030 (parser text issues flagged, never repaired), ADR-031 (OCR provenance from Docling's OCR cells).
+  - **Checks:** `git diff --check` clean, and only the three authorized files changed (hashes of every other changed file identical before and after).
 
 ### Decisions
 - **Docling setup:** Docling 2.150.1 with RapidOCR on PyTorch; OCR and table structure always on; remote services off.
@@ -116,6 +191,7 @@ Only work that actually happened and was verified is recorded.
 - **`invisible_text_layer` added** as a page-only flag. No other new flags; the IR JSON layout is unchanged. Schema version stays 1, because no IR file has been written yet.
 - **OCR provenance = non-blank `from_ocr` cells.** "No visible native text" is not evidence of OCR.
 - **Known limitation accepted for now:** OCR that runs but recognizes nothing can't be told apart from OCR that didn't run. Such a page is `native` (and `empty_page` if it has no text). A possible later fix is an image-presence signal from PDFium; it isn't designed or approved.
+- **ADRs for Phase 2 so far:** one ADR per real decision (parser configuration, IR, flag-never-repair, OCR provenance), ADR-026 updated in place. Implementation details (lazy imports, page matching, error classification, eager RapidOCR loading) get no ADR of their own.
 
 ### Learned
 - **docling-parse turns `–` and `−` into `-`,** and Docling doesn't let us turn that off. Its line cells are not raw PDF text.
@@ -130,19 +206,32 @@ Only work that actually happened and was verified is recorded.
 - **OCR provenance in Docling:**
   - RapidOCR creates `TextCell(from_ocr=True)` only for lines it recognized, and Docling's merge keeps that flag on the final line cells.
   - Docling doesn't record per page whether OCR was attempted, only whether it produced cells.
+- **Model downloads (checked in the installed code):**
+  - Docling's models come from Hugging Face (`huggingface_hub`), but RapidOCR downloads its own PyTorch models from ModelScope with `requests`. `HF_HUB_OFFLINE` does not affect RapidOCR.
+  - RapidOCR's PyTorch models are saved inside `.venv`, so recreating `.venv` loses them. The `.onnx` files in the same folder come with the wheel and are not used.
+  - `HF_HUB_OFFLINE` in `.env` has no effect: the app reads only `MEDIMIND_` settings from `.env` and never copies values into the process environment.
+  - Docling's TableFormer `accurate` mode is its default; MediMind records it but does not set it.
+- **Windows CMD:** `set VAR=1 && cmd` stores `"1 "` with a trailing space, so the variable belongs on its own line.
 
 ### Issues / blockers
 - ~~Task 2.4 is not closed~~ **Resolved for implementation:** the visibility change was approved, and the `invisible_text_layer` flag and the OCR provenance fix were implemented, verified and approved.
-- **Documentation still outstanding for Tasks 2.2–2.4:** README (first-run model download, `HF_HUB_OFFLINE`), IMPLEMENTATION_PLAN and DECISIONS have **not** been updated. PROGRESS has a Task 2.4 entry.
-- **Uncommitted:** the Tasks 2.2–2.4 code and this SUMMARY file. `86721df` is not pushed.
+- **Committed and pushed by the owner:** `f42f3f7` "doc ingestion foundation" (29 files: the Tasks 2.2–2.4 code, tests, `uv.lock`, README, PROGRESS, IMPLEMENTATION_PLAN, DECISIONS and this SUMMARY file as it stood before wrap-up). `86721df` is pushed too; `main` = `origin/main`. Only this wrap-up edit to SUMMARY.md is uncommitted.
+- **Stray file in `f42f3f7`:** `tatus --short`, 17 lines of coloured `git diff` output for `.env.example` (probably a mistyped `git status --short`). No secrets (the password line is empty). Remove it in a later commit (owner).
+- **`docs/PROGRESS.md` is stale in one place:** its Task 2.4 entry still says the README, IMPLEMENTATION_PLAN and DECISIONS updates "have not been written", and Next step 1 still lists them.
+- **Found but not changed (out of scope today):**
+  - ADR-021 is still "Proposed" in DECISIONS, though the 2026-11-13 entry records it as accepted (U1) in Task 1.7; Task 1.7's schema decisions have no ADR;
+  - IMPLEMENTATION_PLAN still labels Phase 0 "(current)", and its Phase 1 table doesn't mark Tasks 1.1 and 1.7 done.
+- **Not verified:** a real offline warm-up with an empty model cache (the `models_unavailable` path is unit-tested with simulated errors only).
 - **Not run:** the 3 migration-safety integration tests and the `.env`-path downgrade check against `medimind_test`.
 - **Temporary folders kept until the owner allows deletion:** the spike folder (1.75 GB), the preview folder and the lockfile backups in `%TEMP%`.
 
 ### Next
 1. ~~Review the visibility change and decide on the `invisible_text_layer` flag.~~ Done.
-2. Finish the outstanding Task 2.2–2.4 documentation (README section, IMPLEMENTATION_PLAN, DECISIONS), then commit (owner).
+2. Small follow-up commit (owner approval): update `docs/PROGRESS.md` (Task 2.4 docs written), remove the stray `tatus --short` file, and commit this wrap-up.
 3. Task 2.5 (**not started**): persist the IR and Docling JSON files (freeze schema version 1) and write `pages` rows.
 4. With approval, run the 52 integration tests against `medimind_test`.
+5. Task 1.8 (pending): patient-scoped repositories with cross-patient isolation tests.
+6. Decide on the out-of-scope doc gaps above (ADR-021 status, Task 1.7 ADRs, Phase 0/1 plan labels).
 
 ---
 

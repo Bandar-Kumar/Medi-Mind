@@ -482,3 +482,226 @@ def test_invisible_text_layer_survives_serialization_with_unchanged_layout() -> 
     assert raw["pages"][0]["review_flags"] == ["empty_page", "invisible_text_layer"]
     assert set(raw) == {"schema_version", "sha256", "page_count", "parser", "pages", "review_flags"}
     assert raw["schema_version"] == IR_SCHEMA_VERSION == 1
+
+
+# --- replacement_character (D7) -------------------------------------------------------------------
+
+FFFD = "\ufffd"
+# Fictional text with two U+FFFD where a glyph could not be mapped; kept exactly as received.
+FFFD_TEXT = f"Haemoglobin 13.5 g/dL {FFFD}{FFFD} flag\n"
+
+
+def _fffd_table() -> ParsedTable:
+    return _table(
+        cells=[
+            TableCell(row=0, col=0, text="Test", column_header=True),
+            TableCell(row=0, col=1, text="Unit", column_header=True),
+            TableCell(row=1, col=0, text="Haemoglobin"),
+            TableCell(row=1, col=1, text=f"g/{FFFD}L"),
+        ]
+    )
+
+
+def test_replacement_character_is_a_page_flag_on_native_and_ocr_pages() -> None:
+    flag = ReviewReason.REPLACEMENT_CHARACTER
+    native = _page(text=FFFD_TEXT, review_flags=[flag])
+    assert native.text == FFFD_TEXT and native.review_flags == (flag,)  # text unchanged
+    ocr = _ocr_page(
+        text=FFFD_TEXT,
+        review_flags=canonical_flags([ReviewReason.OCR_TEXT_UNVERIFIED, flag]),
+    )
+    assert ocr.review_flags == (ReviewReason.OCR_TEXT_UNVERIFIED, flag)
+
+
+def test_replacement_character_is_neither_document_level_nor_ocr_only() -> None:
+    from app.ingestion.ir import DOCUMENT_REASONS, OCR_ONLY_REASONS
+
+    assert ReviewReason.REPLACEMENT_CHARACTER not in DOCUMENT_REASONS
+    assert ReviewReason.REPLACEMENT_CHARACTER not in OCR_ONLY_REASONS
+
+
+def test_replacement_character_in_text_requires_the_flag() -> None:
+    with pytest.raises(ValidationError):
+        _page(text=FFFD_TEXT)
+    with pytest.raises(ValidationError):
+        _ocr_page(text=FFFD_TEXT)  # OCR flags alone are not enough
+
+
+def test_replacement_character_in_a_table_cell_requires_the_flag() -> None:
+    with pytest.raises(ValidationError):
+        _page(tables=[_fffd_table()])
+    page = _page(tables=[_fffd_table()], review_flags=[ReviewReason.REPLACEMENT_CHARACTER])
+    assert page.tables[0].cells[3].text == f"g/{FFFD}L"
+
+
+def test_replacement_character_flag_without_the_character_is_rejected() -> None:
+    with pytest.raises(ValidationError):
+        _page(review_flags=[ReviewReason.REPLACEMENT_CHARACTER])
+    with pytest.raises(ValidationError):
+        _page(
+            text="",
+            native_char_count=0,
+            review_flags=canonical_flags(
+                [ReviewReason.EMPTY_PAGE, ReviewReason.REPLACEMENT_CHARACTER]
+            ),
+        )
+
+
+@pytest.mark.parametrize(
+    "text",
+    [
+        "Result ? g/dL",  # question mark
+        "Result □ g/dL",  # white square, a common look-alike
+        "Result \ue000 g/dL",  # private-use character (icon fonts)
+        "Result \\ufffd g/dL",  # the escape sequence written as plain text
+        "Result U+FFFD g/dL",  # the code point name written as plain text
+        "• Haemoglobin 13.5",  # a mapped bullet
+    ],
+)
+def test_look_alikes_of_the_replacement_character_need_no_flag(text: str) -> None:
+    assert _page(text=text).review_flags == ()
+    with pytest.raises(ValidationError):
+        _page(text=text, review_flags=[ReviewReason.REPLACEMENT_CHARACTER])
+
+
+def test_replacement_character_is_not_a_document_flag() -> None:
+    page = _page(text=FFFD_TEXT, review_flags=[ReviewReason.REPLACEMENT_CHARACTER])
+    with pytest.raises(ValidationError):
+        ParsedDocument(
+            sha256=SHA,
+            page_count=1,
+            parser=ParserInfo(name="docling", version="2.150.1"),
+            pages=[page],
+            review_flags=[ReviewReason.REPLACEMENT_CHARACTER],
+        )
+    raw = json.loads(dump_ir(_document([page])))
+    raw["review_flags"] = ["replacement_character"]
+    with pytest.raises(DocumentParseError) as caught:
+        load_ir(json.dumps(raw).encode())
+    assert caught.value.kind == "ir_invalid"
+
+
+def test_loading_an_unflagged_replacement_character_is_rejected_without_echoing_text() -> None:
+    secret = f"Test Person 13.5 {FFFD}"
+    raw = json.loads(dump_ir(_document([_page()])))
+    raw["pages"][0]["text"] = secret
+    with pytest.raises(DocumentParseError) as caught:
+        load_ir(json.dumps(raw, ensure_ascii=False).encode())
+    assert caught.value.kind == "ir_invalid"
+    assert "Test Person" not in str(caught.value) and FFFD not in str(caught.value)
+    assert caught.value.__cause__ is None and caught.value.__context__ is None
+    with pytest.raises(ValidationError) as direct:
+        _page(text=secret)
+    assert "Test Person" not in str(direct.value) and "input_value" not in str(direct.value)
+
+
+def test_replacement_character_has_a_canonical_position() -> None:
+    flags = [
+        ReviewReason.REPLACEMENT_CHARACTER,
+        ReviewReason.OCR_TEXT_UNVERIFIED,
+        ReviewReason.MIXED_NATIVE_AND_OCR,
+        ReviewReason.DOCLING_NORMALIZED_TEXT,
+    ]
+    assert [r.value for r in canonical_flags(flags)] == [
+        "docling_normalized_text",
+        "mixed_native_and_ocr",
+        "ocr_text_unverified",
+        "replacement_character",
+    ]
+    raw = json.loads(dump_ir(_document([_ocr_page()])))
+    raw["pages"][0]["text"] = FFFD_TEXT
+    raw["pages"][0]["review_flags"] = ["replacement_character", "ocr_text_unverified"]  # unsorted
+    with pytest.raises(DocumentParseError):
+        load_ir(json.dumps(raw).encode())
+
+
+def test_replacement_character_survives_serialization_with_unchanged_layout() -> None:
+    page = _page(
+        text=FFFD_TEXT,
+        tables=[_fffd_table()],
+        review_flags=[ReviewReason.REPLACEMENT_CHARACTER],
+    )
+    document = _document([page])
+    data = dump_ir(document)
+    assert load_ir(data) == document and dump_ir(load_ir(data)) == data
+    assert load_ir(data).pages[0].text == FFFD_TEXT  # byte-for-byte, U+FFFD kept
+    raw = json.loads(data)
+    assert raw["pages"][0]["review_flags"] == ["replacement_character"]
+    assert set(raw) == {"schema_version", "sha256", "page_count", "parser", "pages", "review_flags"}
+    assert set(raw["pages"][0]) == {
+        "page_number",
+        "text",
+        "parse_method",
+        "native_char_count",
+        "ocr",
+        "tables",
+        "review_flags",
+    }
+    assert raw["schema_version"] == IR_SCHEMA_VERSION == 1
+
+
+# --- lone surrogates (Task 2.5d) ------------------------------------------------------------------
+
+HIGH_SURROGATE = chr(0xD800)
+LOW_SURROGATE = chr(0xDC00)
+SUPPLEMENTARY = chr(0x1D707)  # MATHEMATICAL ITALIC SMALL MU, outside the BMP
+
+
+@pytest.mark.parametrize("surrogate", [HIGH_SURROGATE, LOW_SURROGATE])
+def test_lone_surrogates_are_rejected_in_page_and_cell_text(surrogate: str) -> None:
+    with pytest.raises(ValidationError):
+        _page(text=f"Haemoglobin 13.5 {surrogate}")
+    with pytest.raises(ValidationError):
+        TableCell(row=0, col=0, text=f"g/dL{surrogate}")
+
+
+@pytest.mark.parametrize("surrogate", [HIGH_SURROGATE, LOW_SURROGATE])
+def test_lone_surrogates_are_rejected_in_parser_and_ocr_fields(surrogate: str) -> None:
+    attempts = [
+        lambda: ParserInfo(name="docling", version="2.150.1", options={"key": surrogate}),
+        lambda: ParserInfo(name="docling", version="2.150.1", options={surrogate: True}),
+        lambda: ParserInfo(name=f"docling{surrogate}", version="2.150.1"),
+        lambda: OcrProvenance(engine="rapidocr", engine_version=surrogate, backend="torch"),
+    ]
+    for attempt in attempts:
+        with pytest.raises(ValidationError):
+            attempt()
+
+
+def test_lone_surrogate_errors_never_echo_the_text() -> None:
+    secret = f"Test Person 13.5 {HIGH_SURROGATE}"
+    with pytest.raises(ValidationError) as caught:
+        _page(text=secret)
+    assert "Test Person" not in str(caught.value) and "input_value" not in str(caught.value)
+
+
+def test_loading_a_lone_surrogate_escape_is_rejected_as_invalid_ir() -> None:
+    data = dump_ir(_document([_page(text="Test Person 13.5 PLACEHOLDER")])).decode("utf-8")
+    escaped = json.dumps(HIGH_SURROGATE)[1:-1]  # the six characters of a JSON \uD800 escape
+    assert escaped.lower() == "\\" + "ud800"
+    with pytest.raises(DocumentParseError) as caught:
+        load_ir(data.replace("PLACEHOLDER", escaped).encode("utf-8"))
+    assert caught.value.kind == "ir_invalid"
+    assert "Test Person" not in str(caught.value)
+    assert caught.value.__cause__ is None and caught.value.__context__ is None
+
+
+def test_replacement_and_supplementary_characters_round_trip_exactly() -> None:
+    text = f"TSH 2.5 {FFFD}IU/mL; {SUPPLEMENTARY} 4.1"
+    cell = TableCell(row=0, col=0, text=SUPPLEMENTARY)
+    table = ParsedTable(table_index=0, num_rows=1, num_cols=1, cells=[cell])
+    page = _page(text=text, tables=[table], review_flags=[ReviewReason.REPLACEMENT_CHARACTER])
+    document = _document([page])
+    data = dump_ir(document)
+    loaded = load_ir(data)
+    assert loaded == document and dump_ir(loaded) == data
+    assert loaded.pages[0].text == text and loaded.pages[0].tables[0].cells[0].text == SUPPLEMENTARY
+    # A surrogate *pair* in JSON is one supplementary character, not two lone halves.
+    paired = data.decode("utf-8").replace(SUPPLEMENTARY, json.dumps(SUPPLEMENTARY)[1:-1])
+    assert load_ir(paired.encode("utf-8")) == document
+
+
+def test_lone_surrogate_rule_leaves_the_json_layout_unchanged() -> None:
+    raw = json.loads(dump_ir(_document([_page()])))
+    assert set(raw) == {"schema_version", "sha256", "page_count", "parser", "pages", "review_flags"}
+    assert raw["schema_version"] == IR_SCHEMA_VERSION == 1

@@ -30,6 +30,19 @@ ALLOWED_RECORDS_NAMES: dict[str, set[str]] = {
         "SchemaState",
         "run_upgrade",  # `python -m app migrate` (upgrade only)
     },
+    "app.records.repositories": {
+        "PageRecord",  # app/services/parsed_pages.py (Task 2.5c)
+        "ProcessingErrorKind",
+        "persist_parsed_pages",
+        "DocumentRef",  # app/services/process_document.py (Task 2.5d)
+        "ParseClaim",
+        "claim_document_for_parsing",
+        "parse_run_belongs_to_document",
+        "record_parse_failure",
+        "PATIENT_NOT_FOUND",  # app/services/upload_document.py (Task 2.6b)
+        "create_document",
+        "patient_exists",
+    },
 }
 
 
