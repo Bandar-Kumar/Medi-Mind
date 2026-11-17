@@ -37,7 +37,8 @@ Guiding principles:
 app/
   core/          config (pydantic-settings), logging, errors, version stamps
   ui/            Streamlit pages: presentation only
-  services/      upload_document, process_document, ask_question, compare_documents, prepare_appointment
+  services/      upload_document, process_document, classify_document, check_identity, document_pipeline,
+                 library (read/rename/delete wrappers for ui/), ask_question, compare_documents, prepare_appointment
   ingestion/     file validation, hashing, Docling parsing, OCR fallback, classification, identity check
   extraction/    Pydantic schemas, extractors, grounding verifier, normalizers (analyte, unit, date)
   records/       SQLAlchemy models and patient-scoped repositories (the only database access path)
@@ -66,9 +67,10 @@ flowchart TD
     F -->|no text layer| G["OCR fallback"]
     G --> H
     F --> H["Classify document type"]
-    H --> I["Patient identity check: name / DOB vs profile"]
-    I -->|mismatch| J["Flag document: needs_review"]
-    I --> K["Chunk + embed → chunks"]
+    F --> I["Patient identity check: name / DOB vs profile (independent of classification, ADR-036)"]
+    I -->|mismatch| J["Flag document: needs_review; not indexed (ADR-036)"]
+    I -->|match / unknown| K["Chunk + embed → chunks (needs succeeded classify and identity runs)"]
+    H -->|classify run succeeded| K
     I --> L["Extract → ground → normalize → validate"]
     L --> M["Store facts with review_status"]
     K --> N["status=processed"]
@@ -117,14 +119,17 @@ flowchart TD
 
 - **Input:** PDF, PNG or JPEG. File type is checked by magic bytes. There are configurable limits on file size and page count. Encrypted PDFs are rejected with a clear message.
 - **Parsing:** Docling produces page-level text and tables. If a page has no usable text layer, it falls back to OCR. Every page row keeps its page number, parsed text and a parse method (`native` or `ocr`).
-- **Classification:** Types are `lab_report`, `prescription`, `discharge_summary`, `consultation_note`, `diagnostic_report` and `other`. Phase 2 starts with rules (keywords and layout cues), with LLM classification as a measured alternative.
+- **Classification:** Types are `lab_report`, `prescription`, `discharge_summary`, `other` and `unknown` (the `DocType` values and the database CHECK). Phase 2 starts with rules (keywords and layout cues), with LLM classification as a measured alternative.
+  - *Correction (2026-11-17, ADR-036 D1):* this line previously also listed `consultation_note` and `diagnostic_report`. Neither exists in the schema; adding them would need a migration and is not planned. Until Phase 6 (ADR-019) the classifier outputs only `lab_report`, `other` or `unknown`, records a rule score (not a probability) in `doc_type_confidence`, and logs a `classify` run with its rule version.
 - **Identity check:** Compares the patient name and date of birth found in the document with the selected profile. A mismatch flags the document and never blocks silently.
+  - *Implemented 2026-11-17 (Task 2.8, identity rules v1; see the ADR-036 update).* *Planned (ADR-036):* outcomes `match | mismatch | unknown`, strict name matching (partial matches are `unknown`), date of birth only when printed. `mismatch` sets `needs_review` and the document is **not indexed**; `match` and `unknown` allow indexing, with `unknown` shown to the user. Classification and the identity check are independent stages over the parsed pages; neither needs the other to succeed.
+  - *Indexing gate (ADR-036 A1, A4):* `index_document` indexes a document only after a succeeded `classify` run and a succeeded `identity` run, and never when `identity_check = 'mismatch'`. Every indexing path (command, bulk indexing, pipeline, R1.8 runner) goes through it, and a blocked document is reported, never silently dropped. Successful stages are not repeated; failed stages can be retried.
 - **Duplicates:** An exact duplicate is detected by its SHA-256 hash. A *revised* document is a candidate when the patient, lab, report date and observations overlap. It is linked with `supersedes_document_id` once the user confirms.
 - **Upload (implemented, Task 2.6; ADR-033):** `upload_document`, PDF only so far.
   - Order: input type checks → PDF validation → patient existence check → write-once original (`uploads/<patient_id>/<sha256>.pdf`, never overwritten) → document record (`uploaded`).
   - Exact duplicates are detected per patient by the `(patient_id, sha256)` unique constraint, with no separate pre-check. The result reports `duplicate` (an existing record was returned) and `original_stored` (this call created the file).
   - Upload stops there. Claiming and parsing are a separate `process_document` call (ADR-032).
-  - A minimal patient repository (`create_patient`, `patient_exists`) exists; the rest of the patient and document repositories are still open (Task 1.8).
+  - The patient and document repositories are complete (Task 1.8, ADR-034): `create_patient`, `list_patients`, `patient_exists`, `update_patient`, `delete_patient` (empty patients only); `list_documents`, `get_document`, `rename_document` (display filename only), `delete_document` (database rows only; files stay).
 - **Processing model:** A synchronous, tracked job with progress shown in the UI. A separate worker process is added only if measured latency makes it necessary.
 - **Document processing status** (`documents.processing_status`; ADR-032):
   - a new document is `uploaded` (also the database default);
@@ -193,6 +198,12 @@ The LLM chooses a tool and its arguments, which are validated by Pydantic. The S
 - **Context:** Retrieved chunks are clearly delimited, each with an ID. The instructions say document content is data, not instructions.
 - **Citation validation (deterministic):** Every cited chunk ID must be among the retrieved chunks, and every quoted span must exist in its chunk. If validation fails, the system abstains. A claim-support check by an LLM or NLI model runs in evaluation, not at runtime.
 - **Abstention:** The system abstains when the top reranker score is below a threshold calibrated on the dev set, or when the model returns `insufficient_evidence`.
+
+**As built in Milestone R1 (ADR-035; evidence only, no LLM yet):**
+- Chunking uses the verified IR, not Docling's section structure (the IR has no headings): text chunks are exact spans of a page's text (about 1,000 characters, 1-line overlap); table-row chunks pair verbatim column headers and cells. A chunk never crosses a page. `section` holds `table <i>, row <r>` for table rows. Docling's page text already contains each table without headers, so a page can match through both; results are grouped by page.
+- Lexical search ORs each content word of the question (a small stopword list removes question words, because the `simple` configuration keeps them), each as a bound `plainto_tsquery`.
+- `app/retrieval/` is pure logic; `app/records/chunks.py` holds the SQL; `app/services/index_document.py` and `search_evidence.py` orchestrate. Indexing records a `pipeline_runs` row (`stage = 'index'`) and never changes `processing_status`.
+- The answer is ranked page-cited evidence, an abstention (nothing found, or below the dev-calibrated threshold), or a fixed out-of-scope response for advice-seeking and injection-style questions. The LLM answer and the citation validator come in R2.
 
 ### 9.4 Ablation
 This compares dense only, +lexical, +RRF and +rerank on the dev set, then reports results on the held-out set. Hybrid retrieval and reranking stay only if they show a measured improvement.

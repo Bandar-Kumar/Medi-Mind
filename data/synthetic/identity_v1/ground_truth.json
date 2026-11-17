@@ -1,0 +1,626 @@
+[
+  {
+    "date_of_birth": "1990-08-21",
+    "display_name": "Priya Fakeworth",
+    "documents": [
+      {
+        "category": "other_person_dob",
+        "document_id": "E01-DIS",
+        "indistinguishable_from": [],
+        "own_expected": "match",
+        "own_limit": null,
+        "source": "pdf"
+      },
+      {
+        "category": "newborn_mother",
+        "document_id": "E01-LAB",
+        "indistinguishable_from": [],
+        "own_expected": "match",
+        "own_limit": null,
+        "source": "pdf"
+      },
+      {
+        "category": "format_char",
+        "document_id": "E01-ZW1",
+        "indistinguishable_from": [],
+        "own_expected": "unknown",
+        "own_limit": null,
+        "source": "text",
+        "text": "Patient Name: Pri‌ya Fakeworth\nReport Date: 15/06/2024"
+      }
+    ],
+    "patient_key": "E01",
+    "sex": "F"
+  },
+  {
+    "date_of_birth": "2024-06-15",
+    "display_name": "Baby Priya Fakeworth",
+    "documents": [
+      {
+        "category": "newborn_mother",
+        "document_id": "E02-NEO",
+        "indistinguishable_from": [],
+        "own_expected": "match",
+        "own_limit": null,
+        "source": "pdf"
+      },
+      {
+        "category": "generic_name",
+        "document_id": "E02-GRD",
+        "indistinguishable_from": [],
+        "own_expected": "unknown",
+        "own_limit": null,
+        "source": "pdf"
+      }
+    ],
+    "patient_key": "E02",
+    "sex": "F"
+  },
+  {
+    "date_of_birth": "1986-02-14",
+    "display_name": "Rakesh Fakeworth",
+    "documents": [
+      {
+        "category": "combined_age_dob",
+        "document_id": "E03-FAD",
+        "indistinguishable_from": [],
+        "own_expected": "match",
+        "own_limit": null,
+        "source": "pdf"
+      },
+      {
+        "category": "generic_name",
+        "document_id": "E03-GEN",
+        "indistinguishable_from": [],
+        "own_expected": "unknown",
+        "own_limit": null,
+        "source": "pdf"
+      },
+      {
+        "category": "format_char",
+        "document_id": "E03-ZW3",
+        "indistinguishable_from": [],
+        "own_expected": "unknown",
+        "own_limit": null,
+        "source": "text",
+        "text": "Patient Name: Rakesh‍ Fakeworth\nReport Date: 15/06/2024"
+      }
+    ],
+    "patient_key": "E03",
+    "sex": "M"
+  },
+  {
+    "date_of_birth": "1972-09-30",
+    "display_name": "R. Lakshmi",
+    "documents": [
+      {
+        "category": "initials_profile",
+        "document_id": "E04-INI",
+        "indistinguishable_from": [],
+        "own_expected": "unknown",
+        "own_limit": null,
+        "source": "pdf"
+      },
+      {
+        "category": "initials_profile",
+        "document_id": "E04-INX",
+        "indistinguishable_from": [],
+        "own_expected": "unknown",
+        "own_limit": null,
+        "source": "pdf"
+      }
+    ],
+    "patient_key": "E04",
+    "sex": "F"
+  },
+  {
+    "date_of_birth": "1969-11-03",
+    "display_name": "Ramesh Lakshmi",
+    "documents": [
+      {
+        "category": "near_miss",
+        "document_id": "E05-RAM",
+        "indistinguishable_from": [],
+        "own_expected": "match",
+        "own_limit": null,
+        "source": "pdf"
+      }
+    ],
+    "patient_key": "E05",
+    "sex": "M"
+  },
+  {
+    "date_of_birth": "1980-07-19",
+    "display_name": "Selvi",
+    "documents": [
+      {
+        "category": "single_token",
+        "document_id": "E06-MON",
+        "indistinguishable_from": [],
+        "own_expected": "unknown",
+        "own_limit": null,
+        "source": "pdf"
+      },
+      {
+        "category": "single_token",
+        "document_id": "E06-MOX",
+        "indistinguishable_from": [],
+        "own_expected": "unknown",
+        "own_limit": null,
+        "source": "pdf"
+      }
+    ],
+    "patient_key": "E06",
+    "sex": "F"
+  },
+  {
+    "date_of_birth": "1995-03-27",
+    "display_name": "Aarthi Demoraj",
+    "documents": [
+      {
+        "category": "near_miss",
+        "document_id": "E07-NEA",
+        "indistinguishable_from": [],
+        "own_expected": "match",
+        "own_limit": null,
+        "source": "pdf"
+      },
+      {
+        "category": "near_miss",
+        "document_id": "E07-TYP",
+        "indistinguishable_from": [
+          "E08"
+        ],
+        "own_expected": "mismatch",
+        "own_limit": "spelling_variant",
+        "source": "pdf"
+      }
+    ],
+    "patient_key": "E07",
+    "sex": "F"
+  },
+  {
+    "date_of_birth": "2001-10-17",
+    "display_name": "Aarthy Demoraj",
+    "documents": [
+      {
+        "category": "curly_apostrophe",
+        "document_id": "E08-CUR",
+        "indistinguishable_from": [],
+        "own_expected": "match",
+        "own_limit": null,
+        "source": "pdf"
+      }
+    ],
+    "patient_key": "E08",
+    "sex": "F"
+  },
+  {
+    "date_of_birth": "1983-12-29",
+    "display_name": "Neha Dobriyal",
+    "documents": [
+      {
+        "category": "dob_word",
+        "document_id": "E09-DOB",
+        "indistinguishable_from": [],
+        "own_expected": "match",
+        "own_limit": null,
+        "source": "pdf"
+      },
+      {
+        "category": "format_char",
+        "document_id": "E09-ZW2",
+        "indistinguishable_from": [],
+        "own_expected": "unknown",
+        "own_limit": null,
+        "source": "text",
+        "text": "Patient Name: Neha Dob­riyal\nReport Date: 15/06/2024"
+      }
+    ],
+    "patient_key": "E09",
+    "sex": "F"
+  },
+  {
+    "date_of_birth": "1975-05-23",
+    "display_name": "Mohan Arjun",
+    "documents": [
+      {
+        "category": "token_order",
+        "document_id": "E10-ORD",
+        "indistinguishable_from": [
+          "E11"
+        ],
+        "own_expected": "match",
+        "own_limit": null,
+        "source": "pdf"
+      },
+      {
+        "category": "token_order",
+        "document_id": "E10-ORC",
+        "indistinguishable_from": [],
+        "own_expected": "match",
+        "own_limit": null,
+        "source": "pdf"
+      }
+    ],
+    "patient_key": "E10",
+    "sex": "M"
+  },
+  {
+    "date_of_birth": "1978-04-16",
+    "display_name": "Arjun Mohan",
+    "documents": [],
+    "patient_key": "E11",
+    "sex": "M"
+  },
+  {
+    "date_of_birth": "1964-01-28",
+    "display_name": "Kavin Samplenath",
+    "documents": [
+      {
+        "category": "namesake",
+        "document_id": "E12-NSK",
+        "indistinguishable_from": [
+          "E13"
+        ],
+        "own_expected": "match",
+        "own_limit": null,
+        "source": "pdf"
+      }
+    ],
+    "patient_key": "E12",
+    "sex": "M"
+  },
+  {
+    "date_of_birth": "1991-06-19",
+    "display_name": "Kavin Samplenath",
+    "documents": [
+      {
+        "category": "namesake",
+        "document_id": "E13-NSD",
+        "indistinguishable_from": [],
+        "own_expected": "match",
+        "own_limit": null,
+        "source": "pdf"
+      }
+    ],
+    "patient_key": "E13",
+    "sex": "M"
+  },
+  {
+    "date_of_birth": null,
+    "display_name": "Saikrishna Mockdev",
+    "documents": [
+      {
+        "category": "spacing_variant",
+        "document_id": "E14-SPC",
+        "indistinguishable_from": [],
+        "own_expected": "mismatch",
+        "own_limit": "spacing_variant",
+        "source": "pdf"
+      },
+      {
+        "category": "spacing_variant",
+        "document_id": "E14-JOK",
+        "indistinguishable_from": [],
+        "own_expected": "match",
+        "own_limit": null,
+        "source": "pdf"
+      }
+    ],
+    "patient_key": "E14",
+    "sex": "M"
+  },
+  {
+    "date_of_birth": "1993-03-14",
+    "display_name": "Divya Noname",
+    "documents": [
+      {
+        "category": "other_person_dob",
+        "document_id": "H01-DIS",
+        "indistinguishable_from": [],
+        "own_expected": "match",
+        "own_limit": null,
+        "source": "pdf"
+      },
+      {
+        "category": "newborn_mother",
+        "document_id": "H01-LAB",
+        "indistinguishable_from": [],
+        "own_expected": "match",
+        "own_limit": null,
+        "source": "pdf"
+      },
+      {
+        "category": "format_char",
+        "document_id": "H01-ZW1",
+        "indistinguishable_from": [],
+        "own_expected": "unknown",
+        "own_limit": null,
+        "source": "text",
+        "text": "Patient Name: Div​ya Noname\nReport Date: 20/01/2025"
+      }
+    ],
+    "patient_key": "H01",
+    "sex": "F"
+  },
+  {
+    "date_of_birth": "2025-01-20",
+    "display_name": "Baby Divya Noname",
+    "documents": [
+      {
+        "category": "newborn_mother",
+        "document_id": "H02-NEO",
+        "indistinguishable_from": [],
+        "own_expected": "match",
+        "own_limit": null,
+        "source": "pdf"
+      },
+      {
+        "category": "generic_name",
+        "document_id": "H02-GRD",
+        "indistinguishable_from": [],
+        "own_expected": "unknown",
+        "own_limit": null,
+        "source": "pdf"
+      }
+    ],
+    "patient_key": "H02",
+    "sex": "F"
+  },
+  {
+    "date_of_birth": "1989-09-25",
+    "display_name": "Suresh Noname",
+    "documents": [
+      {
+        "category": "combined_age_dob",
+        "document_id": "H03-FAD",
+        "indistinguishable_from": [],
+        "own_expected": "match",
+        "own_limit": null,
+        "source": "pdf"
+      },
+      {
+        "category": "format_char",
+        "document_id": "H03-ZW3",
+        "indistinguishable_from": [],
+        "own_expected": "unknown",
+        "own_limit": null,
+        "source": "text",
+        "text": "Patient Name: Suresh No­name\nReport Date: 20/01/2025"
+      }
+    ],
+    "patient_key": "H03",
+    "sex": "M"
+  },
+  {
+    "date_of_birth": "1968-05-17",
+    "display_name": "K. Meenakshi",
+    "documents": [
+      {
+        "category": "initials_profile",
+        "document_id": "H04-INI",
+        "indistinguishable_from": [],
+        "own_expected": "unknown",
+        "own_limit": null,
+        "source": "pdf"
+      },
+      {
+        "category": "initials_profile",
+        "document_id": "H04-INX",
+        "indistinguishable_from": [],
+        "own_expected": "unknown",
+        "own_limit": null,
+        "source": "pdf"
+      }
+    ],
+    "patient_key": "H04",
+    "sex": "F"
+  },
+  {
+    "date_of_birth": "1966-10-22",
+    "display_name": "Karthik Meenakshi",
+    "documents": [
+      {
+        "category": "near_miss",
+        "document_id": "H05-RAM",
+        "indistinguishable_from": [],
+        "own_expected": "match",
+        "own_limit": null,
+        "source": "pdf"
+      },
+      {
+        "category": "generic_name",
+        "document_id": "H05-GEN",
+        "indistinguishable_from": [],
+        "own_expected": "unknown",
+        "own_limit": null,
+        "source": "pdf"
+      }
+    ],
+    "patient_key": "H05",
+    "sex": "M"
+  },
+  {
+    "date_of_birth": "1977-08-29",
+    "display_name": "Murugan",
+    "documents": [
+      {
+        "category": "single_token",
+        "document_id": "H06-MON",
+        "indistinguishable_from": [],
+        "own_expected": "unknown",
+        "own_limit": null,
+        "source": "pdf"
+      },
+      {
+        "category": "single_token",
+        "document_id": "H06-MOX",
+        "indistinguishable_from": [],
+        "own_expected": "unknown",
+        "own_limit": null,
+        "source": "pdf"
+      }
+    ],
+    "patient_key": "H06",
+    "sex": "M"
+  },
+  {
+    "date_of_birth": "1998-02-24",
+    "display_name": "Shreya Fabriq",
+    "documents": [
+      {
+        "category": "near_miss",
+        "document_id": "H07-NEA",
+        "indistinguishable_from": [],
+        "own_expected": "match",
+        "own_limit": null,
+        "source": "pdf"
+      },
+      {
+        "category": "near_miss",
+        "document_id": "H07-TYP",
+        "indistinguishable_from": [
+          "H08"
+        ],
+        "own_expected": "mismatch",
+        "own_limit": "spelling_variant",
+        "source": "pdf"
+      }
+    ],
+    "patient_key": "H07",
+    "sex": "F"
+  },
+  {
+    "date_of_birth": "2003-11-15",
+    "display_name": "Shriya Fabriq",
+    "documents": [
+      {
+        "category": "curly_apostrophe",
+        "document_id": "H08-CUR",
+        "indistinguishable_from": [],
+        "own_expected": "match",
+        "own_limit": null,
+        "source": "pdf"
+      }
+    ],
+    "patient_key": "H08",
+    "sex": "F"
+  },
+  {
+    "date_of_birth": "1971-07-26",
+    "display_name": "Anil Dobhal",
+    "documents": [
+      {
+        "category": "dob_word",
+        "document_id": "H09-DOB",
+        "indistinguishable_from": [],
+        "own_expected": "match",
+        "own_limit": null,
+        "source": "pdf"
+      },
+      {
+        "category": "format_char",
+        "document_id": "H09-ZW2",
+        "indistinguishable_from": [],
+        "own_expected": "unknown",
+        "own_limit": null,
+        "source": "text",
+        "text": "Patient Name: ﻿Anil Dobhal\nReport Date: 20/01/2025"
+      }
+    ],
+    "patient_key": "H09",
+    "sex": "M"
+  },
+  {
+    "date_of_birth": "1960-12-18",
+    "display_name": "Gopal Krishnan",
+    "documents": [
+      {
+        "category": "token_order",
+        "document_id": "H10-ORD",
+        "indistinguishable_from": [
+          "H11"
+        ],
+        "own_expected": "match",
+        "own_limit": null,
+        "source": "pdf"
+      },
+      {
+        "category": "token_order",
+        "document_id": "H10-ORC",
+        "indistinguishable_from": [],
+        "own_expected": "match",
+        "own_limit": null,
+        "source": "pdf"
+      }
+    ],
+    "patient_key": "H10",
+    "sex": "M"
+  },
+  {
+    "date_of_birth": "1962-03-21",
+    "display_name": "Krishnan Gopal",
+    "documents": [],
+    "patient_key": "H11",
+    "sex": "M"
+  },
+  {
+    "date_of_birth": "1985-10-13",
+    "display_name": "Lalit Synthwal",
+    "documents": [
+      {
+        "category": "namesake",
+        "document_id": "H12-NSK",
+        "indistinguishable_from": [
+          "H13"
+        ],
+        "own_expected": "match",
+        "own_limit": null,
+        "source": "pdf"
+      }
+    ],
+    "patient_key": "H12",
+    "sex": "M"
+  },
+  {
+    "date_of_birth": "1957-04-27",
+    "display_name": "Lalit Synthwal",
+    "documents": [
+      {
+        "category": "namesake",
+        "document_id": "H13-NSD",
+        "indistinguishable_from": [],
+        "own_expected": "match",
+        "own_limit": null,
+        "source": "pdf"
+      }
+    ],
+    "patient_key": "H13",
+    "sex": "M"
+  },
+  {
+    "date_of_birth": null,
+    "display_name": "Jayaprakash Fauxnair",
+    "documents": [
+      {
+        "category": "spacing_variant",
+        "document_id": "H14-SPC",
+        "indistinguishable_from": [],
+        "own_expected": "mismatch",
+        "own_limit": "spacing_variant",
+        "source": "pdf"
+      },
+      {
+        "category": "spacing_variant",
+        "document_id": "H14-JOK",
+        "indistinguishable_from": [],
+        "own_expected": "match",
+        "own_limit": null,
+        "source": "pdf"
+      }
+    ],
+    "patient_key": "H14",
+    "sex": "M"
+  }
+]

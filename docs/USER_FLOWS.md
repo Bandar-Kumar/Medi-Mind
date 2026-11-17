@@ -33,14 +33,18 @@ The prototype is single-user and runs locally (ADR-013).
 ## F2. Upload a document [MVP]
 1. On the Documents page, the user selects Upload and picks a PDF, PNG or JPEG.
 2. The file is validated: type, size, page count and encryption.
-3. A progress indicator shows each stage: parsing, then classifying, then extracting.
-4. The result is a document card showing its type, date and the number of facts extracted, with any review flags highlighted.
+3. The user starts processing, and a progress indicator shows each Phase 2 stage with its result: parsing, then classification and identity verification (independent stages), then indexing for search. Indexing runs only after both have succeeded and never for an identity mismatch (ADR-036).
+   - *Changed 2026-11-17:* this step previously listed "parsing, then classifying, then extracting". Fact extraction belongs to Phase 3 and is not part of the current pipeline; it will be added as a later stage then.
+4. The result is a document card showing its filename, document type, processing status, indexing result (indexed, or blocked with its reason) and identity result, with any applicable review flags highlighted (for example `needs_review` after an identity mismatch, or "identity not confirmed").
+   - *Changed 2026-11-17:* this step previously said the card shows the document's date and the number of facts extracted. Both come from Phase 3 extraction and are not available in the Phase 2 pipeline; they will be added to the card in Phase 3.
 
 **Edge flows:**
 - **Invalid file.** The file is rejected with a specific reason, e.g. "Encrypted PDFs are not supported" or "File exceeds 20 MB".
 - **Exact duplicate.** "This document was already uploaded on <date>", with a link to it. No reprocessing.
 - **Possible revised version.** "This looks like a revised version of <document>. Link them?" The user chooses yes or no.
-- **Identity mismatch.** "The name or date of birth in this document does not match <profile>." The user can move it to another profile, keep it anyway (the flag is recorded), or delete it.
+- **Identity mismatch.** "The name or date of birth in this document does not match <profile>." The document is flagged `needs_review` and is **not indexed**, so it never appears in search results (ADR-036). The user can see the flag and its reason, or delete the document.
+  - *Changed 2026-11-17 (ADR-036 D6):* the original design also let the user move the document to another profile or keep it anyway. Neither action is supported: there is no override and no automatic re-check. To file it under the right profile, the user deletes it and uploads it to that profile.
+- **Identity unknown.** No name was found, or the match is partial or ambiguous. The document is processed and indexed normally, and an "identity not confirmed" badge stays visible on the document and on evidence from it.
 - **Parsing or OCR failure.** The document is marked `failed`, the reason is shown, and the user can retry.
 - **Demo mode.** Upload is disabled, with an explanation.
 
@@ -96,3 +100,5 @@ The prototype is single-user and runs locally (ADR-013).
 ## F10. Delete data [MVP]
 1. The user deletes a document. A confirmation lists what will be removed: pages, chunks, facts and reviews.
 2. The deletion cascades. Any conflicts that depended on the document are closed.
+
+> **Implemented so far (Task 1.8, ADR-034):** `delete_document` removes the document row and, by cascade, its pages, processing history (pipeline runs), chunks, facts, reviews and conflict memberships, and returns page and run counts for the confirmation. The original PDF and parse outputs stay on disk. Closing the affected conflicts is not implemented yet: they stay, possibly with no members. A document being parsed by a live worker cannot be deleted. A patient profile can be deleted only once it has no documents, runs or conflicts.

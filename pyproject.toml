@@ -14,6 +14,7 @@ dependencies = [
     "pydantic-settings>=2.16.2",
     "pypdfium2>=5.15.2",
     "sqlalchemy>=2.1.8",
+    "streamlit>=1.67.0",
 ]
 
 [tool.uv]
@@ -28,10 +29,13 @@ pythonpath = ["."]
 # -ra: summary of skipped/failed tests; --strict-markers: typos in markers are errors.
 # Integration tests need the real database and are opt-in: `uv run pytest -m integration`.
 # Docling tests load torch and Docling's models (slow) and are opt-in: `uv run pytest -m docling`.
-addopts = "-ra --strict-markers -m 'not integration and not docling'"
+# Real-model retrieval tests need the owner-approved models in the local cache and are opt-in:
+# `uv run pytest -m models` (Milestone R1; nothing is ever downloaded by the tests).
+addopts = "-ra --strict-markers -m 'not integration and not docling and not models'"
 markers = [
     "integration: needs the running PostgreSQL container (opt-in, read-only)",
     "docling: needs Docling and its downloaded models (opt-in, slow)",
+    "models: needs the approved BGE and MiniLM models in the local cache (opt-in)",
 ]
 
 [tool.ruff]

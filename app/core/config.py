@@ -11,7 +11,7 @@ from functools import lru_cache
 from pathlib import Path
 from typing import Any, Literal
 
-from pydantic import Field, SecretStr, ValidationError
+from pydantic import Field, SecretStr, ValidationError, field_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 from app.core.errors import ConfigurationError
@@ -32,6 +32,14 @@ SAFE_TO_DISPLAY: tuple[str, ...] = (
     "max_upload_bytes",
     "max_pages",
     "parse_timeout_seconds",
+    "embedding_model_revision",
+    "reranker_model_revision",
+    "retrieval_rrf_k",
+    "retrieval_candidates",
+    "retrieval_rerank_top",
+    "retrieval_top_k",
+    "retrieval_abstain_threshold",
+    "demo_mode",
 )
 
 # Ingestion limits (Phase 2). Starting values from the Task 2.1 Docling spike: about 10 s per page
@@ -72,6 +80,35 @@ class Settings(BaseSettings):
     max_upload_bytes: int = Field(default=DEFAULT_MAX_UPLOAD_BYTES, ge=1, le=200 * 1024 * 1024)
     max_pages: int = Field(default=DEFAULT_MAX_PAGES, ge=1, le=500)
     parse_timeout_seconds: int = Field(default=DEFAULT_PARSE_TIMEOUT_SECONDS, ge=10, le=3600)
+
+    # Evidence retrieval (Milestone R1, ADR-035). The model revisions have NO default: the owner
+    # approves the exact pinned commit (40 hex characters; never a branch name such as "main")
+    # before any model is downloaded. Without them, indexing and search refuse to run.
+    embedding_model_revision: str | None = Field(default=None, pattern=r"^[0-9a-f]{40}$")
+    reranker_model_revision: str | None = Field(default=None, pattern=r"^[0-9a-f]{40}$")
+    retrieval_rrf_k: int = Field(default=60, ge=1, le=1000)
+    retrieval_candidates: int = Field(default=50, ge=1, le=500)  # per retriever (dense, lexical)
+    retrieval_rerank_top: int = Field(default=20, ge=1, le=200)
+    retrieval_top_k: int = Field(default=5, ge=1, le=50)  # pages returned
+    # Calibrated on the development split only (R1.8). None: not calibrated, never abstains on
+    # score (the CLI says so).
+    retrieval_abstain_threshold: float | None = None
+
+    # Demo mode (ADR-014, added with the UI in Task 2.9b, ADR-036 D8): synthetic patients only,
+    # new patients are created synthetic, and upload is disabled. Nothing is loaded or created
+    # automatically, in either mode.
+    demo_mode: bool = False
+
+    @field_validator(
+        "embedding_model_revision",
+        "reranker_model_revision",
+        "retrieval_abstain_threshold",
+        mode="before",
+    )
+    @classmethod
+    def _empty_means_unset(cls, value: object) -> object:
+        """An empty value in .env (as in .env.example) means "not configured"."""
+        return None if isinstance(value, str) and not value.strip() else value
 
     @property
     def uploads_dir(self) -> Path:

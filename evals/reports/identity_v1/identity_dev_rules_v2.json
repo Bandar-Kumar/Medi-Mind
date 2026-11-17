@@ -1,0 +1,5226 @@
+{
+  "dataset_version": "identity_v1@12ea2976caac",
+  "heldout_sha256": "12ea2976caac91531fd88787b6a8d3041802b69e2c06026ee8b8a15c8e72415c",
+  "metrics": {
+    "by_category": {
+      "combined_age_dob": {
+        "own": {
+          "match": 1
+        },
+        "swapped": {
+          "mismatch": 11,
+          "unknown": 2
+        }
+      },
+      "curly_apostrophe": {
+        "own": {
+          "match": 1
+        },
+        "swapped": {
+          "mismatch": 13
+        }
+      },
+      "dob_word": {
+        "own": {
+          "match": 1
+        },
+        "swapped": {
+          "mismatch": 11,
+          "unknown": 2
+        }
+      },
+      "format_char": {
+        "own": {
+          "unknown": 3
+        },
+        "swapped": {
+          "unknown": 39
+        }
+      },
+      "generic_name": {
+        "own": {
+          "unknown": 2
+        },
+        "swapped": {
+          "unknown": 26
+        }
+      },
+      "initials_profile": {
+        "own": {
+          "unknown": 2
+        },
+        "swapped": {
+          "mismatch": 13,
+          "unknown": 13
+        }
+      },
+      "namesake": {
+        "own": {
+          "match": 2
+        },
+        "swapped": {
+          "match": 1,
+          "mismatch": 23,
+          "unknown": 2
+        }
+      },
+      "near_miss": {
+        "own": {
+          "match": 2,
+          "mismatch": 1
+        },
+        "swapped": {
+          "match": 1,
+          "mismatch": 36,
+          "unknown": 2
+        }
+      },
+      "newborn_mother": {
+        "own": {
+          "match": 2
+        },
+        "swapped": {
+          "mismatch": 23,
+          "unknown": 3
+        }
+      },
+      "other_person_dob": {
+        "own": {
+          "match": 1
+        },
+        "swapped": {
+          "mismatch": 13
+        }
+      },
+      "single_token": {
+        "own": {
+          "unknown": 2
+        },
+        "swapped": {
+          "mismatch": 12,
+          "unknown": 14
+        }
+      },
+      "spacing_variant": {
+        "own": {
+          "match": 1,
+          "mismatch": 1
+        },
+        "swapped": {
+          "mismatch": 24,
+          "unknown": 2
+        }
+      },
+      "token_order": {
+        "own": {
+          "match": 2
+        },
+        "swapped": {
+          "match": 1,
+          "mismatch": 23,
+          "unknown": 2
+        }
+      }
+    },
+    "documents": 24,
+    "false_matches_on_swapped_profiles": 0,
+    "indistinguishable_swapped_pairs": {
+      "match": 3,
+      "mismatch": 0,
+      "pairs": 3,
+      "unknown": 0
+    },
+    "own_profile": {
+      "match": 13,
+      "mismatch": 2,
+      "unknown": 9
+    },
+    "own_profile_agreement": 1.0,
+    "own_profile_documented_limit_mismatches": 2,
+    "own_profile_false_mismatches": 0,
+    "pairs": 336,
+    "reason_codes": {
+      "own": {
+        "dob_match": 8,
+        "dob_not_in_profile": 1,
+        "dob_not_printed": 14,
+        "dob_unreadable": 1,
+        "name_generic_label": 1,
+        "name_initials": 1,
+        "name_match": 13,
+        "name_mismatch": 2,
+        "name_not_found": 1,
+        "name_unreadable": 3,
+        "profile_name_incomplete": 3
+      },
+      "swapped": {
+        "dob_mismatch": 109,
+        "dob_not_in_profile": 9,
+        "dob_not_printed": 182,
+        "dob_unreadable": 12,
+        "name_generic_label": 13,
+        "name_initials": 13,
+        "name_match": 5,
+        "name_mismatch": 181,
+        "name_not_found": 13,
+        "name_partial": 15,
+        "name_unreadable": 39,
+        "profile_name_incomplete": 33
+      }
+    },
+    "swapped_profile": {
+      "match": 3,
+      "mismatch": 202,
+      "unknown": 107
+    },
+    "unknown_rate": {
+      "all": 0.34523809523809523,
+      "own": 0.375,
+      "swapped": 0.34294871794871795
+    }
+  },
+  "pairs": [
+    {
+      "actual": "match",
+      "category": "other_person_dob",
+      "document_id": "E01-DIS",
+      "expected": "match",
+      "limit": null,
+      "own": true,
+      "profile": "E01",
+      "reason_codes": [
+        "dob_match",
+        "name_match"
+      ],
+      "source": "pdf",
+      "subject": "E01"
+    },
+    {
+      "actual": "mismatch",
+      "category": "other_person_dob",
+      "document_id": "E01-DIS",
+      "expected": null,
+      "limit": null,
+      "own": false,
+      "profile": "E02",
+      "reason_codes": [
+        "dob_mismatch",
+        "name_partial"
+      ],
+      "source": "pdf",
+      "subject": "E01"
+    },
+    {
+      "actual": "mismatch",
+      "category": "other_person_dob",
+      "document_id": "E01-DIS",
+      "expected": null,
+      "limit": null,
+      "own": false,
+      "profile": "E03",
+      "reason_codes": [
+        "dob_mismatch",
+        "name_mismatch"
+      ],
+      "source": "pdf",
+      "subject": "E01"
+    },
+    {
+      "actual": "mismatch",
+      "category": "other_person_dob",
+      "document_id": "E01-DIS",
+      "expected": null,
+      "limit": null,
+      "own": false,
+      "profile": "E04",
+      "reason_codes": [
+        "dob_mismatch",
+        "profile_name_incomplete"
+      ],
+      "source": "pdf",
+      "subject": "E01"
+    },
+    {
+      "actual": "mismatch",
+      "category": "other_person_dob",
+      "document_id": "E01-DIS",
+      "expected": null,
+      "limit": null,
+      "own": false,
+      "profile": "E05",
+      "reason_codes": [
+        "dob_mismatch",
+        "name_mismatch"
+      ],
+      "source": "pdf",
+      "subject": "E01"
+    },
+    {
+      "actual": "mismatch",
+      "category": "other_person_dob",
+      "document_id": "E01-DIS",
+      "expected": null,
+      "limit": null,
+      "own": false,
+      "profile": "E06",
+      "reason_codes": [
+        "dob_mismatch",
+        "profile_name_incomplete"
+      ],
+      "source": "pdf",
+      "subject": "E01"
+    },
+    {
+      "actual": "mismatch",
+      "category": "other_person_dob",
+      "document_id": "E01-DIS",
+      "expected": null,
+      "limit": null,
+      "own": false,
+      "profile": "E07",
+      "reason_codes": [
+        "dob_mismatch",
+        "name_mismatch"
+      ],
+      "source": "pdf",
+      "subject": "E01"
+    },
+    {
+      "actual": "mismatch",
+      "category": "other_person_dob",
+      "document_id": "E01-DIS",
+      "expected": null,
+      "limit": null,
+      "own": false,
+      "profile": "E08",
+      "reason_codes": [
+        "dob_mismatch",
+        "name_mismatch"
+      ],
+      "source": "pdf",
+      "subject": "E01"
+    },
+    {
+      "actual": "mismatch",
+      "category": "other_person_dob",
+      "document_id": "E01-DIS",
+      "expected": null,
+      "limit": null,
+      "own": false,
+      "profile": "E09",
+      "reason_codes": [
+        "dob_mismatch",
+        "name_mismatch"
+      ],
+      "source": "pdf",
+      "subject": "E01"
+    },
+    {
+      "actual": "mismatch",
+      "category": "other_person_dob",
+      "document_id": "E01-DIS",
+      "expected": null,
+      "limit": null,
+      "own": false,
+      "profile": "E10",
+      "reason_codes": [
+        "dob_mismatch",
+        "name_mismatch"
+      ],
+      "source": "pdf",
+      "subject": "E01"
+    },
+    {
+      "actual": "mismatch",
+      "category": "other_person_dob",
+      "document_id": "E01-DIS",
+      "expected": null,
+      "limit": null,
+      "own": false,
+      "profile": "E11",
+      "reason_codes": [
+        "dob_mismatch",
+        "name_mismatch"
+      ],
+      "source": "pdf",
+      "subject": "E01"
+    },
+    {
+      "actual": "mismatch",
+      "category": "other_person_dob",
+      "document_id": "E01-DIS",
+      "expected": null,
+      "limit": null,
+      "own": false,
+      "profile": "E12",
+      "reason_codes": [
+        "dob_mismatch",
+        "name_mismatch"
+      ],
+      "source": "pdf",
+      "subject": "E01"
+    },
+    {
+      "actual": "mismatch",
+      "category": "other_person_dob",
+      "document_id": "E01-DIS",
+      "expected": null,
+      "limit": null,
+      "own": false,
+      "profile": "E13",
+      "reason_codes": [
+        "dob_mismatch",
+        "name_mismatch"
+      ],
+      "source": "pdf",
+      "subject": "E01"
+    },
+    {
+      "actual": "mismatch",
+      "category": "other_person_dob",
+      "document_id": "E01-DIS",
+      "expected": null,
+      "limit": null,
+      "own": false,
+      "profile": "E14",
+      "reason_codes": [
+        "dob_not_in_profile",
+        "name_mismatch"
+      ],
+      "source": "pdf",
+      "subject": "E01"
+    },
+    {
+      "actual": "match",
+      "category": "newborn_mother",
+      "document_id": "E01-LAB",
+      "expected": "match",
+      "limit": null,
+      "own": true,
+      "profile": "E01",
+      "reason_codes": [
+        "dob_not_printed",
+        "name_match"
+      ],
+      "source": "pdf",
+      "subject": "E01"
+    },
+    {
+      "actual": "unknown",
+      "category": "newborn_mother",
+      "document_id": "E01-LAB",
+      "expected": null,
+      "limit": null,
+      "own": false,
+      "profile": "E02",
+      "reason_codes": [
+        "dob_not_printed",
+        "name_partial"
+      ],
+      "source": "pdf",
+      "subject": "E01"
+    },
+    {
+      "actual": "mismatch",
+      "category": "newborn_mother",
+      "document_id": "E01-LAB",
+      "expected": null,
+      "limit": null,
+      "own": false,
+      "profile": "E03",
+      "reason_codes": [
+        "dob_not_printed",
+        "name_mismatch"
+      ],
+      "source": "pdf",
+      "subject": "E01"
+    },
+    {
+      "actual": "unknown",
+      "category": "newborn_mother",
+      "document_id": "E01-LAB",
+      "expected": null,
+      "limit": null,
+      "own": false,
+      "profile": "E04",
+      "reason_codes": [
+        "dob_not_printed",
+        "profile_name_incomplete"
+      ],
+      "source": "pdf",
+      "subject": "E01"
+    },
+    {
+      "actual": "mismatch",
+      "category": "newborn_mother",
+      "document_id": "E01-LAB",
+      "expected": null,
+      "limit": null,
+      "own": false,
+      "profile": "E05",
+      "reason_codes": [
+        "dob_not_printed",
+        "name_mismatch"
+      ],
+      "source": "pdf",
+      "subject": "E01"
+    },
+    {
+      "actual": "unknown",
+      "category": "newborn_mother",
+      "document_id": "E01-LAB",
+      "expected": null,
+      "limit": null,
+      "own": false,
+      "profile": "E06",
+      "reason_codes": [
+        "dob_not_printed",
+        "profile_name_incomplete"
+      ],
+      "source": "pdf",
+      "subject": "E01"
+    },
+    {
+      "actual": "mismatch",
+      "category": "newborn_mother",
+      "document_id": "E01-LAB",
+      "expected": null,
+      "limit": null,
+      "own": false,
+      "profile": "E07",
+      "reason_codes": [
+        "dob_not_printed",
+        "name_mismatch"
+      ],
+      "source": "pdf",
+      "subject": "E01"
+    },
+    {
+      "actual": "mismatch",
+      "category": "newborn_mother",
+      "document_id": "E01-LAB",
+      "expected": null,
+      "limit": null,
+      "own": false,
+      "profile": "E08",
+      "reason_codes": [
+        "dob_not_printed",
+        "name_mismatch"
+      ],
+      "source": "pdf",
+      "subject": "E01"
+    },
+    {
+      "actual": "mismatch",
+      "category": "newborn_mother",
+      "document_id": "E01-LAB",
+      "expected": null,
+      "limit": null,
+      "own": false,
+      "profile": "E09",
+      "reason_codes": [
+        "dob_not_printed",
+        "name_mismatch"
+      ],
+      "source": "pdf",
+      "subject": "E01"
+    },
+    {
+      "actual": "mismatch",
+      "category": "newborn_mother",
+      "document_id": "E01-LAB",
+      "expected": null,
+      "limit": null,
+      "own": false,
+      "profile": "E10",
+      "reason_codes": [
+        "dob_not_printed",
+        "name_mismatch"
+      ],
+      "source": "pdf",
+      "subject": "E01"
+    },
+    {
+      "actual": "mismatch",
+      "category": "newborn_mother",
+      "document_id": "E01-LAB",
+      "expected": null,
+      "limit": null,
+      "own": false,
+      "profile": "E11",
+      "reason_codes": [
+        "dob_not_printed",
+        "name_mismatch"
+      ],
+      "source": "pdf",
+      "subject": "E01"
+    },
+    {
+      "actual": "mismatch",
+      "category": "newborn_mother",
+      "document_id": "E01-LAB",
+      "expected": null,
+      "limit": null,
+      "own": false,
+      "profile": "E12",
+      "reason_codes": [
+        "dob_not_printed",
+        "name_mismatch"
+      ],
+      "source": "pdf",
+      "subject": "E01"
+    },
+    {
+      "actual": "mismatch",
+      "category": "newborn_mother",
+      "document_id": "E01-LAB",
+      "expected": null,
+      "limit": null,
+      "own": false,
+      "profile": "E13",
+      "reason_codes": [
+        "dob_not_printed",
+        "name_mismatch"
+      ],
+      "source": "pdf",
+      "subject": "E01"
+    },
+    {
+      "actual": "mismatch",
+      "category": "newborn_mother",
+      "document_id": "E01-LAB",
+      "expected": null,
+      "limit": null,
+      "own": false,
+      "profile": "E14",
+      "reason_codes": [
+        "dob_not_printed",
+        "name_mismatch"
+      ],
+      "source": "pdf",
+      "subject": "E01"
+    },
+    {
+      "actual": "unknown",
+      "category": "format_char",
+      "document_id": "E01-ZW1",
+      "expected": "unknown",
+      "limit": null,
+      "own": true,
+      "profile": "E01",
+      "reason_codes": [
+        "dob_not_printed",
+        "name_unreadable"
+      ],
+      "source": "text",
+      "subject": "E01"
+    },
+    {
+      "actual": "unknown",
+      "category": "format_char",
+      "document_id": "E01-ZW1",
+      "expected": null,
+      "limit": null,
+      "own": false,
+      "profile": "E02",
+      "reason_codes": [
+        "dob_not_printed",
+        "name_unreadable"
+      ],
+      "source": "text",
+      "subject": "E01"
+    },
+    {
+      "actual": "unknown",
+      "category": "format_char",
+      "document_id": "E01-ZW1",
+      "expected": null,
+      "limit": null,
+      "own": false,
+      "profile": "E03",
+      "reason_codes": [
+        "dob_not_printed",
+        "name_unreadable"
+      ],
+      "source": "text",
+      "subject": "E01"
+    },
+    {
+      "actual": "unknown",
+      "category": "format_char",
+      "document_id": "E01-ZW1",
+      "expected": null,
+      "limit": null,
+      "own": false,
+      "profile": "E04",
+      "reason_codes": [
+        "dob_not_printed",
+        "name_unreadable"
+      ],
+      "source": "text",
+      "subject": "E01"
+    },
+    {
+      "actual": "unknown",
+      "category": "format_char",
+      "document_id": "E01-ZW1",
+      "expected": null,
+      "limit": null,
+      "own": false,
+      "profile": "E05",
+      "reason_codes": [
+        "dob_not_printed",
+        "name_unreadable"
+      ],
+      "source": "text",
+      "subject": "E01"
+    },
+    {
+      "actual": "unknown",
+      "category": "format_char",
+      "document_id": "E01-ZW1",
+      "expected": null,
+      "limit": null,
+      "own": false,
+      "profile": "E06",
+      "reason_codes": [
+        "dob_not_printed",
+        "name_unreadable"
+      ],
+      "source": "text",
+      "subject": "E01"
+    },
+    {
+      "actual": "unknown",
+      "category": "format_char",
+      "document_id": "E01-ZW1",
+      "expected": null,
+      "limit": null,
+      "own": false,
+      "profile": "E07",
+      "reason_codes": [
+        "dob_not_printed",
+        "name_unreadable"
+      ],
+      "source": "text",
+      "subject": "E01"
+    },
+    {
+      "actual": "unknown",
+      "category": "format_char",
+      "document_id": "E01-ZW1",
+      "expected": null,
+      "limit": null,
+      "own": false,
+      "profile": "E08",
+      "reason_codes": [
+        "dob_not_printed",
+        "name_unreadable"
+      ],
+      "source": "text",
+      "subject": "E01"
+    },
+    {
+      "actual": "unknown",
+      "category": "format_char",
+      "document_id": "E01-ZW1",
+      "expected": null,
+      "limit": null,
+      "own": false,
+      "profile": "E09",
+      "reason_codes": [
+        "dob_not_printed",
+        "name_unreadable"
+      ],
+      "source": "text",
+      "subject": "E01"
+    },
+    {
+      "actual": "unknown",
+      "category": "format_char",
+      "document_id": "E01-ZW1",
+      "expected": null,
+      "limit": null,
+      "own": false,
+      "profile": "E10",
+      "reason_codes": [
+        "dob_not_printed",
+        "name_unreadable"
+      ],
+      "source": "text",
+      "subject": "E01"
+    },
+    {
+      "actual": "unknown",
+      "category": "format_char",
+      "document_id": "E01-ZW1",
+      "expected": null,
+      "limit": null,
+      "own": false,
+      "profile": "E11",
+      "reason_codes": [
+        "dob_not_printed",
+        "name_unreadable"
+      ],
+      "source": "text",
+      "subject": "E01"
+    },
+    {
+      "actual": "unknown",
+      "category": "format_char",
+      "document_id": "E01-ZW1",
+      "expected": null,
+      "limit": null,
+      "own": false,
+      "profile": "E12",
+      "reason_codes": [
+        "dob_not_printed",
+        "name_unreadable"
+      ],
+      "source": "text",
+      "subject": "E01"
+    },
+    {
+      "actual": "unknown",
+      "category": "format_char",
+      "document_id": "E01-ZW1",
+      "expected": null,
+      "limit": null,
+      "own": false,
+      "profile": "E13",
+      "reason_codes": [
+        "dob_not_printed",
+        "name_unreadable"
+      ],
+      "source": "text",
+      "subject": "E01"
+    },
+    {
+      "actual": "unknown",
+      "category": "format_char",
+      "document_id": "E01-ZW1",
+      "expected": null,
+      "limit": null,
+      "own": false,
+      "profile": "E14",
+      "reason_codes": [
+        "dob_not_printed",
+        "name_unreadable"
+      ],
+      "source": "text",
+      "subject": "E01"
+    },
+    {
+      "actual": "mismatch",
+      "category": "newborn_mother",
+      "document_id": "E02-NEO",
+      "expected": null,
+      "limit": null,
+      "own": false,
+      "profile": "E01",
+      "reason_codes": [
+        "dob_mismatch",
+        "name_partial"
+      ],
+      "source": "pdf",
+      "subject": "E02"
+    },
+    {
+      "actual": "match",
+      "category": "newborn_mother",
+      "document_id": "E02-NEO",
+      "expected": "match",
+      "limit": null,
+      "own": true,
+      "profile": "E02",
+      "reason_codes": [
+        "dob_match",
+        "name_match"
+      ],
+      "source": "pdf",
+      "subject": "E02"
+    },
+    {
+      "actual": "mismatch",
+      "category": "newborn_mother",
+      "document_id": "E02-NEO",
+      "expected": null,
+      "limit": null,
+      "own": false,
+      "profile": "E03",
+      "reason_codes": [
+        "dob_mismatch",
+        "name_mismatch"
+      ],
+      "source": "pdf",
+      "subject": "E02"
+    },
+    {
+      "actual": "mismatch",
+      "category": "newborn_mother",
+      "document_id": "E02-NEO",
+      "expected": null,
+      "limit": null,
+      "own": false,
+      "profile": "E04",
+      "reason_codes": [
+        "dob_mismatch",
+        "profile_name_incomplete"
+      ],
+      "source": "pdf",
+      "subject": "E02"
+    },
+    {
+      "actual": "mismatch",
+      "category": "newborn_mother",
+      "document_id": "E02-NEO",
+      "expected": null,
+      "limit": null,
+      "own": false,
+      "profile": "E05",
+      "reason_codes": [
+        "dob_mismatch",
+        "name_mismatch"
+      ],
+      "source": "pdf",
+      "subject": "E02"
+    },
+    {
+      "actual": "mismatch",
+      "category": "newborn_mother",
+      "document_id": "E02-NEO",
+      "expected": null,
+      "limit": null,
+      "own": false,
+      "profile": "E06",
+      "reason_codes": [
+        "dob_mismatch",
+        "profile_name_incomplete"
+      ],
+      "source": "pdf",
+      "subject": "E02"
+    },
+    {
+      "actual": "mismatch",
+      "category": "newborn_mother",
+      "document_id": "E02-NEO",
+      "expected": null,
+      "limit": null,
+      "own": false,
+      "profile": "E07",
+      "reason_codes": [
+        "dob_mismatch",
+        "name_mismatch"
+      ],
+      "source": "pdf",
+      "subject": "E02"
+    },
+    {
+      "actual": "mismatch",
+      "category": "newborn_mother",
+      "document_id": "E02-NEO",
+      "expected": null,
+      "limit": null,
+      "own": false,
+      "profile": "E08",
+      "reason_codes": [
+        "dob_mismatch",
+        "name_mismatch"
+      ],
+      "source": "pdf",
+      "subject": "E02"
+    },
+    {
+      "actual": "mismatch",
+      "category": "newborn_mother",
+      "document_id": "E02-NEO",
+      "expected": null,
+      "limit": null,
+      "own": false,
+      "profile": "E09",
+      "reason_codes": [
+        "dob_mismatch",
+        "name_mismatch"
+      ],
+      "source": "pdf",
+      "subject": "E02"
+    },
+    {
+      "actual": "mismatch",
+      "category": "newborn_mother",
+      "document_id": "E02-NEO",
+      "expected": null,
+      "limit": null,
+      "own": false,
+      "profile": "E10",
+      "reason_codes": [
+        "dob_mismatch",
+        "name_mismatch"
+      ],
+      "source": "pdf",
+      "subject": "E02"
+    },
+    {
+      "actual": "mismatch",
+      "category": "newborn_mother",
+      "document_id": "E02-NEO",
+      "expected": null,
+      "limit": null,
+      "own": false,
+      "profile": "E11",
+      "reason_codes": [
+        "dob_mismatch",
+        "name_mismatch"
+      ],
+      "source": "pdf",
+      "subject": "E02"
+    },
+    {
+      "actual": "mismatch",
+      "category": "newborn_mother",
+      "document_id": "E02-NEO",
+      "expected": null,
+      "limit": null,
+      "own": false,
+      "profile": "E12",
+      "reason_codes": [
+        "dob_mismatch",
+        "name_mismatch"
+      ],
+      "source": "pdf",
+      "subject": "E02"
+    },
+    {
+      "actual": "mismatch",
+      "category": "newborn_mother",
+      "document_id": "E02-NEO",
+      "expected": null,
+      "limit": null,
+      "own": false,
+      "profile": "E13",
+      "reason_codes": [
+        "dob_mismatch",
+        "name_mismatch"
+      ],
+      "source": "pdf",
+      "subject": "E02"
+    },
+    {
+      "actual": "mismatch",
+      "category": "newborn_mother",
+      "document_id": "E02-NEO",
+      "expected": null,
+      "limit": null,
+      "own": false,
+      "profile": "E14",
+      "reason_codes": [
+        "dob_not_in_profile",
+        "name_mismatch"
+      ],
+      "source": "pdf",
+      "subject": "E02"
+    },
+    {
+      "actual": "unknown",
+      "category": "generic_name",
+      "document_id": "E02-GRD",
+      "expected": null,
+      "limit": null,
+      "own": false,
+      "profile": "E01",
+      "reason_codes": [
+        "dob_not_printed",
+        "name_not_found"
+      ],
+      "source": "pdf",
+      "subject": "E02"
+    },
+    {
+      "actual": "unknown",
+      "category": "generic_name",
+      "document_id": "E02-GRD",
+      "expected": "unknown",
+      "limit": null,
+      "own": true,
+      "profile": "E02",
+      "reason_codes": [
+        "dob_not_printed",
+        "name_not_found"
+      ],
+      "source": "pdf",
+      "subject": "E02"
+    },
+    {
+      "actual": "unknown",
+      "category": "generic_name",
+      "document_id": "E02-GRD",
+      "expected": null,
+      "limit": null,
+      "own": false,
+      "profile": "E03",
+      "reason_codes": [
+        "dob_not_printed",
+        "name_not_found"
+      ],
+      "source": "pdf",
+      "subject": "E02"
+    },
+    {
+      "actual": "unknown",
+      "category": "generic_name",
+      "document_id": "E02-GRD",
+      "expected": null,
+      "limit": null,
+      "own": false,
+      "profile": "E04",
+      "reason_codes": [
+        "dob_not_printed",
+        "name_not_found"
+      ],
+      "source": "pdf",
+      "subject": "E02"
+    },
+    {
+      "actual": "unknown",
+      "category": "generic_name",
+      "document_id": "E02-GRD",
+      "expected": null,
+      "limit": null,
+      "own": false,
+      "profile": "E05",
+      "reason_codes": [
+        "dob_not_printed",
+        "name_not_found"
+      ],
+      "source": "pdf",
+      "subject": "E02"
+    },
+    {
+      "actual": "unknown",
+      "category": "generic_name",
+      "document_id": "E02-GRD",
+      "expected": null,
+      "limit": null,
+      "own": false,
+      "profile": "E06",
+      "reason_codes": [
+        "dob_not_printed",
+        "name_not_found"
+      ],
+      "source": "pdf",
+      "subject": "E02"
+    },
+    {
+      "actual": "unknown",
+      "category": "generic_name",
+      "document_id": "E02-GRD",
+      "expected": null,
+      "limit": null,
+      "own": false,
+      "profile": "E07",
+      "reason_codes": [
+        "dob_not_printed",
+        "name_not_found"
+      ],
+      "source": "pdf",
+      "subject": "E02"
+    },
+    {
+      "actual": "unknown",
+      "category": "generic_name",
+      "document_id": "E02-GRD",
+      "expected": null,
+      "limit": null,
+      "own": false,
+      "profile": "E08",
+      "reason_codes": [
+        "dob_not_printed",
+        "name_not_found"
+      ],
+      "source": "pdf",
+      "subject": "E02"
+    },
+    {
+      "actual": "unknown",
+      "category": "generic_name",
+      "document_id": "E02-GRD",
+      "expected": null,
+      "limit": null,
+      "own": false,
+      "profile": "E09",
+      "reason_codes": [
+        "dob_not_printed",
+        "name_not_found"
+      ],
+      "source": "pdf",
+      "subject": "E02"
+    },
+    {
+      "actual": "unknown",
+      "category": "generic_name",
+      "document_id": "E02-GRD",
+      "expected": null,
+      "limit": null,
+      "own": false,
+      "profile": "E10",
+      "reason_codes": [
+        "dob_not_printed",
+        "name_not_found"
+      ],
+      "source": "pdf",
+      "subject": "E02"
+    },
+    {
+      "actual": "unknown",
+      "category": "generic_name",
+      "document_id": "E02-GRD",
+      "expected": null,
+      "limit": null,
+      "own": false,
+      "profile": "E11",
+      "reason_codes": [
+        "dob_not_printed",
+        "name_not_found"
+      ],
+      "source": "pdf",
+      "subject": "E02"
+    },
+    {
+      "actual": "unknown",
+      "category": "generic_name",
+      "document_id": "E02-GRD",
+      "expected": null,
+      "limit": null,
+      "own": false,
+      "profile": "E12",
+      "reason_codes": [
+        "dob_not_printed",
+        "name_not_found"
+      ],
+      "source": "pdf",
+      "subject": "E02"
+    },
+    {
+      "actual": "unknown",
+      "category": "generic_name",
+      "document_id": "E02-GRD",
+      "expected": null,
+      "limit": null,
+      "own": false,
+      "profile": "E13",
+      "reason_codes": [
+        "dob_not_printed",
+        "name_not_found"
+      ],
+      "source": "pdf",
+      "subject": "E02"
+    },
+    {
+      "actual": "unknown",
+      "category": "generic_name",
+      "document_id": "E02-GRD",
+      "expected": null,
+      "limit": null,
+      "own": false,
+      "profile": "E14",
+      "reason_codes": [
+        "dob_not_printed",
+        "name_not_found"
+      ],
+      "source": "pdf",
+      "subject": "E02"
+    },
+    {
+      "actual": "mismatch",
+      "category": "combined_age_dob",
+      "document_id": "E03-FAD",
+      "expected": null,
+      "limit": null,
+      "own": false,
+      "profile": "E01",
+      "reason_codes": [
+        "dob_not_printed",
+        "name_mismatch"
+      ],
+      "source": "pdf",
+      "subject": "E03"
+    },
+    {
+      "actual": "mismatch",
+      "category": "combined_age_dob",
+      "document_id": "E03-FAD",
+      "expected": null,
+      "limit": null,
+      "own": false,
+      "profile": "E02",
+      "reason_codes": [
+        "dob_not_printed",
+        "name_mismatch"
+      ],
+      "source": "pdf",
+      "subject": "E03"
+    },
+    {
+      "actual": "match",
+      "category": "combined_age_dob",
+      "document_id": "E03-FAD",
+      "expected": "match",
+      "limit": null,
+      "own": true,
+      "profile": "E03",
+      "reason_codes": [
+        "dob_not_printed",
+        "name_match"
+      ],
+      "source": "pdf",
+      "subject": "E03"
+    },
+    {
+      "actual": "unknown",
+      "category": "combined_age_dob",
+      "document_id": "E03-FAD",
+      "expected": null,
+      "limit": null,
+      "own": false,
+      "profile": "E04",
+      "reason_codes": [
+        "dob_not_printed",
+        "profile_name_incomplete"
+      ],
+      "source": "pdf",
+      "subject": "E03"
+    },
+    {
+      "actual": "mismatch",
+      "category": "combined_age_dob",
+      "document_id": "E03-FAD",
+      "expected": null,
+      "limit": null,
+      "own": false,
+      "profile": "E05",
+      "reason_codes": [
+        "dob_not_printed",
+        "name_mismatch"
+      ],
+      "source": "pdf",
+      "subject": "E03"
+    },
+    {
+      "actual": "unknown",
+      "category": "combined_age_dob",
+      "document_id": "E03-FAD",
+      "expected": null,
+      "limit": null,
+      "own": false,
+      "profile": "E06",
+      "reason_codes": [
+        "dob_not_printed",
+        "profile_name_incomplete"
+      ],
+      "source": "pdf",
+      "subject": "E03"
+    },
+    {
+      "actual": "mismatch",
+      "category": "combined_age_dob",
+      "document_id": "E03-FAD",
+      "expected": null,
+      "limit": null,
+      "own": false,
+      "profile": "E07",
+      "reason_codes": [
+        "dob_not_printed",
+        "name_mismatch"
+      ],
+      "source": "pdf",
+      "subject": "E03"
+    },
+    {
+      "actual": "mismatch",
+      "category": "combined_age_dob",
+      "document_id": "E03-FAD",
+      "expected": null,
+      "limit": null,
+      "own": false,
+      "profile": "E08",
+      "reason_codes": [
+        "dob_not_printed",
+        "name_mismatch"
+      ],
+      "source": "pdf",
+      "subject": "E03"
+    },
+    {
+      "actual": "mismatch",
+      "category": "combined_age_dob",
+      "document_id": "E03-FAD",
+      "expected": null,
+      "limit": null,
+      "own": false,
+      "profile": "E09",
+      "reason_codes": [
+        "dob_not_printed",
+        "name_mismatch"
+      ],
+      "source": "pdf",
+      "subject": "E03"
+    },
+    {
+      "actual": "mismatch",
+      "category": "combined_age_dob",
+      "document_id": "E03-FAD",
+      "expected": null,
+      "limit": null,
+      "own": false,
+      "profile": "E10",
+      "reason_codes": [
+        "dob_not_printed",
+        "name_mismatch"
+      ],
+      "source": "pdf",
+      "subject": "E03"
+    },
+    {
+      "actual": "mismatch",
+      "category": "combined_age_dob",
+      "document_id": "E03-FAD",
+      "expected": null,
+      "limit": null,
+      "own": false,
+      "profile": "E11",
+      "reason_codes": [
+        "dob_not_printed",
+        "name_mismatch"
+      ],
+      "source": "pdf",
+      "subject": "E03"
+    },
+    {
+      "actual": "mismatch",
+      "category": "combined_age_dob",
+      "document_id": "E03-FAD",
+      "expected": null,
+      "limit": null,
+      "own": false,
+      "profile": "E12",
+      "reason_codes": [
+        "dob_not_printed",
+        "name_mismatch"
+      ],
+      "source": "pdf",
+      "subject": "E03"
+    },
+    {
+      "actual": "mismatch",
+      "category": "combined_age_dob",
+      "document_id": "E03-FAD",
+      "expected": null,
+      "limit": null,
+      "own": false,
+      "profile": "E13",
+      "reason_codes": [
+        "dob_not_printed",
+        "name_mismatch"
+      ],
+      "source": "pdf",
+      "subject": "E03"
+    },
+    {
+      "actual": "mismatch",
+      "category": "combined_age_dob",
+      "document_id": "E03-FAD",
+      "expected": null,
+      "limit": null,
+      "own": false,
+      "profile": "E14",
+      "reason_codes": [
+        "dob_not_printed",
+        "name_mismatch"
+      ],
+      "source": "pdf",
+      "subject": "E03"
+    },
+    {
+      "actual": "unknown",
+      "category": "generic_name",
+      "document_id": "E03-GEN",
+      "expected": null,
+      "limit": null,
+      "own": false,
+      "profile": "E01",
+      "reason_codes": [
+        "dob_not_printed",
+        "name_generic_label"
+      ],
+      "source": "pdf",
+      "subject": "E03"
+    },
+    {
+      "actual": "unknown",
+      "category": "generic_name",
+      "document_id": "E03-GEN",
+      "expected": null,
+      "limit": null,
+      "own": false,
+      "profile": "E02",
+      "reason_codes": [
+        "dob_not_printed",
+        "name_generic_label"
+      ],
+      "source": "pdf",
+      "subject": "E03"
+    },
+    {
+      "actual": "unknown",
+      "category": "generic_name",
+      "document_id": "E03-GEN",
+      "expected": "unknown",
+      "limit": null,
+      "own": true,
+      "profile": "E03",
+      "reason_codes": [
+        "dob_not_printed",
+        "name_generic_label"
+      ],
+      "source": "pdf",
+      "subject": "E03"
+    },
+    {
+      "actual": "unknown",
+      "category": "generic_name",
+      "document_id": "E03-GEN",
+      "expected": null,
+      "limit": null,
+      "own": false,
+      "profile": "E04",
+      "reason_codes": [
+        "dob_not_printed",
+        "name_generic_label"
+      ],
+      "source": "pdf",
+      "subject": "E03"
+    },
+    {
+      "actual": "unknown",
+      "category": "generic_name",
+      "document_id": "E03-GEN",
+      "expected": null,
+      "limit": null,
+      "own": false,
+      "profile": "E05",
+      "reason_codes": [
+        "dob_not_printed",
+        "name_generic_label"
+      ],
+      "source": "pdf",
+      "subject": "E03"
+    },
+    {
+      "actual": "unknown",
+      "category": "generic_name",
+      "document_id": "E03-GEN",
+      "expected": null,
+      "limit": null,
+      "own": false,
+      "profile": "E06",
+      "reason_codes": [
+        "dob_not_printed",
+        "name_generic_label"
+      ],
+      "source": "pdf",
+      "subject": "E03"
+    },
+    {
+      "actual": "unknown",
+      "category": "generic_name",
+      "document_id": "E03-GEN",
+      "expected": null,
+      "limit": null,
+      "own": false,
+      "profile": "E07",
+      "reason_codes": [
+        "dob_not_printed",
+        "name_generic_label"
+      ],
+      "source": "pdf",
+      "subject": "E03"
+    },
+    {
+      "actual": "unknown",
+      "category": "generic_name",
+      "document_id": "E03-GEN",
+      "expected": null,
+      "limit": null,
+      "own": false,
+      "profile": "E08",
+      "reason_codes": [
+        "dob_not_printed",
+        "name_generic_label"
+      ],
+      "source": "pdf",
+      "subject": "E03"
+    },
+    {
+      "actual": "unknown",
+      "category": "generic_name",
+      "document_id": "E03-GEN",
+      "expected": null,
+      "limit": null,
+      "own": false,
+      "profile": "E09",
+      "reason_codes": [
+        "dob_not_printed",
+        "name_generic_label"
+      ],
+      "source": "pdf",
+      "subject": "E03"
+    },
+    {
+      "actual": "unknown",
+      "category": "generic_name",
+      "document_id": "E03-GEN",
+      "expected": null,
+      "limit": null,
+      "own": false,
+      "profile": "E10",
+      "reason_codes": [
+        "dob_not_printed",
+        "name_generic_label"
+      ],
+      "source": "pdf",
+      "subject": "E03"
+    },
+    {
+      "actual": "unknown",
+      "category": "generic_name",
+      "document_id": "E03-GEN",
+      "expected": null,
+      "limit": null,
+      "own": false,
+      "profile": "E11",
+      "reason_codes": [
+        "dob_not_printed",
+        "name_generic_label"
+      ],
+      "source": "pdf",
+      "subject": "E03"
+    },
+    {
+      "actual": "unknown",
+      "category": "generic_name",
+      "document_id": "E03-GEN",
+      "expected": null,
+      "limit": null,
+      "own": false,
+      "profile": "E12",
+      "reason_codes": [
+        "dob_not_printed",
+        "name_generic_label"
+      ],
+      "source": "pdf",
+      "subject": "E03"
+    },
+    {
+      "actual": "unknown",
+      "category": "generic_name",
+      "document_id": "E03-GEN",
+      "expected": null,
+      "limit": null,
+      "own": false,
+      "profile": "E13",
+      "reason_codes": [
+        "dob_not_printed",
+        "name_generic_label"
+      ],
+      "source": "pdf",
+      "subject": "E03"
+    },
+    {
+      "actual": "unknown",
+      "category": "generic_name",
+      "document_id": "E03-GEN",
+      "expected": null,
+      "limit": null,
+      "own": false,
+      "profile": "E14",
+      "reason_codes": [
+        "dob_not_printed",
+        "name_generic_label"
+      ],
+      "source": "pdf",
+      "subject": "E03"
+    },
+    {
+      "actual": "unknown",
+      "category": "format_char",
+      "document_id": "E03-ZW3",
+      "expected": null,
+      "limit": null,
+      "own": false,
+      "profile": "E01",
+      "reason_codes": [
+        "dob_not_printed",
+        "name_unreadable"
+      ],
+      "source": "text",
+      "subject": "E03"
+    },
+    {
+      "actual": "unknown",
+      "category": "format_char",
+      "document_id": "E03-ZW3",
+      "expected": null,
+      "limit": null,
+      "own": false,
+      "profile": "E02",
+      "reason_codes": [
+        "dob_not_printed",
+        "name_unreadable"
+      ],
+      "source": "text",
+      "subject": "E03"
+    },
+    {
+      "actual": "unknown",
+      "category": "format_char",
+      "document_id": "E03-ZW3",
+      "expected": "unknown",
+      "limit": null,
+      "own": true,
+      "profile": "E03",
+      "reason_codes": [
+        "dob_not_printed",
+        "name_unreadable"
+      ],
+      "source": "text",
+      "subject": "E03"
+    },
+    {
+      "actual": "unknown",
+      "category": "format_char",
+      "document_id": "E03-ZW3",
+      "expected": null,
+      "limit": null,
+      "own": false,
+      "profile": "E04",
+      "reason_codes": [
+        "dob_not_printed",
+        "name_unreadable"
+      ],
+      "source": "text",
+      "subject": "E03"
+    },
+    {
+      "actual": "unknown",
+      "category": "format_char",
+      "document_id": "E03-ZW3",
+      "expected": null,
+      "limit": null,
+      "own": false,
+      "profile": "E05",
+      "reason_codes": [
+        "dob_not_printed",
+        "name_unreadable"
+      ],
+      "source": "text",
+      "subject": "E03"
+    },
+    {
+      "actual": "unknown",
+      "category": "format_char",
+      "document_id": "E03-ZW3",
+      "expected": null,
+      "limit": null,
+      "own": false,
+      "profile": "E06",
+      "reason_codes": [
+        "dob_not_printed",
+        "name_unreadable"
+      ],
+      "source": "text",
+      "subject": "E03"
+    },
+    {
+      "actual": "unknown",
+      "category": "format_char",
+      "document_id": "E03-ZW3",
+      "expected": null,
+      "limit": null,
+      "own": false,
+      "profile": "E07",
+      "reason_codes": [
+        "dob_not_printed",
+        "name_unreadable"
+      ],
+      "source": "text",
+      "subject": "E03"
+    },
+    {
+      "actual": "unknown",
+      "category": "format_char",
+      "document_id": "E03-ZW3",
+      "expected": null,
+      "limit": null,
+      "own": false,
+      "profile": "E08",
+      "reason_codes": [
+        "dob_not_printed",
+        "name_unreadable"
+      ],
+      "source": "text",
+      "subject": "E03"
+    },
+    {
+      "actual": "unknown",
+      "category": "format_char",
+      "document_id": "E03-ZW3",
+      "expected": null,
+      "limit": null,
+      "own": false,
+      "profile": "E09",
+      "reason_codes": [
+        "dob_not_printed",
+        "name_unreadable"
+      ],
+      "source": "text",
+      "subject": "E03"
+    },
+    {
+      "actual": "unknown",
+      "category": "format_char",
+      "document_id": "E03-ZW3",
+      "expected": null,
+      "limit": null,
+      "own": false,
+      "profile": "E10",
+      "reason_codes": [
+        "dob_not_printed",
+        "name_unreadable"
+      ],
+      "source": "text",
+      "subject": "E03"
+    },
+    {
+      "actual": "unknown",
+      "category": "format_char",
+      "document_id": "E03-ZW3",
+      "expected": null,
+      "limit": null,
+      "own": false,
+      "profile": "E11",
+      "reason_codes": [
+        "dob_not_printed",
+        "name_unreadable"
+      ],
+      "source": "text",
+      "subject": "E03"
+    },
+    {
+      "actual": "unknown",
+      "category": "format_char",
+      "document_id": "E03-ZW3",
+      "expected": null,
+      "limit": null,
+      "own": false,
+      "profile": "E12",
+      "reason_codes": [
+        "dob_not_printed",
+        "name_unreadable"
+      ],
+      "source": "text",
+      "subject": "E03"
+    },
+    {
+      "actual": "unknown",
+      "category": "format_char",
+      "document_id": "E03-ZW3",
+      "expected": null,
+      "limit": null,
+      "own": false,
+      "profile": "E13",
+      "reason_codes": [
+        "dob_not_printed",
+        "name_unreadable"
+      ],
+      "source": "text",
+      "subject": "E03"
+    },
+    {
+      "actual": "unknown",
+      "category": "format_char",
+      "document_id": "E03-ZW3",
+      "expected": null,
+      "limit": null,
+      "own": false,
+      "profile": "E14",
+      "reason_codes": [
+        "dob_not_printed",
+        "name_unreadable"
+      ],
+      "source": "text",
+      "subject": "E03"
+    },
+    {
+      "actual": "unknown",
+      "category": "initials_profile",
+      "document_id": "E04-INI",
+      "expected": null,
+      "limit": null,
+      "own": false,
+      "profile": "E01",
+      "reason_codes": [
+        "dob_not_printed",
+        "name_initials"
+      ],
+      "source": "pdf",
+      "subject": "E04"
+    },
+    {
+      "actual": "unknown",
+      "category": "initials_profile",
+      "document_id": "E04-INI",
+      "expected": null,
+      "limit": null,
+      "own": false,
+      "profile": "E02",
+      "reason_codes": [
+        "dob_not_printed",
+        "name_initials"
+      ],
+      "source": "pdf",
+      "subject": "E04"
+    },
+    {
+      "actual": "unknown",
+      "category": "initials_profile",
+      "document_id": "E04-INI",
+      "expected": null,
+      "limit": null,
+      "own": false,
+      "profile": "E03",
+      "reason_codes": [
+        "dob_not_printed",
+        "name_initials"
+      ],
+      "source": "pdf",
+      "subject": "E04"
+    },
+    {
+      "actual": "unknown",
+      "category": "initials_profile",
+      "document_id": "E04-INI",
+      "expected": "unknown",
+      "limit": null,
+      "own": true,
+      "profile": "E04",
+      "reason_codes": [
+        "dob_not_printed",
+        "name_initials"
+      ],
+      "source": "pdf",
+      "subject": "E04"
+    },
+    {
+      "actual": "unknown",
+      "category": "initials_profile",
+      "document_id": "E04-INI",
+      "expected": null,
+      "limit": null,
+      "own": false,
+      "profile": "E05",
+      "reason_codes": [
+        "dob_not_printed",
+        "name_initials"
+      ],
+      "source": "pdf",
+      "subject": "E04"
+    },
+    {
+      "actual": "unknown",
+      "category": "initials_profile",
+      "document_id": "E04-INI",
+      "expected": null,
+      "limit": null,
+      "own": false,
+      "profile": "E06",
+      "reason_codes": [
+        "dob_not_printed",
+        "name_initials"
+      ],
+      "source": "pdf",
+      "subject": "E04"
+    },
+    {
+      "actual": "unknown",
+      "category": "initials_profile",
+      "document_id": "E04-INI",
+      "expected": null,
+      "limit": null,
+      "own": false,
+      "profile": "E07",
+      "reason_codes": [
+        "dob_not_printed",
+        "name_initials"
+      ],
+      "source": "pdf",
+      "subject": "E04"
+    },
+    {
+      "actual": "unknown",
+      "category": "initials_profile",
+      "document_id": "E04-INI",
+      "expected": null,
+      "limit": null,
+      "own": false,
+      "profile": "E08",
+      "reason_codes": [
+        "dob_not_printed",
+        "name_initials"
+      ],
+      "source": "pdf",
+      "subject": "E04"
+    },
+    {
+      "actual": "unknown",
+      "category": "initials_profile",
+      "document_id": "E04-INI",
+      "expected": null,
+      "limit": null,
+      "own": false,
+      "profile": "E09",
+      "reason_codes": [
+        "dob_not_printed",
+        "name_initials"
+      ],
+      "source": "pdf",
+      "subject": "E04"
+    },
+    {
+      "actual": "unknown",
+      "category": "initials_profile",
+      "document_id": "E04-INI",
+      "expected": null,
+      "limit": null,
+      "own": false,
+      "profile": "E10",
+      "reason_codes": [
+        "dob_not_printed",
+        "name_initials"
+      ],
+      "source": "pdf",
+      "subject": "E04"
+    },
+    {
+      "actual": "unknown",
+      "category": "initials_profile",
+      "document_id": "E04-INI",
+      "expected": null,
+      "limit": null,
+      "own": false,
+      "profile": "E11",
+      "reason_codes": [
+        "dob_not_printed",
+        "name_initials"
+      ],
+      "source": "pdf",
+      "subject": "E04"
+    },
+    {
+      "actual": "unknown",
+      "category": "initials_profile",
+      "document_id": "E04-INI",
+      "expected": null,
+      "limit": null,
+      "own": false,
+      "profile": "E12",
+      "reason_codes": [
+        "dob_not_printed",
+        "name_initials"
+      ],
+      "source": "pdf",
+      "subject": "E04"
+    },
+    {
+      "actual": "unknown",
+      "category": "initials_profile",
+      "document_id": "E04-INI",
+      "expected": null,
+      "limit": null,
+      "own": false,
+      "profile": "E13",
+      "reason_codes": [
+        "dob_not_printed",
+        "name_initials"
+      ],
+      "source": "pdf",
+      "subject": "E04"
+    },
+    {
+      "actual": "unknown",
+      "category": "initials_profile",
+      "document_id": "E04-INI",
+      "expected": null,
+      "limit": null,
+      "own": false,
+      "profile": "E14",
+      "reason_codes": [
+        "dob_not_printed",
+        "name_initials"
+      ],
+      "source": "pdf",
+      "subject": "E04"
+    },
+    {
+      "actual": "mismatch",
+      "category": "initials_profile",
+      "document_id": "E04-INX",
+      "expected": null,
+      "limit": null,
+      "own": false,
+      "profile": "E01",
+      "reason_codes": [
+        "dob_mismatch",
+        "name_mismatch"
+      ],
+      "source": "pdf",
+      "subject": "E04"
+    },
+    {
+      "actual": "mismatch",
+      "category": "initials_profile",
+      "document_id": "E04-INX",
+      "expected": null,
+      "limit": null,
+      "own": false,
+      "profile": "E02",
+      "reason_codes": [
+        "dob_mismatch",
+        "name_mismatch"
+      ],
+      "source": "pdf",
+      "subject": "E04"
+    },
+    {
+      "actual": "mismatch",
+      "category": "initials_profile",
+      "document_id": "E04-INX",
+      "expected": null,
+      "limit": null,
+      "own": false,
+      "profile": "E03",
+      "reason_codes": [
+        "dob_mismatch",
+        "name_mismatch"
+      ],
+      "source": "pdf",
+      "subject": "E04"
+    },
+    {
+      "actual": "unknown",
+      "category": "initials_profile",
+      "document_id": "E04-INX",
+      "expected": "unknown",
+      "limit": null,
+      "own": true,
+      "profile": "E04",
+      "reason_codes": [
+        "dob_match",
+        "profile_name_incomplete"
+      ],
+      "source": "pdf",
+      "subject": "E04"
+    },
+    {
+      "actual": "mismatch",
+      "category": "initials_profile",
+      "document_id": "E04-INX",
+      "expected": null,
+      "limit": null,
+      "own": false,
+      "profile": "E05",
+      "reason_codes": [
+        "dob_mismatch",
+        "name_mismatch"
+      ],
+      "source": "pdf",
+      "subject": "E04"
+    },
+    {
+      "actual": "mismatch",
+      "category": "initials_profile",
+      "document_id": "E04-INX",
+      "expected": null,
+      "limit": null,
+      "own": false,
+      "profile": "E06",
+      "reason_codes": [
+        "dob_mismatch",
+        "profile_name_incomplete"
+      ],
+      "source": "pdf",
+      "subject": "E04"
+    },
+    {
+      "actual": "mismatch",
+      "category": "initials_profile",
+      "document_id": "E04-INX",
+      "expected": null,
+      "limit": null,
+      "own": false,
+      "profile": "E07",
+      "reason_codes": [
+        "dob_mismatch",
+        "name_mismatch"
+      ],
+      "source": "pdf",
+      "subject": "E04"
+    },
+    {
+      "actual": "mismatch",
+      "category": "initials_profile",
+      "document_id": "E04-INX",
+      "expected": null,
+      "limit": null,
+      "own": false,
+      "profile": "E08",
+      "reason_codes": [
+        "dob_mismatch",
+        "name_mismatch"
+      ],
+      "source": "pdf",
+      "subject": "E04"
+    },
+    {
+      "actual": "mismatch",
+      "category": "initials_profile",
+      "document_id": "E04-INX",
+      "expected": null,
+      "limit": null,
+      "own": false,
+      "profile": "E09",
+      "reason_codes": [
+        "dob_mismatch",
+        "name_mismatch"
+      ],
+      "source": "pdf",
+      "subject": "E04"
+    },
+    {
+      "actual": "mismatch",
+      "category": "initials_profile",
+      "document_id": "E04-INX",
+      "expected": null,
+      "limit": null,
+      "own": false,
+      "profile": "E10",
+      "reason_codes": [
+        "dob_mismatch",
+        "name_mismatch"
+      ],
+      "source": "pdf",
+      "subject": "E04"
+    },
+    {
+      "actual": "mismatch",
+      "category": "initials_profile",
+      "document_id": "E04-INX",
+      "expected": null,
+      "limit": null,
+      "own": false,
+      "profile": "E11",
+      "reason_codes": [
+        "dob_mismatch",
+        "name_mismatch"
+      ],
+      "source": "pdf",
+      "subject": "E04"
+    },
+    {
+      "actual": "mismatch",
+      "category": "initials_profile",
+      "document_id": "E04-INX",
+      "expected": null,
+      "limit": null,
+      "own": false,
+      "profile": "E12",
+      "reason_codes": [
+        "dob_mismatch",
+        "name_mismatch"
+      ],
+      "source": "pdf",
+      "subject": "E04"
+    },
+    {
+      "actual": "mismatch",
+      "category": "initials_profile",
+      "document_id": "E04-INX",
+      "expected": null,
+      "limit": null,
+      "own": false,
+      "profile": "E13",
+      "reason_codes": [
+        "dob_mismatch",
+        "name_mismatch"
+      ],
+      "source": "pdf",
+      "subject": "E04"
+    },
+    {
+      "actual": "mismatch",
+      "category": "initials_profile",
+      "document_id": "E04-INX",
+      "expected": null,
+      "limit": null,
+      "own": false,
+      "profile": "E14",
+      "reason_codes": [
+        "dob_not_in_profile",
+        "name_mismatch"
+      ],
+      "source": "pdf",
+      "subject": "E04"
+    },
+    {
+      "actual": "mismatch",
+      "category": "near_miss",
+      "document_id": "E05-RAM",
+      "expected": null,
+      "limit": null,
+      "own": false,
+      "profile": "E01",
+      "reason_codes": [
+        "dob_mismatch",
+        "name_mismatch"
+      ],
+      "source": "pdf",
+      "subject": "E05"
+    },
+    {
+      "actual": "mismatch",
+      "category": "near_miss",
+      "document_id": "E05-RAM",
+      "expected": null,
+      "limit": null,
+      "own": false,
+      "profile": "E02",
+      "reason_codes": [
+        "dob_mismatch",
+        "name_mismatch"
+      ],
+      "source": "pdf",
+      "subject": "E05"
+    },
+    {
+      "actual": "mismatch",
+      "category": "near_miss",
+      "document_id": "E05-RAM",
+      "expected": null,
+      "limit": null,
+      "own": false,
+      "profile": "E03",
+      "reason_codes": [
+        "dob_mismatch",
+        "name_mismatch"
+      ],
+      "source": "pdf",
+      "subject": "E05"
+    },
+    {
+      "actual": "mismatch",
+      "category": "near_miss",
+      "document_id": "E05-RAM",
+      "expected": null,
+      "limit": null,
+      "own": false,
+      "profile": "E04",
+      "reason_codes": [
+        "dob_mismatch",
+        "profile_name_incomplete"
+      ],
+      "source": "pdf",
+      "subject": "E05"
+    },
+    {
+      "actual": "match",
+      "category": "near_miss",
+      "document_id": "E05-RAM",
+      "expected": "match",
+      "limit": null,
+      "own": true,
+      "profile": "E05",
+      "reason_codes": [
+        "dob_match",
+        "name_match"
+      ],
+      "source": "pdf",
+      "subject": "E05"
+    },
+    {
+      "actual": "mismatch",
+      "category": "near_miss",
+      "document_id": "E05-RAM",
+      "expected": null,
+      "limit": null,
+      "own": false,
+      "profile": "E06",
+      "reason_codes": [
+        "dob_mismatch",
+        "profile_name_incomplete"
+      ],
+      "source": "pdf",
+      "subject": "E05"
+    },
+    {
+      "actual": "mismatch",
+      "category": "near_miss",
+      "document_id": "E05-RAM",
+      "expected": null,
+      "limit": null,
+      "own": false,
+      "profile": "E07",
+      "reason_codes": [
+        "dob_mismatch",
+        "name_mismatch"
+      ],
+      "source": "pdf",
+      "subject": "E05"
+    },
+    {
+      "actual": "mismatch",
+      "category": "near_miss",
+      "document_id": "E05-RAM",
+      "expected": null,
+      "limit": null,
+      "own": false,
+      "profile": "E08",
+      "reason_codes": [
+        "dob_mismatch",
+        "name_mismatch"
+      ],
+      "source": "pdf",
+      "subject": "E05"
+    },
+    {
+      "actual": "mismatch",
+      "category": "near_miss",
+      "document_id": "E05-RAM",
+      "expected": null,
+      "limit": null,
+      "own": false,
+      "profile": "E09",
+      "reason_codes": [
+        "dob_mismatch",
+        "name_mismatch"
+      ],
+      "source": "pdf",
+      "subject": "E05"
+    },
+    {
+      "actual": "mismatch",
+      "category": "near_miss",
+      "document_id": "E05-RAM",
+      "expected": null,
+      "limit": null,
+      "own": false,
+      "profile": "E10",
+      "reason_codes": [
+        "dob_mismatch",
+        "name_mismatch"
+      ],
+      "source": "pdf",
+      "subject": "E05"
+    },
+    {
+      "actual": "mismatch",
+      "category": "near_miss",
+      "document_id": "E05-RAM",
+      "expected": null,
+      "limit": null,
+      "own": false,
+      "profile": "E11",
+      "reason_codes": [
+        "dob_mismatch",
+        "name_mismatch"
+      ],
+      "source": "pdf",
+      "subject": "E05"
+    },
+    {
+      "actual": "mismatch",
+      "category": "near_miss",
+      "document_id": "E05-RAM",
+      "expected": null,
+      "limit": null,
+      "own": false,
+      "profile": "E12",
+      "reason_codes": [
+        "dob_mismatch",
+        "name_mismatch"
+      ],
+      "source": "pdf",
+      "subject": "E05"
+    },
+    {
+      "actual": "mismatch",
+      "category": "near_miss",
+      "document_id": "E05-RAM",
+      "expected": null,
+      "limit": null,
+      "own": false,
+      "profile": "E13",
+      "reason_codes": [
+        "dob_mismatch",
+        "name_mismatch"
+      ],
+      "source": "pdf",
+      "subject": "E05"
+    },
+    {
+      "actual": "mismatch",
+      "category": "near_miss",
+      "document_id": "E05-RAM",
+      "expected": null,
+      "limit": null,
+      "own": false,
+      "profile": "E14",
+      "reason_codes": [
+        "dob_not_in_profile",
+        "name_mismatch"
+      ],
+      "source": "pdf",
+      "subject": "E05"
+    },
+    {
+      "actual": "unknown",
+      "category": "single_token",
+      "document_id": "E06-MON",
+      "expected": null,
+      "limit": null,
+      "own": false,
+      "profile": "E01",
+      "reason_codes": [
+        "dob_not_printed",
+        "name_partial"
+      ],
+      "source": "pdf",
+      "subject": "E06"
+    },
+    {
+      "actual": "unknown",
+      "category": "single_token",
+      "document_id": "E06-MON",
+      "expected": null,
+      "limit": null,
+      "own": false,
+      "profile": "E02",
+      "reason_codes": [
+        "dob_not_printed",
+        "name_partial"
+      ],
+      "source": "pdf",
+      "subject": "E06"
+    },
+    {
+      "actual": "unknown",
+      "category": "single_token",
+      "document_id": "E06-MON",
+      "expected": null,
+      "limit": null,
+      "own": false,
+      "profile": "E03",
+      "reason_codes": [
+        "dob_not_printed",
+        "name_partial"
+      ],
+      "source": "pdf",
+      "subject": "E06"
+    },
+    {
+      "actual": "unknown",
+      "category": "single_token",
+      "document_id": "E06-MON",
+      "expected": null,
+      "limit": null,
+      "own": false,
+      "profile": "E04",
+      "reason_codes": [
+        "dob_not_printed",
+        "profile_name_incomplete"
+      ],
+      "source": "pdf",
+      "subject": "E06"
+    },
+    {
+      "actual": "unknown",
+      "category": "single_token",
+      "document_id": "E06-MON",
+      "expected": null,
+      "limit": null,
+      "own": false,
+      "profile": "E05",
+      "reason_codes": [
+        "dob_not_printed",
+        "name_partial"
+      ],
+      "source": "pdf",
+      "subject": "E06"
+    },
+    {
+      "actual": "unknown",
+      "category": "single_token",
+      "document_id": "E06-MON",
+      "expected": "unknown",
+      "limit": null,
+      "own": true,
+      "profile": "E06",
+      "reason_codes": [
+        "dob_not_printed",
+        "profile_name_incomplete"
+      ],
+      "source": "pdf",
+      "subject": "E06"
+    },
+    {
+      "actual": "unknown",
+      "category": "single_token",
+      "document_id": "E06-MON",
+      "expected": null,
+      "limit": null,
+      "own": false,
+      "profile": "E07",
+      "reason_codes": [
+        "dob_not_printed",
+        "name_partial"
+      ],
+      "source": "pdf",
+      "subject": "E06"
+    },
+    {
+      "actual": "unknown",
+      "category": "single_token",
+      "document_id": "E06-MON",
+      "expected": null,
+      "limit": null,
+      "own": false,
+      "profile": "E08",
+      "reason_codes": [
+        "dob_not_printed",
+        "name_partial"
+      ],
+      "source": "pdf",
+      "subject": "E06"
+    },
+    {
+      "actual": "unknown",
+      "category": "single_token",
+      "document_id": "E06-MON",
+      "expected": null,
+      "limit": null,
+      "own": false,
+      "profile": "E09",
+      "reason_codes": [
+        "dob_not_printed",
+        "name_partial"
+      ],
+      "source": "pdf",
+      "subject": "E06"
+    },
+    {
+      "actual": "unknown",
+      "category": "single_token",
+      "document_id": "E06-MON",
+      "expected": null,
+      "limit": null,
+      "own": false,
+      "profile": "E10",
+      "reason_codes": [
+        "dob_not_printed",
+        "name_partial"
+      ],
+      "source": "pdf",
+      "subject": "E06"
+    },
+    {
+      "actual": "unknown",
+      "category": "single_token",
+      "document_id": "E06-MON",
+      "expected": null,
+      "limit": null,
+      "own": false,
+      "profile": "E11",
+      "reason_codes": [
+        "dob_not_printed",
+        "name_partial"
+      ],
+      "source": "pdf",
+      "subject": "E06"
+    },
+    {
+      "actual": "unknown",
+      "category": "single_token",
+      "document_id": "E06-MON",
+      "expected": null,
+      "limit": null,
+      "own": false,
+      "profile": "E12",
+      "reason_codes": [
+        "dob_not_printed",
+        "name_partial"
+      ],
+      "source": "pdf",
+      "subject": "E06"
+    },
+    {
+      "actual": "unknown",
+      "category": "single_token",
+      "document_id": "E06-MON",
+      "expected": null,
+      "limit": null,
+      "own": false,
+      "profile": "E13",
+      "reason_codes": [
+        "dob_not_printed",
+        "name_partial"
+      ],
+      "source": "pdf",
+      "subject": "E06"
+    },
+    {
+      "actual": "unknown",
+      "category": "single_token",
+      "document_id": "E06-MON",
+      "expected": null,
+      "limit": null,
+      "own": false,
+      "profile": "E14",
+      "reason_codes": [
+        "dob_not_printed",
+        "name_partial"
+      ],
+      "source": "pdf",
+      "subject": "E06"
+    },
+    {
+      "actual": "mismatch",
+      "category": "single_token",
+      "document_id": "E06-MOX",
+      "expected": null,
+      "limit": null,
+      "own": false,
+      "profile": "E01",
+      "reason_codes": [
+        "dob_not_printed",
+        "name_mismatch"
+      ],
+      "source": "pdf",
+      "subject": "E06"
+    },
+    {
+      "actual": "mismatch",
+      "category": "single_token",
+      "document_id": "E06-MOX",
+      "expected": null,
+      "limit": null,
+      "own": false,
+      "profile": "E02",
+      "reason_codes": [
+        "dob_not_printed",
+        "name_mismatch"
+      ],
+      "source": "pdf",
+      "subject": "E06"
+    },
+    {
+      "actual": "mismatch",
+      "category": "single_token",
+      "document_id": "E06-MOX",
+      "expected": null,
+      "limit": null,
+      "own": false,
+      "profile": "E03",
+      "reason_codes": [
+        "dob_not_printed",
+        "name_mismatch"
+      ],
+      "source": "pdf",
+      "subject": "E06"
+    },
+    {
+      "actual": "unknown",
+      "category": "single_token",
+      "document_id": "E06-MOX",
+      "expected": null,
+      "limit": null,
+      "own": false,
+      "profile": "E04",
+      "reason_codes": [
+        "dob_not_printed",
+        "profile_name_incomplete"
+      ],
+      "source": "pdf",
+      "subject": "E06"
+    },
+    {
+      "actual": "mismatch",
+      "category": "single_token",
+      "document_id": "E06-MOX",
+      "expected": null,
+      "limit": null,
+      "own": false,
+      "profile": "E05",
+      "reason_codes": [
+        "dob_not_printed",
+        "name_mismatch"
+      ],
+      "source": "pdf",
+      "subject": "E06"
+    },
+    {
+      "actual": "unknown",
+      "category": "single_token",
+      "document_id": "E06-MOX",
+      "expected": "unknown",
+      "limit": null,
+      "own": true,
+      "profile": "E06",
+      "reason_codes": [
+        "dob_not_printed",
+        "profile_name_incomplete"
+      ],
+      "source": "pdf",
+      "subject": "E06"
+    },
+    {
+      "actual": "mismatch",
+      "category": "single_token",
+      "document_id": "E06-MOX",
+      "expected": null,
+      "limit": null,
+      "own": false,
+      "profile": "E07",
+      "reason_codes": [
+        "dob_not_printed",
+        "name_mismatch"
+      ],
+      "source": "pdf",
+      "subject": "E06"
+    },
+    {
+      "actual": "mismatch",
+      "category": "single_token",
+      "document_id": "E06-MOX",
+      "expected": null,
+      "limit": null,
+      "own": false,
+      "profile": "E08",
+      "reason_codes": [
+        "dob_not_printed",
+        "name_mismatch"
+      ],
+      "source": "pdf",
+      "subject": "E06"
+    },
+    {
+      "actual": "mismatch",
+      "category": "single_token",
+      "document_id": "E06-MOX",
+      "expected": null,
+      "limit": null,
+      "own": false,
+      "profile": "E09",
+      "reason_codes": [
+        "dob_not_printed",
+        "name_mismatch"
+      ],
+      "source": "pdf",
+      "subject": "E06"
+    },
+    {
+      "actual": "mismatch",
+      "category": "single_token",
+      "document_id": "E06-MOX",
+      "expected": null,
+      "limit": null,
+      "own": false,
+      "profile": "E10",
+      "reason_codes": [
+        "dob_not_printed",
+        "name_mismatch"
+      ],
+      "source": "pdf",
+      "subject": "E06"
+    },
+    {
+      "actual": "mismatch",
+      "category": "single_token",
+      "document_id": "E06-MOX",
+      "expected": null,
+      "limit": null,
+      "own": false,
+      "profile": "E11",
+      "reason_codes": [
+        "dob_not_printed",
+        "name_mismatch"
+      ],
+      "source": "pdf",
+      "subject": "E06"
+    },
+    {
+      "actual": "mismatch",
+      "category": "single_token",
+      "document_id": "E06-MOX",
+      "expected": null,
+      "limit": null,
+      "own": false,
+      "profile": "E12",
+      "reason_codes": [
+        "dob_not_printed",
+        "name_mismatch"
+      ],
+      "source": "pdf",
+      "subject": "E06"
+    },
+    {
+      "actual": "mismatch",
+      "category": "single_token",
+      "document_id": "E06-MOX",
+      "expected": null,
+      "limit": null,
+      "own": false,
+      "profile": "E13",
+      "reason_codes": [
+        "dob_not_printed",
+        "name_mismatch"
+      ],
+      "source": "pdf",
+      "subject": "E06"
+    },
+    {
+      "actual": "mismatch",
+      "category": "single_token",
+      "document_id": "E06-MOX",
+      "expected": null,
+      "limit": null,
+      "own": false,
+      "profile": "E14",
+      "reason_codes": [
+        "dob_not_printed",
+        "name_mismatch"
+      ],
+      "source": "pdf",
+      "subject": "E06"
+    },
+    {
+      "actual": "mismatch",
+      "category": "near_miss",
+      "document_id": "E07-NEA",
+      "expected": null,
+      "limit": null,
+      "own": false,
+      "profile": "E01",
+      "reason_codes": [
+        "dob_mismatch",
+        "name_mismatch"
+      ],
+      "source": "pdf",
+      "subject": "E07"
+    },
+    {
+      "actual": "mismatch",
+      "category": "near_miss",
+      "document_id": "E07-NEA",
+      "expected": null,
+      "limit": null,
+      "own": false,
+      "profile": "E02",
+      "reason_codes": [
+        "dob_mismatch",
+        "name_mismatch"
+      ],
+      "source": "pdf",
+      "subject": "E07"
+    },
+    {
+      "actual": "mismatch",
+      "category": "near_miss",
+      "document_id": "E07-NEA",
+      "expected": null,
+      "limit": null,
+      "own": false,
+      "profile": "E03",
+      "reason_codes": [
+        "dob_mismatch",
+        "name_mismatch"
+      ],
+      "source": "pdf",
+      "subject": "E07"
+    },
+    {
+      "actual": "mismatch",
+      "category": "near_miss",
+      "document_id": "E07-NEA",
+      "expected": null,
+      "limit": null,
+      "own": false,
+      "profile": "E04",
+      "reason_codes": [
+        "dob_mismatch",
+        "profile_name_incomplete"
+      ],
+      "source": "pdf",
+      "subject": "E07"
+    },
+    {
+      "actual": "mismatch",
+      "category": "near_miss",
+      "document_id": "E07-NEA",
+      "expected": null,
+      "limit": null,
+      "own": false,
+      "profile": "E05",
+      "reason_codes": [
+        "dob_mismatch",
+        "name_mismatch"
+      ],
+      "source": "pdf",
+      "subject": "E07"
+    },
+    {
+      "actual": "mismatch",
+      "category": "near_miss",
+      "document_id": "E07-NEA",
+      "expected": null,
+      "limit": null,
+      "own": false,
+      "profile": "E06",
+      "reason_codes": [
+        "dob_mismatch",
+        "profile_name_incomplete"
+      ],
+      "source": "pdf",
+      "subject": "E07"
+    },
+    {
+      "actual": "match",
+      "category": "near_miss",
+      "document_id": "E07-NEA",
+      "expected": "match",
+      "limit": null,
+      "own": true,
+      "profile": "E07",
+      "reason_codes": [
+        "dob_match",
+        "name_match"
+      ],
+      "source": "pdf",
+      "subject": "E07"
+    },
+    {
+      "actual": "mismatch",
+      "category": "near_miss",
+      "document_id": "E07-NEA",
+      "expected": null,
+      "limit": null,
+      "own": false,
+      "profile": "E08",
+      "reason_codes": [
+        "dob_mismatch",
+        "name_mismatch"
+      ],
+      "source": "pdf",
+      "subject": "E07"
+    },
+    {
+      "actual": "mismatch",
+      "category": "near_miss",
+      "document_id": "E07-NEA",
+      "expected": null,
+      "limit": null,
+      "own": false,
+      "profile": "E09",
+      "reason_codes": [
+        "dob_mismatch",
+        "name_mismatch"
+      ],
+      "source": "pdf",
+      "subject": "E07"
+    },
+    {
+      "actual": "mismatch",
+      "category": "near_miss",
+      "document_id": "E07-NEA",
+      "expected": null,
+      "limit": null,
+      "own": false,
+      "profile": "E10",
+      "reason_codes": [
+        "dob_mismatch",
+        "name_mismatch"
+      ],
+      "source": "pdf",
+      "subject": "E07"
+    },
+    {
+      "actual": "mismatch",
+      "category": "near_miss",
+      "document_id": "E07-NEA",
+      "expected": null,
+      "limit": null,
+      "own": false,
+      "profile": "E11",
+      "reason_codes": [
+        "dob_mismatch",
+        "name_mismatch"
+      ],
+      "source": "pdf",
+      "subject": "E07"
+    },
+    {
+      "actual": "mismatch",
+      "category": "near_miss",
+      "document_id": "E07-NEA",
+      "expected": null,
+      "limit": null,
+      "own": false,
+      "profile": "E12",
+      "reason_codes": [
+        "dob_mismatch",
+        "name_mismatch"
+      ],
+      "source": "pdf",
+      "subject": "E07"
+    },
+    {
+      "actual": "mismatch",
+      "category": "near_miss",
+      "document_id": "E07-NEA",
+      "expected": null,
+      "limit": null,
+      "own": false,
+      "profile": "E13",
+      "reason_codes": [
+        "dob_mismatch",
+        "name_mismatch"
+      ],
+      "source": "pdf",
+      "subject": "E07"
+    },
+    {
+      "actual": "mismatch",
+      "category": "near_miss",
+      "document_id": "E07-NEA",
+      "expected": null,
+      "limit": null,
+      "own": false,
+      "profile": "E14",
+      "reason_codes": [
+        "dob_not_in_profile",
+        "name_mismatch"
+      ],
+      "source": "pdf",
+      "subject": "E07"
+    },
+    {
+      "actual": "mismatch",
+      "category": "near_miss",
+      "document_id": "E07-TYP",
+      "expected": null,
+      "limit": null,
+      "own": false,
+      "profile": "E01",
+      "reason_codes": [
+        "dob_not_printed",
+        "name_mismatch"
+      ],
+      "source": "pdf",
+      "subject": "E07"
+    },
+    {
+      "actual": "mismatch",
+      "category": "near_miss",
+      "document_id": "E07-TYP",
+      "expected": null,
+      "limit": null,
+      "own": false,
+      "profile": "E02",
+      "reason_codes": [
+        "dob_not_printed",
+        "name_mismatch"
+      ],
+      "source": "pdf",
+      "subject": "E07"
+    },
+    {
+      "actual": "mismatch",
+      "category": "near_miss",
+      "document_id": "E07-TYP",
+      "expected": null,
+      "limit": null,
+      "own": false,
+      "profile": "E03",
+      "reason_codes": [
+        "dob_not_printed",
+        "name_mismatch"
+      ],
+      "source": "pdf",
+      "subject": "E07"
+    },
+    {
+      "actual": "unknown",
+      "category": "near_miss",
+      "document_id": "E07-TYP",
+      "expected": null,
+      "limit": null,
+      "own": false,
+      "profile": "E04",
+      "reason_codes": [
+        "dob_not_printed",
+        "profile_name_incomplete"
+      ],
+      "source": "pdf",
+      "subject": "E07"
+    },
+    {
+      "actual": "mismatch",
+      "category": "near_miss",
+      "document_id": "E07-TYP",
+      "expected": null,
+      "limit": null,
+      "own": false,
+      "profile": "E05",
+      "reason_codes": [
+        "dob_not_printed",
+        "name_mismatch"
+      ],
+      "source": "pdf",
+      "subject": "E07"
+    },
+    {
+      "actual": "unknown",
+      "category": "near_miss",
+      "document_id": "E07-TYP",
+      "expected": null,
+      "limit": null,
+      "own": false,
+      "profile": "E06",
+      "reason_codes": [
+        "dob_not_printed",
+        "profile_name_incomplete"
+      ],
+      "source": "pdf",
+      "subject": "E07"
+    },
+    {
+      "actual": "mismatch",
+      "category": "near_miss",
+      "document_id": "E07-TYP",
+      "expected": "mismatch",
+      "limit": "spelling_variant",
+      "own": true,
+      "profile": "E07",
+      "reason_codes": [
+        "dob_not_printed",
+        "name_mismatch"
+      ],
+      "source": "pdf",
+      "subject": "E07"
+    },
+    {
+      "actual": "match",
+      "category": "near_miss",
+      "document_id": "E07-TYP",
+      "expected": null,
+      "limit": "indistinguishable",
+      "own": false,
+      "profile": "E08",
+      "reason_codes": [
+        "dob_not_printed",
+        "name_match"
+      ],
+      "source": "pdf",
+      "subject": "E07"
+    },
+    {
+      "actual": "mismatch",
+      "category": "near_miss",
+      "document_id": "E07-TYP",
+      "expected": null,
+      "limit": null,
+      "own": false,
+      "profile": "E09",
+      "reason_codes": [
+        "dob_not_printed",
+        "name_mismatch"
+      ],
+      "source": "pdf",
+      "subject": "E07"
+    },
+    {
+      "actual": "mismatch",
+      "category": "near_miss",
+      "document_id": "E07-TYP",
+      "expected": null,
+      "limit": null,
+      "own": false,
+      "profile": "E10",
+      "reason_codes": [
+        "dob_not_printed",
+        "name_mismatch"
+      ],
+      "source": "pdf",
+      "subject": "E07"
+    },
+    {
+      "actual": "mismatch",
+      "category": "near_miss",
+      "document_id": "E07-TYP",
+      "expected": null,
+      "limit": null,
+      "own": false,
+      "profile": "E11",
+      "reason_codes": [
+        "dob_not_printed",
+        "name_mismatch"
+      ],
+      "source": "pdf",
+      "subject": "E07"
+    },
+    {
+      "actual": "mismatch",
+      "category": "near_miss",
+      "document_id": "E07-TYP",
+      "expected": null,
+      "limit": null,
+      "own": false,
+      "profile": "E12",
+      "reason_codes": [
+        "dob_not_printed",
+        "name_mismatch"
+      ],
+      "source": "pdf",
+      "subject": "E07"
+    },
+    {
+      "actual": "mismatch",
+      "category": "near_miss",
+      "document_id": "E07-TYP",
+      "expected": null,
+      "limit": null,
+      "own": false,
+      "profile": "E13",
+      "reason_codes": [
+        "dob_not_printed",
+        "name_mismatch"
+      ],
+      "source": "pdf",
+      "subject": "E07"
+    },
+    {
+      "actual": "mismatch",
+      "category": "near_miss",
+      "document_id": "E07-TYP",
+      "expected": null,
+      "limit": null,
+      "own": false,
+      "profile": "E14",
+      "reason_codes": [
+        "dob_not_printed",
+        "name_mismatch"
+      ],
+      "source": "pdf",
+      "subject": "E07"
+    },
+    {
+      "actual": "mismatch",
+      "category": "curly_apostrophe",
+      "document_id": "E08-CUR",
+      "expected": null,
+      "limit": null,
+      "own": false,
+      "profile": "E01",
+      "reason_codes": [
+        "dob_mismatch",
+        "name_mismatch"
+      ],
+      "source": "pdf",
+      "subject": "E08"
+    },
+    {
+      "actual": "mismatch",
+      "category": "curly_apostrophe",
+      "document_id": "E08-CUR",
+      "expected": null,
+      "limit": null,
+      "own": false,
+      "profile": "E02",
+      "reason_codes": [
+        "dob_mismatch",
+        "name_mismatch"
+      ],
+      "source": "pdf",
+      "subject": "E08"
+    },
+    {
+      "actual": "mismatch",
+      "category": "curly_apostrophe",
+      "document_id": "E08-CUR",
+      "expected": null,
+      "limit": null,
+      "own": false,
+      "profile": "E03",
+      "reason_codes": [
+        "dob_mismatch",
+        "name_mismatch"
+      ],
+      "source": "pdf",
+      "subject": "E08"
+    },
+    {
+      "actual": "mismatch",
+      "category": "curly_apostrophe",
+      "document_id": "E08-CUR",
+      "expected": null,
+      "limit": null,
+      "own": false,
+      "profile": "E04",
+      "reason_codes": [
+        "dob_mismatch",
+        "profile_name_incomplete"
+      ],
+      "source": "pdf",
+      "subject": "E08"
+    },
+    {
+      "actual": "mismatch",
+      "category": "curly_apostrophe",
+      "document_id": "E08-CUR",
+      "expected": null,
+      "limit": null,
+      "own": false,
+      "profile": "E05",
+      "reason_codes": [
+        "dob_mismatch",
+        "name_mismatch"
+      ],
+      "source": "pdf",
+      "subject": "E08"
+    },
+    {
+      "actual": "mismatch",
+      "category": "curly_apostrophe",
+      "document_id": "E08-CUR",
+      "expected": null,
+      "limit": null,
+      "own": false,
+      "profile": "E06",
+      "reason_codes": [
+        "dob_mismatch",
+        "profile_name_incomplete"
+      ],
+      "source": "pdf",
+      "subject": "E08"
+    },
+    {
+      "actual": "mismatch",
+      "category": "curly_apostrophe",
+      "document_id": "E08-CUR",
+      "expected": null,
+      "limit": null,
+      "own": false,
+      "profile": "E07",
+      "reason_codes": [
+        "dob_mismatch",
+        "name_mismatch"
+      ],
+      "source": "pdf",
+      "subject": "E08"
+    },
+    {
+      "actual": "match",
+      "category": "curly_apostrophe",
+      "document_id": "E08-CUR",
+      "expected": "match",
+      "limit": null,
+      "own": true,
+      "profile": "E08",
+      "reason_codes": [
+        "dob_match",
+        "name_match"
+      ],
+      "source": "pdf",
+      "subject": "E08"
+    },
+    {
+      "actual": "mismatch",
+      "category": "curly_apostrophe",
+      "document_id": "E08-CUR",
+      "expected": null,
+      "limit": null,
+      "own": false,
+      "profile": "E09",
+      "reason_codes": [
+        "dob_mismatch",
+        "name_mismatch"
+      ],
+      "source": "pdf",
+      "subject": "E08"
+    },
+    {
+      "actual": "mismatch",
+      "category": "curly_apostrophe",
+      "document_id": "E08-CUR",
+      "expected": null,
+      "limit": null,
+      "own": false,
+      "profile": "E10",
+      "reason_codes": [
+        "dob_mismatch",
+        "name_mismatch"
+      ],
+      "source": "pdf",
+      "subject": "E08"
+    },
+    {
+      "actual": "mismatch",
+      "category": "curly_apostrophe",
+      "document_id": "E08-CUR",
+      "expected": null,
+      "limit": null,
+      "own": false,
+      "profile": "E11",
+      "reason_codes": [
+        "dob_mismatch",
+        "name_mismatch"
+      ],
+      "source": "pdf",
+      "subject": "E08"
+    },
+    {
+      "actual": "mismatch",
+      "category": "curly_apostrophe",
+      "document_id": "E08-CUR",
+      "expected": null,
+      "limit": null,
+      "own": false,
+      "profile": "E12",
+      "reason_codes": [
+        "dob_mismatch",
+        "name_mismatch"
+      ],
+      "source": "pdf",
+      "subject": "E08"
+    },
+    {
+      "actual": "mismatch",
+      "category": "curly_apostrophe",
+      "document_id": "E08-CUR",
+      "expected": null,
+      "limit": null,
+      "own": false,
+      "profile": "E13",
+      "reason_codes": [
+        "dob_mismatch",
+        "name_mismatch"
+      ],
+      "source": "pdf",
+      "subject": "E08"
+    },
+    {
+      "actual": "mismatch",
+      "category": "curly_apostrophe",
+      "document_id": "E08-CUR",
+      "expected": null,
+      "limit": null,
+      "own": false,
+      "profile": "E14",
+      "reason_codes": [
+        "dob_not_in_profile",
+        "name_mismatch"
+      ],
+      "source": "pdf",
+      "subject": "E08"
+    },
+    {
+      "actual": "mismatch",
+      "category": "dob_word",
+      "document_id": "E09-DOB",
+      "expected": null,
+      "limit": null,
+      "own": false,
+      "profile": "E01",
+      "reason_codes": [
+        "dob_not_printed",
+        "name_mismatch"
+      ],
+      "source": "pdf",
+      "subject": "E09"
+    },
+    {
+      "actual": "mismatch",
+      "category": "dob_word",
+      "document_id": "E09-DOB",
+      "expected": null,
+      "limit": null,
+      "own": false,
+      "profile": "E02",
+      "reason_codes": [
+        "dob_not_printed",
+        "name_mismatch"
+      ],
+      "source": "pdf",
+      "subject": "E09"
+    },
+    {
+      "actual": "mismatch",
+      "category": "dob_word",
+      "document_id": "E09-DOB",
+      "expected": null,
+      "limit": null,
+      "own": false,
+      "profile": "E03",
+      "reason_codes": [
+        "dob_not_printed",
+        "name_mismatch"
+      ],
+      "source": "pdf",
+      "subject": "E09"
+    },
+    {
+      "actual": "unknown",
+      "category": "dob_word",
+      "document_id": "E09-DOB",
+      "expected": null,
+      "limit": null,
+      "own": false,
+      "profile": "E04",
+      "reason_codes": [
+        "dob_not_printed",
+        "profile_name_incomplete"
+      ],
+      "source": "pdf",
+      "subject": "E09"
+    },
+    {
+      "actual": "mismatch",
+      "category": "dob_word",
+      "document_id": "E09-DOB",
+      "expected": null,
+      "limit": null,
+      "own": false,
+      "profile": "E05",
+      "reason_codes": [
+        "dob_not_printed",
+        "name_mismatch"
+      ],
+      "source": "pdf",
+      "subject": "E09"
+    },
+    {
+      "actual": "unknown",
+      "category": "dob_word",
+      "document_id": "E09-DOB",
+      "expected": null,
+      "limit": null,
+      "own": false,
+      "profile": "E06",
+      "reason_codes": [
+        "dob_not_printed",
+        "profile_name_incomplete"
+      ],
+      "source": "pdf",
+      "subject": "E09"
+    },
+    {
+      "actual": "mismatch",
+      "category": "dob_word",
+      "document_id": "E09-DOB",
+      "expected": null,
+      "limit": null,
+      "own": false,
+      "profile": "E07",
+      "reason_codes": [
+        "dob_not_printed",
+        "name_mismatch"
+      ],
+      "source": "pdf",
+      "subject": "E09"
+    },
+    {
+      "actual": "mismatch",
+      "category": "dob_word",
+      "document_id": "E09-DOB",
+      "expected": null,
+      "limit": null,
+      "own": false,
+      "profile": "E08",
+      "reason_codes": [
+        "dob_not_printed",
+        "name_mismatch"
+      ],
+      "source": "pdf",
+      "subject": "E09"
+    },
+    {
+      "actual": "match",
+      "category": "dob_word",
+      "document_id": "E09-DOB",
+      "expected": "match",
+      "limit": null,
+      "own": true,
+      "profile": "E09",
+      "reason_codes": [
+        "dob_not_printed",
+        "name_match"
+      ],
+      "source": "pdf",
+      "subject": "E09"
+    },
+    {
+      "actual": "mismatch",
+      "category": "dob_word",
+      "document_id": "E09-DOB",
+      "expected": null,
+      "limit": null,
+      "own": false,
+      "profile": "E10",
+      "reason_codes": [
+        "dob_not_printed",
+        "name_mismatch"
+      ],
+      "source": "pdf",
+      "subject": "E09"
+    },
+    {
+      "actual": "mismatch",
+      "category": "dob_word",
+      "document_id": "E09-DOB",
+      "expected": null,
+      "limit": null,
+      "own": false,
+      "profile": "E11",
+      "reason_codes": [
+        "dob_not_printed",
+        "name_mismatch"
+      ],
+      "source": "pdf",
+      "subject": "E09"
+    },
+    {
+      "actual": "mismatch",
+      "category": "dob_word",
+      "document_id": "E09-DOB",
+      "expected": null,
+      "limit": null,
+      "own": false,
+      "profile": "E12",
+      "reason_codes": [
+        "dob_not_printed",
+        "name_mismatch"
+      ],
+      "source": "pdf",
+      "subject": "E09"
+    },
+    {
+      "actual": "mismatch",
+      "category": "dob_word",
+      "document_id": "E09-DOB",
+      "expected": null,
+      "limit": null,
+      "own": false,
+      "profile": "E13",
+      "reason_codes": [
+        "dob_not_printed",
+        "name_mismatch"
+      ],
+      "source": "pdf",
+      "subject": "E09"
+    },
+    {
+      "actual": "mismatch",
+      "category": "dob_word",
+      "document_id": "E09-DOB",
+      "expected": null,
+      "limit": null,
+      "own": false,
+      "profile": "E14",
+      "reason_codes": [
+        "dob_not_printed",
+        "name_mismatch"
+      ],
+      "source": "pdf",
+      "subject": "E09"
+    },
+    {
+      "actual": "unknown",
+      "category": "format_char",
+      "document_id": "E09-ZW2",
+      "expected": null,
+      "limit": null,
+      "own": false,
+      "profile": "E01",
+      "reason_codes": [
+        "dob_unreadable",
+        "name_unreadable"
+      ],
+      "source": "text",
+      "subject": "E09"
+    },
+    {
+      "actual": "unknown",
+      "category": "format_char",
+      "document_id": "E09-ZW2",
+      "expected": null,
+      "limit": null,
+      "own": false,
+      "profile": "E02",
+      "reason_codes": [
+        "dob_unreadable",
+        "name_unreadable"
+      ],
+      "source": "text",
+      "subject": "E09"
+    },
+    {
+      "actual": "unknown",
+      "category": "format_char",
+      "document_id": "E09-ZW2",
+      "expected": null,
+      "limit": null,
+      "own": false,
+      "profile": "E03",
+      "reason_codes": [
+        "dob_unreadable",
+        "name_unreadable"
+      ],
+      "source": "text",
+      "subject": "E09"
+    },
+    {
+      "actual": "unknown",
+      "category": "format_char",
+      "document_id": "E09-ZW2",
+      "expected": null,
+      "limit": null,
+      "own": false,
+      "profile": "E04",
+      "reason_codes": [
+        "dob_unreadable",
+        "name_unreadable"
+      ],
+      "source": "text",
+      "subject": "E09"
+    },
+    {
+      "actual": "unknown",
+      "category": "format_char",
+      "document_id": "E09-ZW2",
+      "expected": null,
+      "limit": null,
+      "own": false,
+      "profile": "E05",
+      "reason_codes": [
+        "dob_unreadable",
+        "name_unreadable"
+      ],
+      "source": "text",
+      "subject": "E09"
+    },
+    {
+      "actual": "unknown",
+      "category": "format_char",
+      "document_id": "E09-ZW2",
+      "expected": null,
+      "limit": null,
+      "own": false,
+      "profile": "E06",
+      "reason_codes": [
+        "dob_unreadable",
+        "name_unreadable"
+      ],
+      "source": "text",
+      "subject": "E09"
+    },
+    {
+      "actual": "unknown",
+      "category": "format_char",
+      "document_id": "E09-ZW2",
+      "expected": null,
+      "limit": null,
+      "own": false,
+      "profile": "E07",
+      "reason_codes": [
+        "dob_unreadable",
+        "name_unreadable"
+      ],
+      "source": "text",
+      "subject": "E09"
+    },
+    {
+      "actual": "unknown",
+      "category": "format_char",
+      "document_id": "E09-ZW2",
+      "expected": null,
+      "limit": null,
+      "own": false,
+      "profile": "E08",
+      "reason_codes": [
+        "dob_unreadable",
+        "name_unreadable"
+      ],
+      "source": "text",
+      "subject": "E09"
+    },
+    {
+      "actual": "unknown",
+      "category": "format_char",
+      "document_id": "E09-ZW2",
+      "expected": "unknown",
+      "limit": null,
+      "own": true,
+      "profile": "E09",
+      "reason_codes": [
+        "dob_unreadable",
+        "name_unreadable"
+      ],
+      "source": "text",
+      "subject": "E09"
+    },
+    {
+      "actual": "unknown",
+      "category": "format_char",
+      "document_id": "E09-ZW2",
+      "expected": null,
+      "limit": null,
+      "own": false,
+      "profile": "E10",
+      "reason_codes": [
+        "dob_unreadable",
+        "name_unreadable"
+      ],
+      "source": "text",
+      "subject": "E09"
+    },
+    {
+      "actual": "unknown",
+      "category": "format_char",
+      "document_id": "E09-ZW2",
+      "expected": null,
+      "limit": null,
+      "own": false,
+      "profile": "E11",
+      "reason_codes": [
+        "dob_unreadable",
+        "name_unreadable"
+      ],
+      "source": "text",
+      "subject": "E09"
+    },
+    {
+      "actual": "unknown",
+      "category": "format_char",
+      "document_id": "E09-ZW2",
+      "expected": null,
+      "limit": null,
+      "own": false,
+      "profile": "E12",
+      "reason_codes": [
+        "dob_unreadable",
+        "name_unreadable"
+      ],
+      "source": "text",
+      "subject": "E09"
+    },
+    {
+      "actual": "unknown",
+      "category": "format_char",
+      "document_id": "E09-ZW2",
+      "expected": null,
+      "limit": null,
+      "own": false,
+      "profile": "E13",
+      "reason_codes": [
+        "dob_unreadable",
+        "name_unreadable"
+      ],
+      "source": "text",
+      "subject": "E09"
+    },
+    {
+      "actual": "unknown",
+      "category": "format_char",
+      "document_id": "E09-ZW2",
+      "expected": null,
+      "limit": null,
+      "own": false,
+      "profile": "E14",
+      "reason_codes": [
+        "dob_not_in_profile",
+        "name_unreadable"
+      ],
+      "source": "text",
+      "subject": "E09"
+    },
+    {
+      "actual": "mismatch",
+      "category": "token_order",
+      "document_id": "E10-ORD",
+      "expected": null,
+      "limit": null,
+      "own": false,
+      "profile": "E01",
+      "reason_codes": [
+        "dob_not_printed",
+        "name_mismatch"
+      ],
+      "source": "pdf",
+      "subject": "E10"
+    },
+    {
+      "actual": "mismatch",
+      "category": "token_order",
+      "document_id": "E10-ORD",
+      "expected": null,
+      "limit": null,
+      "own": false,
+      "profile": "E02",
+      "reason_codes": [
+        "dob_not_printed",
+        "name_mismatch"
+      ],
+      "source": "pdf",
+      "subject": "E10"
+    },
+    {
+      "actual": "mismatch",
+      "category": "token_order",
+      "document_id": "E10-ORD",
+      "expected": null,
+      "limit": null,
+      "own": false,
+      "profile": "E03",
+      "reason_codes": [
+        "dob_not_printed",
+        "name_mismatch"
+      ],
+      "source": "pdf",
+      "subject": "E10"
+    },
+    {
+      "actual": "unknown",
+      "category": "token_order",
+      "document_id": "E10-ORD",
+      "expected": null,
+      "limit": null,
+      "own": false,
+      "profile": "E04",
+      "reason_codes": [
+        "dob_not_printed",
+        "profile_name_incomplete"
+      ],
+      "source": "pdf",
+      "subject": "E10"
+    },
+    {
+      "actual": "mismatch",
+      "category": "token_order",
+      "document_id": "E10-ORD",
+      "expected": null,
+      "limit": null,
+      "own": false,
+      "profile": "E05",
+      "reason_codes": [
+        "dob_not_printed",
+        "name_mismatch"
+      ],
+      "source": "pdf",
+      "subject": "E10"
+    },
+    {
+      "actual": "unknown",
+      "category": "token_order",
+      "document_id": "E10-ORD",
+      "expected": null,
+      "limit": null,
+      "own": false,
+      "profile": "E06",
+      "reason_codes": [
+        "dob_not_printed",
+        "profile_name_incomplete"
+      ],
+      "source": "pdf",
+      "subject": "E10"
+    },
+    {
+      "actual": "mismatch",
+      "category": "token_order",
+      "document_id": "E10-ORD",
+      "expected": null,
+      "limit": null,
+      "own": false,
+      "profile": "E07",
+      "reason_codes": [
+        "dob_not_printed",
+        "name_mismatch"
+      ],
+      "source": "pdf",
+      "subject": "E10"
+    },
+    {
+      "actual": "mismatch",
+      "category": "token_order",
+      "document_id": "E10-ORD",
+      "expected": null,
+      "limit": null,
+      "own": false,
+      "profile": "E08",
+      "reason_codes": [
+        "dob_not_printed",
+        "name_mismatch"
+      ],
+      "source": "pdf",
+      "subject": "E10"
+    },
+    {
+      "actual": "mismatch",
+      "category": "token_order",
+      "document_id": "E10-ORD",
+      "expected": null,
+      "limit": null,
+      "own": false,
+      "profile": "E09",
+      "reason_codes": [
+        "dob_not_printed",
+        "name_mismatch"
+      ],
+      "source": "pdf",
+      "subject": "E10"
+    },
+    {
+      "actual": "match",
+      "category": "token_order",
+      "document_id": "E10-ORD",
+      "expected": "match",
+      "limit": null,
+      "own": true,
+      "profile": "E10",
+      "reason_codes": [
+        "dob_not_printed",
+        "name_match"
+      ],
+      "source": "pdf",
+      "subject": "E10"
+    },
+    {
+      "actual": "match",
+      "category": "token_order",
+      "document_id": "E10-ORD",
+      "expected": null,
+      "limit": "indistinguishable",
+      "own": false,
+      "profile": "E11",
+      "reason_codes": [
+        "dob_not_printed",
+        "name_match"
+      ],
+      "source": "pdf",
+      "subject": "E10"
+    },
+    {
+      "actual": "mismatch",
+      "category": "token_order",
+      "document_id": "E10-ORD",
+      "expected": null,
+      "limit": null,
+      "own": false,
+      "profile": "E12",
+      "reason_codes": [
+        "dob_not_printed",
+        "name_mismatch"
+      ],
+      "source": "pdf",
+      "subject": "E10"
+    },
+    {
+      "actual": "mismatch",
+      "category": "token_order",
+      "document_id": "E10-ORD",
+      "expected": null,
+      "limit": null,
+      "own": false,
+      "profile": "E13",
+      "reason_codes": [
+        "dob_not_printed",
+        "name_mismatch"
+      ],
+      "source": "pdf",
+      "subject": "E10"
+    },
+    {
+      "actual": "mismatch",
+      "category": "token_order",
+      "document_id": "E10-ORD",
+      "expected": null,
+      "limit": null,
+      "own": false,
+      "profile": "E14",
+      "reason_codes": [
+        "dob_not_printed",
+        "name_mismatch"
+      ],
+      "source": "pdf",
+      "subject": "E10"
+    },
+    {
+      "actual": "mismatch",
+      "category": "token_order",
+      "document_id": "E10-ORC",
+      "expected": null,
+      "limit": null,
+      "own": false,
+      "profile": "E01",
+      "reason_codes": [
+        "dob_mismatch",
+        "name_mismatch"
+      ],
+      "source": "pdf",
+      "subject": "E10"
+    },
+    {
+      "actual": "mismatch",
+      "category": "token_order",
+      "document_id": "E10-ORC",
+      "expected": null,
+      "limit": null,
+      "own": false,
+      "profile": "E02",
+      "reason_codes": [
+        "dob_mismatch",
+        "name_mismatch"
+      ],
+      "source": "pdf",
+      "subject": "E10"
+    },
+    {
+      "actual": "mismatch",
+      "category": "token_order",
+      "document_id": "E10-ORC",
+      "expected": null,
+      "limit": null,
+      "own": false,
+      "profile": "E03",
+      "reason_codes": [
+        "dob_mismatch",
+        "name_mismatch"
+      ],
+      "source": "pdf",
+      "subject": "E10"
+    },
+    {
+      "actual": "mismatch",
+      "category": "token_order",
+      "document_id": "E10-ORC",
+      "expected": null,
+      "limit": null,
+      "own": false,
+      "profile": "E04",
+      "reason_codes": [
+        "dob_mismatch",
+        "profile_name_incomplete"
+      ],
+      "source": "pdf",
+      "subject": "E10"
+    },
+    {
+      "actual": "mismatch",
+      "category": "token_order",
+      "document_id": "E10-ORC",
+      "expected": null,
+      "limit": null,
+      "own": false,
+      "profile": "E05",
+      "reason_codes": [
+        "dob_mismatch",
+        "name_mismatch"
+      ],
+      "source": "pdf",
+      "subject": "E10"
+    },
+    {
+      "actual": "mismatch",
+      "category": "token_order",
+      "document_id": "E10-ORC",
+      "expected": null,
+      "limit": null,
+      "own": false,
+      "profile": "E06",
+      "reason_codes": [
+        "dob_mismatch",
+        "profile_name_incomplete"
+      ],
+      "source": "pdf",
+      "subject": "E10"
+    },
+    {
+      "actual": "mismatch",
+      "category": "token_order",
+      "document_id": "E10-ORC",
+      "expected": null,
+      "limit": null,
+      "own": false,
+      "profile": "E07",
+      "reason_codes": [
+        "dob_mismatch",
+        "name_mismatch"
+      ],
+      "source": "pdf",
+      "subject": "E10"
+    },
+    {
+      "actual": "mismatch",
+      "category": "token_order",
+      "document_id": "E10-ORC",
+      "expected": null,
+      "limit": null,
+      "own": false,
+      "profile": "E08",
+      "reason_codes": [
+        "dob_mismatch",
+        "name_mismatch"
+      ],
+      "source": "pdf",
+      "subject": "E10"
+    },
+    {
+      "actual": "mismatch",
+      "category": "token_order",
+      "document_id": "E10-ORC",
+      "expected": null,
+      "limit": null,
+      "own": false,
+      "profile": "E09",
+      "reason_codes": [
+        "dob_mismatch",
+        "name_mismatch"
+      ],
+      "source": "pdf",
+      "subject": "E10"
+    },
+    {
+      "actual": "match",
+      "category": "token_order",
+      "document_id": "E10-ORC",
+      "expected": "match",
+      "limit": null,
+      "own": true,
+      "profile": "E10",
+      "reason_codes": [
+        "dob_match",
+        "name_match"
+      ],
+      "source": "pdf",
+      "subject": "E10"
+    },
+    {
+      "actual": "mismatch",
+      "category": "token_order",
+      "document_id": "E10-ORC",
+      "expected": null,
+      "limit": null,
+      "own": false,
+      "profile": "E11",
+      "reason_codes": [
+        "dob_mismatch",
+        "name_match"
+      ],
+      "source": "pdf",
+      "subject": "E10"
+    },
+    {
+      "actual": "mismatch",
+      "category": "token_order",
+      "document_id": "E10-ORC",
+      "expected": null,
+      "limit": null,
+      "own": false,
+      "profile": "E12",
+      "reason_codes": [
+        "dob_mismatch",
+        "name_mismatch"
+      ],
+      "source": "pdf",
+      "subject": "E10"
+    },
+    {
+      "actual": "mismatch",
+      "category": "token_order",
+      "document_id": "E10-ORC",
+      "expected": null,
+      "limit": null,
+      "own": false,
+      "profile": "E13",
+      "reason_codes": [
+        "dob_mismatch",
+        "name_mismatch"
+      ],
+      "source": "pdf",
+      "subject": "E10"
+    },
+    {
+      "actual": "mismatch",
+      "category": "token_order",
+      "document_id": "E10-ORC",
+      "expected": null,
+      "limit": null,
+      "own": false,
+      "profile": "E14",
+      "reason_codes": [
+        "dob_not_in_profile",
+        "name_mismatch"
+      ],
+      "source": "pdf",
+      "subject": "E10"
+    },
+    {
+      "actual": "mismatch",
+      "category": "namesake",
+      "document_id": "E12-NSK",
+      "expected": null,
+      "limit": null,
+      "own": false,
+      "profile": "E01",
+      "reason_codes": [
+        "dob_not_printed",
+        "name_mismatch"
+      ],
+      "source": "pdf",
+      "subject": "E12"
+    },
+    {
+      "actual": "mismatch",
+      "category": "namesake",
+      "document_id": "E12-NSK",
+      "expected": null,
+      "limit": null,
+      "own": false,
+      "profile": "E02",
+      "reason_codes": [
+        "dob_not_printed",
+        "name_mismatch"
+      ],
+      "source": "pdf",
+      "subject": "E12"
+    },
+    {
+      "actual": "mismatch",
+      "category": "namesake",
+      "document_id": "E12-NSK",
+      "expected": null,
+      "limit": null,
+      "own": false,
+      "profile": "E03",
+      "reason_codes": [
+        "dob_not_printed",
+        "name_mismatch"
+      ],
+      "source": "pdf",
+      "subject": "E12"
+    },
+    {
+      "actual": "unknown",
+      "category": "namesake",
+      "document_id": "E12-NSK",
+      "expected": null,
+      "limit": null,
+      "own": false,
+      "profile": "E04",
+      "reason_codes": [
+        "dob_not_printed",
+        "profile_name_incomplete"
+      ],
+      "source": "pdf",
+      "subject": "E12"
+    },
+    {
+      "actual": "mismatch",
+      "category": "namesake",
+      "document_id": "E12-NSK",
+      "expected": null,
+      "limit": null,
+      "own": false,
+      "profile": "E05",
+      "reason_codes": [
+        "dob_not_printed",
+        "name_mismatch"
+      ],
+      "source": "pdf",
+      "subject": "E12"
+    },
+    {
+      "actual": "unknown",
+      "category": "namesake",
+      "document_id": "E12-NSK",
+      "expected": null,
+      "limit": null,
+      "own": false,
+      "profile": "E06",
+      "reason_codes": [
+        "dob_not_printed",
+        "profile_name_incomplete"
+      ],
+      "source": "pdf",
+      "subject": "E12"
+    },
+    {
+      "actual": "mismatch",
+      "category": "namesake",
+      "document_id": "E12-NSK",
+      "expected": null,
+      "limit": null,
+      "own": false,
+      "profile": "E07",
+      "reason_codes": [
+        "dob_not_printed",
+        "name_mismatch"
+      ],
+      "source": "pdf",
+      "subject": "E12"
+    },
+    {
+      "actual": "mismatch",
+      "category": "namesake",
+      "document_id": "E12-NSK",
+      "expected": null,
+      "limit": null,
+      "own": false,
+      "profile": "E08",
+      "reason_codes": [
+        "dob_not_printed",
+        "name_mismatch"
+      ],
+      "source": "pdf",
+      "subject": "E12"
+    },
+    {
+      "actual": "mismatch",
+      "category": "namesake",
+      "document_id": "E12-NSK",
+      "expected": null,
+      "limit": null,
+      "own": false,
+      "profile": "E09",
+      "reason_codes": [
+        "dob_not_printed",
+        "name_mismatch"
+      ],
+      "source": "pdf",
+      "subject": "E12"
+    },
+    {
+      "actual": "mismatch",
+      "category": "namesake",
+      "document_id": "E12-NSK",
+      "expected": null,
+      "limit": null,
+      "own": false,
+      "profile": "E10",
+      "reason_codes": [
+        "dob_not_printed",
+        "name_mismatch"
+      ],
+      "source": "pdf",
+      "subject": "E12"
+    },
+    {
+      "actual": "mismatch",
+      "category": "namesake",
+      "document_id": "E12-NSK",
+      "expected": null,
+      "limit": null,
+      "own": false,
+      "profile": "E11",
+      "reason_codes": [
+        "dob_not_printed",
+        "name_mismatch"
+      ],
+      "source": "pdf",
+      "subject": "E12"
+    },
+    {
+      "actual": "match",
+      "category": "namesake",
+      "document_id": "E12-NSK",
+      "expected": "match",
+      "limit": null,
+      "own": true,
+      "profile": "E12",
+      "reason_codes": [
+        "dob_not_printed",
+        "name_match"
+      ],
+      "source": "pdf",
+      "subject": "E12"
+    },
+    {
+      "actual": "match",
+      "category": "namesake",
+      "document_id": "E12-NSK",
+      "expected": null,
+      "limit": "indistinguishable",
+      "own": false,
+      "profile": "E13",
+      "reason_codes": [
+        "dob_not_printed",
+        "name_match"
+      ],
+      "source": "pdf",
+      "subject": "E12"
+    },
+    {
+      "actual": "mismatch",
+      "category": "namesake",
+      "document_id": "E12-NSK",
+      "expected": null,
+      "limit": null,
+      "own": false,
+      "profile": "E14",
+      "reason_codes": [
+        "dob_not_printed",
+        "name_mismatch"
+      ],
+      "source": "pdf",
+      "subject": "E12"
+    },
+    {
+      "actual": "mismatch",
+      "category": "namesake",
+      "document_id": "E13-NSD",
+      "expected": null,
+      "limit": null,
+      "own": false,
+      "profile": "E01",
+      "reason_codes": [
+        "dob_mismatch",
+        "name_mismatch"
+      ],
+      "source": "pdf",
+      "subject": "E13"
+    },
+    {
+      "actual": "mismatch",
+      "category": "namesake",
+      "document_id": "E13-NSD",
+      "expected": null,
+      "limit": null,
+      "own": false,
+      "profile": "E02",
+      "reason_codes": [
+        "dob_mismatch",
+        "name_mismatch"
+      ],
+      "source": "pdf",
+      "subject": "E13"
+    },
+    {
+      "actual": "mismatch",
+      "category": "namesake",
+      "document_id": "E13-NSD",
+      "expected": null,
+      "limit": null,
+      "own": false,
+      "profile": "E03",
+      "reason_codes": [
+        "dob_mismatch",
+        "name_mismatch"
+      ],
+      "source": "pdf",
+      "subject": "E13"
+    },
+    {
+      "actual": "mismatch",
+      "category": "namesake",
+      "document_id": "E13-NSD",
+      "expected": null,
+      "limit": null,
+      "own": false,
+      "profile": "E04",
+      "reason_codes": [
+        "dob_mismatch",
+        "profile_name_incomplete"
+      ],
+      "source": "pdf",
+      "subject": "E13"
+    },
+    {
+      "actual": "mismatch",
+      "category": "namesake",
+      "document_id": "E13-NSD",
+      "expected": null,
+      "limit": null,
+      "own": false,
+      "profile": "E05",
+      "reason_codes": [
+        "dob_mismatch",
+        "name_mismatch"
+      ],
+      "source": "pdf",
+      "subject": "E13"
+    },
+    {
+      "actual": "mismatch",
+      "category": "namesake",
+      "document_id": "E13-NSD",
+      "expected": null,
+      "limit": null,
+      "own": false,
+      "profile": "E06",
+      "reason_codes": [
+        "dob_mismatch",
+        "profile_name_incomplete"
+      ],
+      "source": "pdf",
+      "subject": "E13"
+    },
+    {
+      "actual": "mismatch",
+      "category": "namesake",
+      "document_id": "E13-NSD",
+      "expected": null,
+      "limit": null,
+      "own": false,
+      "profile": "E07",
+      "reason_codes": [
+        "dob_mismatch",
+        "name_mismatch"
+      ],
+      "source": "pdf",
+      "subject": "E13"
+    },
+    {
+      "actual": "mismatch",
+      "category": "namesake",
+      "document_id": "E13-NSD",
+      "expected": null,
+      "limit": null,
+      "own": false,
+      "profile": "E08",
+      "reason_codes": [
+        "dob_mismatch",
+        "name_mismatch"
+      ],
+      "source": "pdf",
+      "subject": "E13"
+    },
+    {
+      "actual": "mismatch",
+      "category": "namesake",
+      "document_id": "E13-NSD",
+      "expected": null,
+      "limit": null,
+      "own": false,
+      "profile": "E09",
+      "reason_codes": [
+        "dob_mismatch",
+        "name_mismatch"
+      ],
+      "source": "pdf",
+      "subject": "E13"
+    },
+    {
+      "actual": "mismatch",
+      "category": "namesake",
+      "document_id": "E13-NSD",
+      "expected": null,
+      "limit": null,
+      "own": false,
+      "profile": "E10",
+      "reason_codes": [
+        "dob_mismatch",
+        "name_mismatch"
+      ],
+      "source": "pdf",
+      "subject": "E13"
+    },
+    {
+      "actual": "mismatch",
+      "category": "namesake",
+      "document_id": "E13-NSD",
+      "expected": null,
+      "limit": null,
+      "own": false,
+      "profile": "E11",
+      "reason_codes": [
+        "dob_mismatch",
+        "name_mismatch"
+      ],
+      "source": "pdf",
+      "subject": "E13"
+    },
+    {
+      "actual": "mismatch",
+      "category": "namesake",
+      "document_id": "E13-NSD",
+      "expected": null,
+      "limit": null,
+      "own": false,
+      "profile": "E12",
+      "reason_codes": [
+        "dob_mismatch",
+        "name_match"
+      ],
+      "source": "pdf",
+      "subject": "E13"
+    },
+    {
+      "actual": "match",
+      "category": "namesake",
+      "document_id": "E13-NSD",
+      "expected": "match",
+      "limit": null,
+      "own": true,
+      "profile": "E13",
+      "reason_codes": [
+        "dob_match",
+        "name_match"
+      ],
+      "source": "pdf",
+      "subject": "E13"
+    },
+    {
+      "actual": "mismatch",
+      "category": "namesake",
+      "document_id": "E13-NSD",
+      "expected": null,
+      "limit": null,
+      "own": false,
+      "profile": "E14",
+      "reason_codes": [
+        "dob_not_in_profile",
+        "name_mismatch"
+      ],
+      "source": "pdf",
+      "subject": "E13"
+    },
+    {
+      "actual": "mismatch",
+      "category": "spacing_variant",
+      "document_id": "E14-SPC",
+      "expected": null,
+      "limit": null,
+      "own": false,
+      "profile": "E01",
+      "reason_codes": [
+        "dob_not_printed",
+        "name_mismatch"
+      ],
+      "source": "pdf",
+      "subject": "E14"
+    },
+    {
+      "actual": "mismatch",
+      "category": "spacing_variant",
+      "document_id": "E14-SPC",
+      "expected": null,
+      "limit": null,
+      "own": false,
+      "profile": "E02",
+      "reason_codes": [
+        "dob_not_printed",
+        "name_mismatch"
+      ],
+      "source": "pdf",
+      "subject": "E14"
+    },
+    {
+      "actual": "mismatch",
+      "category": "spacing_variant",
+      "document_id": "E14-SPC",
+      "expected": null,
+      "limit": null,
+      "own": false,
+      "profile": "E03",
+      "reason_codes": [
+        "dob_not_printed",
+        "name_mismatch"
+      ],
+      "source": "pdf",
+      "subject": "E14"
+    },
+    {
+      "actual": "unknown",
+      "category": "spacing_variant",
+      "document_id": "E14-SPC",
+      "expected": null,
+      "limit": null,
+      "own": false,
+      "profile": "E04",
+      "reason_codes": [
+        "dob_not_printed",
+        "profile_name_incomplete"
+      ],
+      "source": "pdf",
+      "subject": "E14"
+    },
+    {
+      "actual": "mismatch",
+      "category": "spacing_variant",
+      "document_id": "E14-SPC",
+      "expected": null,
+      "limit": null,
+      "own": false,
+      "profile": "E05",
+      "reason_codes": [
+        "dob_not_printed",
+        "name_mismatch"
+      ],
+      "source": "pdf",
+      "subject": "E14"
+    },
+    {
+      "actual": "unknown",
+      "category": "spacing_variant",
+      "document_id": "E14-SPC",
+      "expected": null,
+      "limit": null,
+      "own": false,
+      "profile": "E06",
+      "reason_codes": [
+        "dob_not_printed",
+        "profile_name_incomplete"
+      ],
+      "source": "pdf",
+      "subject": "E14"
+    },
+    {
+      "actual": "mismatch",
+      "category": "spacing_variant",
+      "document_id": "E14-SPC",
+      "expected": null,
+      "limit": null,
+      "own": false,
+      "profile": "E07",
+      "reason_codes": [
+        "dob_not_printed",
+        "name_mismatch"
+      ],
+      "source": "pdf",
+      "subject": "E14"
+    },
+    {
+      "actual": "mismatch",
+      "category": "spacing_variant",
+      "document_id": "E14-SPC",
+      "expected": null,
+      "limit": null,
+      "own": false,
+      "profile": "E08",
+      "reason_codes": [
+        "dob_not_printed",
+        "name_mismatch"
+      ],
+      "source": "pdf",
+      "subject": "E14"
+    },
+    {
+      "actual": "mismatch",
+      "category": "spacing_variant",
+      "document_id": "E14-SPC",
+      "expected": null,
+      "limit": null,
+      "own": false,
+      "profile": "E09",
+      "reason_codes": [
+        "dob_not_printed",
+        "name_mismatch"
+      ],
+      "source": "pdf",
+      "subject": "E14"
+    },
+    {
+      "actual": "mismatch",
+      "category": "spacing_variant",
+      "document_id": "E14-SPC",
+      "expected": null,
+      "limit": null,
+      "own": false,
+      "profile": "E10",
+      "reason_codes": [
+        "dob_not_printed",
+        "name_mismatch"
+      ],
+      "source": "pdf",
+      "subject": "E14"
+    },
+    {
+      "actual": "mismatch",
+      "category": "spacing_variant",
+      "document_id": "E14-SPC",
+      "expected": null,
+      "limit": null,
+      "own": false,
+      "profile": "E11",
+      "reason_codes": [
+        "dob_not_printed",
+        "name_mismatch"
+      ],
+      "source": "pdf",
+      "subject": "E14"
+    },
+    {
+      "actual": "mismatch",
+      "category": "spacing_variant",
+      "document_id": "E14-SPC",
+      "expected": null,
+      "limit": null,
+      "own": false,
+      "profile": "E12",
+      "reason_codes": [
+        "dob_not_printed",
+        "name_mismatch"
+      ],
+      "source": "pdf",
+      "subject": "E14"
+    },
+    {
+      "actual": "mismatch",
+      "category": "spacing_variant",
+      "document_id": "E14-SPC",
+      "expected": null,
+      "limit": null,
+      "own": false,
+      "profile": "E13",
+      "reason_codes": [
+        "dob_not_printed",
+        "name_mismatch"
+      ],
+      "source": "pdf",
+      "subject": "E14"
+    },
+    {
+      "actual": "mismatch",
+      "category": "spacing_variant",
+      "document_id": "E14-SPC",
+      "expected": "mismatch",
+      "limit": "spacing_variant",
+      "own": true,
+      "profile": "E14",
+      "reason_codes": [
+        "dob_not_printed",
+        "name_mismatch"
+      ],
+      "source": "pdf",
+      "subject": "E14"
+    },
+    {
+      "actual": "mismatch",
+      "category": "spacing_variant",
+      "document_id": "E14-JOK",
+      "expected": null,
+      "limit": null,
+      "own": false,
+      "profile": "E01",
+      "reason_codes": [
+        "dob_mismatch",
+        "name_mismatch"
+      ],
+      "source": "pdf",
+      "subject": "E14"
+    },
+    {
+      "actual": "mismatch",
+      "category": "spacing_variant",
+      "document_id": "E14-JOK",
+      "expected": null,
+      "limit": null,
+      "own": false,
+      "profile": "E02",
+      "reason_codes": [
+        "dob_mismatch",
+        "name_mismatch"
+      ],
+      "source": "pdf",
+      "subject": "E14"
+    },
+    {
+      "actual": "mismatch",
+      "category": "spacing_variant",
+      "document_id": "E14-JOK",
+      "expected": null,
+      "limit": null,
+      "own": false,
+      "profile": "E03",
+      "reason_codes": [
+        "dob_mismatch",
+        "name_mismatch"
+      ],
+      "source": "pdf",
+      "subject": "E14"
+    },
+    {
+      "actual": "mismatch",
+      "category": "spacing_variant",
+      "document_id": "E14-JOK",
+      "expected": null,
+      "limit": null,
+      "own": false,
+      "profile": "E04",
+      "reason_codes": [
+        "dob_mismatch",
+        "profile_name_incomplete"
+      ],
+      "source": "pdf",
+      "subject": "E14"
+    },
+    {
+      "actual": "mismatch",
+      "category": "spacing_variant",
+      "document_id": "E14-JOK",
+      "expected": null,
+      "limit": null,
+      "own": false,
+      "profile": "E05",
+      "reason_codes": [
+        "dob_mismatch",
+        "name_mismatch"
+      ],
+      "source": "pdf",
+      "subject": "E14"
+    },
+    {
+      "actual": "mismatch",
+      "category": "spacing_variant",
+      "document_id": "E14-JOK",
+      "expected": null,
+      "limit": null,
+      "own": false,
+      "profile": "E06",
+      "reason_codes": [
+        "dob_mismatch",
+        "profile_name_incomplete"
+      ],
+      "source": "pdf",
+      "subject": "E14"
+    },
+    {
+      "actual": "mismatch",
+      "category": "spacing_variant",
+      "document_id": "E14-JOK",
+      "expected": null,
+      "limit": null,
+      "own": false,
+      "profile": "E07",
+      "reason_codes": [
+        "dob_mismatch",
+        "name_mismatch"
+      ],
+      "source": "pdf",
+      "subject": "E14"
+    },
+    {
+      "actual": "mismatch",
+      "category": "spacing_variant",
+      "document_id": "E14-JOK",
+      "expected": null,
+      "limit": null,
+      "own": false,
+      "profile": "E08",
+      "reason_codes": [
+        "dob_mismatch",
+        "name_mismatch"
+      ],
+      "source": "pdf",
+      "subject": "E14"
+    },
+    {
+      "actual": "mismatch",
+      "category": "spacing_variant",
+      "document_id": "E14-JOK",
+      "expected": null,
+      "limit": null,
+      "own": false,
+      "profile": "E09",
+      "reason_codes": [
+        "dob_mismatch",
+        "name_mismatch"
+      ],
+      "source": "pdf",
+      "subject": "E14"
+    },
+    {
+      "actual": "mismatch",
+      "category": "spacing_variant",
+      "document_id": "E14-JOK",
+      "expected": null,
+      "limit": null,
+      "own": false,
+      "profile": "E10",
+      "reason_codes": [
+        "dob_mismatch",
+        "name_mismatch"
+      ],
+      "source": "pdf",
+      "subject": "E14"
+    },
+    {
+      "actual": "mismatch",
+      "category": "spacing_variant",
+      "document_id": "E14-JOK",
+      "expected": null,
+      "limit": null,
+      "own": false,
+      "profile": "E11",
+      "reason_codes": [
+        "dob_mismatch",
+        "name_mismatch"
+      ],
+      "source": "pdf",
+      "subject": "E14"
+    },
+    {
+      "actual": "mismatch",
+      "category": "spacing_variant",
+      "document_id": "E14-JOK",
+      "expected": null,
+      "limit": null,
+      "own": false,
+      "profile": "E12",
+      "reason_codes": [
+        "dob_mismatch",
+        "name_mismatch"
+      ],
+      "source": "pdf",
+      "subject": "E14"
+    },
+    {
+      "actual": "mismatch",
+      "category": "spacing_variant",
+      "document_id": "E14-JOK",
+      "expected": null,
+      "limit": null,
+      "own": false,
+      "profile": "E13",
+      "reason_codes": [
+        "dob_mismatch",
+        "name_mismatch"
+      ],
+      "source": "pdf",
+      "subject": "E14"
+    },
+    {
+      "actual": "match",
+      "category": "spacing_variant",
+      "document_id": "E14-JOK",
+      "expected": "match",
+      "limit": null,
+      "own": true,
+      "profile": "E14",
+      "reason_codes": [
+        "dob_not_in_profile",
+        "name_match"
+      ],
+      "source": "pdf",
+      "subject": "E14"
+    }
+  ],
+  "rules_version": "2",
+  "split": "dev"
+}

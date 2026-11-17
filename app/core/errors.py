@@ -59,8 +59,10 @@ class DocumentProcessingError(MediMindError):
     """A document cannot move to the requested processing state (Phase 2, Task 2.5).
 
     ``kind`` is a stable short code such as ``"already_running"``, ``"already_parsed"``,
-    ``"claim_lost"``, ``"text_not_storable"`` or ``"integrity_mismatch"``. The message names only
-    identifiers, page numbers and counts: never document content, filenames or patient data.
+    ``"claim_lost"``, ``"text_not_storable"`` or ``"integrity_mismatch"``; document reads, rename
+    and delete (Task 1.8) add ``"document_not_found"``, ``"invalid_filename"`` and
+    ``"document_referenced"``. The message names only identifiers, page numbers and counts: never
+    document content, filenames or patient data.
     """
 
     def __init__(self, message: str, *, kind: str) -> None:
@@ -71,9 +73,10 @@ class DocumentProcessingError(MediMindError):
 class PatientError(MediMindError):
     """A patient profile cannot be created or used (Phase 2, Task 2.6).
 
-    ``kind`` is a stable short code: ``"invalid_display_name"``, ``"invalid_date_of_birth"`` or
-    ``"patient_not_found"``. The message is fixed text and may name a limit or an identifier; it
-    never contains the display name, the date of birth or any other patient data.
+    ``kind`` is a stable short code: ``"invalid_display_name"``, ``"invalid_date_of_birth"``,
+    ``"patient_not_found"`` or ``"patient_not_empty"`` (Task 1.8b). The message is fixed text and
+    may name a limit or an identifier; it never contains the display name, the date of birth or
+    any other patient data.
     """
 
     def __init__(self, message: str, *, kind: str) -> None:
@@ -93,5 +96,19 @@ class DatabaseError(MediMindError):
     """
 
     def __init__(self, message: str, *, kind: str = "unexpected") -> None:
+        super().__init__(message)
+        self.kind = kind
+
+
+class RetrievalError(MediMindError):
+    """Evidence retrieval cannot run (Milestone R1, ADR-035).
+
+    ``kind`` is a stable short code: ``"revision_not_configured"`` (no owner-approved pinned model
+    revision is set), ``"model_not_available"`` (the pinned model is not in the local cache and
+    downloading was not allowed), ``"invalid_embedding"`` or ``"invalid_query"``. The message never
+    contains the question text or any document content.
+    """
+
+    def __init__(self, message: str, *, kind: str) -> None:
         super().__init__(message)
         self.kind = kind

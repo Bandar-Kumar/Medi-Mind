@@ -22,6 +22,241 @@ Only work that actually happened and was verified is recorded.
 
 ---
 
+## 2026-11-17: R1.8 deferred (Docker unavailable); Phase 2 remaining-work planning (later: Tasks 2.7–2.9b implemented; see the correction at the end of this entry)
+
+**Phase:** 2, document intelligence
+
+### Done
+- **R1.8 dev evaluation attempted, blocked at step 1.** `docker info` failed: `failed to connect to the docker API at npipe:////./pipe/dockerDesktopLinuxEngine ... The system cannot find the file specified.` Per the run protocol, the run stopped there. `docker compose up -d`, `app health`, `ingest --split dev` and `ablate` were **not run**.
+- **R1.8 recorded as Deferred — Docker unavailable (2026-11-17)** in `docs/PROGRESS.md`, at the owner's request. R1.8 is **not complete**.
+- **Phase 2 remaining work planned and approved:** Tasks 2.7 (rule-based classification), 2.8 (identity verification and the indexing gate) and 2.9 (2.9a pipeline orchestration and service wrappers; 2.9b thin Streamlit UI, including Task 1.11). Recorded in ADR-036 (Accepted) and IMPLEMENTATION_PLAN; none of them started.
+- **Documentation consistency pass:**
+  - ARCHITECTURE: §5 document-type list corrected (`consultation_note` and `diagnostic_report` never existed in the schema); §4.1 diagram now draws classification and identity as independent branches of parsing, both required before indexing.
+  - USER_FLOWS F2: "move to another profile" and "keep anyway" removed (kept as a dated note); identity `unknown` flow added.
+  - IMPLEMENTATION_PLAN: stale R1.5 row corrected (revisions were approved and verified on 2026-11-16); R1.8 row marks the deferral and the planned runner change.
+  - ADR-035 gained a dated note about the planned indexing gate.
+- Planning and documentation only: no application code, tests, dependencies or migrations changed; nothing run.
+- **Task 2.7 implemented (later the same day): rule-based document classification.**
+  - Pure rules (`app/ingestion/classification.py`, version `2`), patient-scoped persistence (`list_document_pages`, `record_classification`, `record_classification_failure`), `classify_document` service, `python -m app classify`. No migration, no new dependency.
+  - New dataset `data/synthetic/doctype_v0`: 84 fictional documents, 12 patients, 8 dev / 4 held-out by patient; held-out digest `8d71ffb5…` frozen at build time, before any rule was written. `lab_v0` untouched.
+  - **Measured (dev, 56 documents):** rules v1 (untuned) accuracy 0.9107, lab precision 1.0000, lab recall 0.7500, unknown rate 0.0893; rules v2 accuracy 0.9464, lab precision 1.0000, lab recall 0.8750, unknown rate 0.0536. No document was given the wrong type; every error is an `unknown`.
+  - **Tests:** 122 new or changed unit tests passed; default suite 1128 passed, 230 deselected; 8 PostgreSQL integration tests written, **skipped** (Docker unavailable). ~~Not frozen; held-out not parsed or evaluated.~~
+  - **Owner review, freeze and held-out (later the same day):** targets set (accuracy >= 0.90, lab precision >= 0.95, lab recall >= 0.85, unknown rate <= 0.10), all met on dev. The current rules re-scored dev identically from cache; dataset and digest verified; frozen (rules v2, dev report SHA-256 `133b8d72…`). **Held-out, run once (28 documents):** accuracy 0.9643, lab precision 1.0000, lab recall 1.0000, unknown rate 0.0357; the one `unknown` is a discharge summary with a lab table (conflict). Rules unchanged afterwards. Optimistic for real documents: same templates as dev, written by the same developer.
+- **Split check:** the "other" dev/held-out assignment seen earlier was `lab_v0`'s (seed 20261116), printed by a Docling check during Task 2.7; every `doctype_v0` source agrees. No inconsistency.
+- **Task 2.8 implemented: patient identity verification and the indexing gate.**
+  - Pure rules (`app/ingestion/identity.py`, version `1`), `get_patient`, `record_identity_check` (mismatch → `needs_review` in the same transaction), `record_identity_failure`, `check_document_identity` service, `python -m app identity`.
+  - Gate: a succeeded `classify` run, a succeeded `identity` run, and no `mismatch`; pre-checked in `index_document`, re-checked under the row lock in `insert_document_chunks`; `index_patient` reports every document (indexed / blocked with reason / already done); "identity not confirmed" label on evidence, never in scores.
+  - R1.8 runner: classify and identity stages before indexing, blocked documents stop ingestion, both rule versions frozen and validated.
+  - Dataset `identity_v0` (120 documents, families and namesakes; held-out digest `1b4ec4a5…` frozen at build time). **Measured (dev, 640 pairs):** 0 false matches on distinguishable swapped profiles; own profile 29 match / 51 unknown / 0 mismatch; the 4 swapped matches are namesake pairs with no printed DOB (indistinguishable, documented). Held-out not evaluated.
+  - **Tests:** default suite 1272 passed, 242 deselected; 32 PostgreSQL integration tests (12 new identity, 12 updated chunk, 8 classification) **skipped**: Docker unavailable.
+- **Task 2.8 identity rules v2 (after a review of v1).**
+  - **Review findings (v1):** the `identity_v0` dev numbers were correct; the 4 swapped matches were the namesake pair without a DOB. The checker, however, had untested false-match and false-mismatch paths: "Baby" was stripped as an honorific, a single-token profile could match, the "no initials" rule was checked on the document only, DOB labels had no word boundary, other people's DOBs were read as the patient's, Cf characters split tokens, and a curly apostrophe or a generic `Name:` was mishandled.
+  - **Rules v2:** in `app/ingestion/identity.py` only. Two new reason codes (`name_generic_label`, `profile_name_incomplete`); no gate, repository, schema or dependency change.
+  - **New dataset `identity_v1`:** 28 patients, 48 documents. Hand-written truth-based expectations; held-out digest `12ea2976…` frozen at build time. Generator `evals/synthetic/identity_v1.py`, runner `evals/run_identity_v1.py`. `identity_v0` and its v1 reports are unchanged (hash-verified).
+  - **Measured (dev, rules v2, Docling):**
+    - `identity_v1` (336 pairs): 0 false matches, 0 own false mismatches, plus 2 documented-limit mismatches (spelling, spacing); 3 indistinguishable swapped matches; unknown rate 0.345.
+    - `identity_v0` (640 pairs): identical to v1, 0 / 0.
+    - Rules v1 on the same `identity_v1` dev cases (printed-lines stand-in, not Docling): 1 false match and 3 own false mismatches.
+  - **Dev-found defect:** the first v2 draft read any date in an `Age/DOB` field. Docling had merged `Report Date: …` into that field, giving 2 own false mismatches. The rule was narrowed before v2 was settled; the draft reports were moved out of the repository and the draft is recorded in ADR-036.
+  - **Tests:** identity unit tests 126 (60 before), `identity_v1` dataset tests 9 (new); default suite 1347 passed, 242 deselected; Ruff and format clean. The identity and chunk PostgreSQL integration tests were collected once: 24 skipped (no database; Docker not retried).
+  - ~~Not frozen; neither held-out split parsed or evaluated.~~ Frozen and held-out evaluated later the same day (next item).
+- **Task 2.8 identity rules v2 frozen; held-out evaluated once each.**
+  - **Protocol:** `freeze` and a one-time `heldout` were added to the identity runners.
+    - `freeze` re-scored dev and matched both dev reports pair-for-pair.
+    - The selection records the rules version, the rules source SHA-256 `48c58bd9…`, the dataset, the digest and the dev report hash.
+    - The `.done` marker is written before evaluating. Both guards now refuse a second run.
+  - **Measured (held-out, not blind):**
+    - `identity_v1` (336 pairs): 0 false matches, 3/3 indistinguishable pairs matched, 0 own false mismatches, 2 documented-limit mismatches; own 13 / 9 / 2, swapped 3 / 99 / 210.
+    - `identity_v0` (160 pairs): 0 false matches, 4/4 namesake pairs without DOB matched, 0 own false mismatches; own 15 / 25 / 0, swapped 4 / 73 / 43; 160/160 by construction.
+  - **Unchanged (hash-verified):** identity code, datasets, generators, earlier reports, and classification v2 with its artifacts. No rule changed after held-out.
+  - **Tests:** 7 new protocol test functions (11 cases) passed. The focused identity, classification, evaluation and retrieval-service run gave 337 passed. Ruff and format are clean, and `git diff --check` is clean. PostgreSQL integration is still pending (Docker not retried).
+
+- **Task 2.9a implemented: pipeline orchestration and service wrappers.**
+  - **Pipeline:** `app/services/document_pipeline.py` runs parse → classify → identity → index through the existing services, for one document or every document of a patient (oldest first).
+    - Each document gets four stage results: `succeeded`, `already_done`, `blocked` or `failed`, with a fixed reason kind.
+    - Errors are reported per stage; the remaining stages and documents still run.
+  - **Library:** `app/services/library.py` holds the patient-scoped wrappers for the UI.
+  - **`DocumentSummary`** gains read-only `doc_type_confidence` and `identity_check`. No migration or dependency.
+  - **Tests:**
+    - new and updated: 132 passed;
+    - regressions: 448 + 71 passed;
+    - repository integration: 76 skipped (no database).
+- ~~Task 2.9b not started.~~ Implemented later the same day (next item).
+- **Task 2.9b implemented: local Streamlit UI.**
+  - **What it covers:** Patients, Documents (with upload, processing and per-stage results) and Evidence search pages. Identity and type warnings, the unfinished-parse notice, and delete confirmations that say files stay on disk.
+  - **Thin by design:** the UI imports `app.services` only, and a test enforces this.
+  - **Additions:**
+    - `streamlit` 1.67.0 (the lock only gained packages);
+    - the `demo_mode` setting;
+    - `.streamlit/config.toml` (localhost only, no usage statistics, no error details);
+    - `ui_runtime` and `library.get_document_state`.
+  - **Tests and checks:**
+    - 40 new UI tests passed, and the regression run (166 in total) passed;
+    - against the real services without a database, the UI shows the fixed database message only;
+    - the server started on 127.0.0.1 and answered its health check.
+  - **Pending (Docker unavailable):** PostgreSQL verification and the end-to-end acceptance run.
+
+### Decisions
+- **Task 2.9b:**
+  - Demo mode means synthetic patients only, patients created synthetic and no upload. There is no automatic loading, and ADR-014's seeded demo database is deferred.
+  - The entry file is `streamlit_app.py`, not the planned `app.py`, to avoid shadowing the `app` package.
+  - The UI explains a stale parse but offers no recovery or retry.
+  - Without model revisions, the index stage reports `revision_not_configured`, and search offers `lexical` only.
+- **Task 2.9a:**
+  - The pipeline calls every stage and lets each service and the single indexing gate decide blocked or already done. It does not pre-check, so no gate logic is duplicated.
+  - Stage errors are reported with kind and class only, never the message.
+  - No automatic retry and no stale-claim recovery.
+  - `index_patient` and the R1.8 runner's resumable ingest stay separate (different contracts).
+- **Task 2.8 freeze (owner):**
+  - Identity rules v2 is frozen unchanged.
+  - Accepted prototype limitations:
+    - spelling and spacing variants may give `mismatch`;
+    - token-order variations and namesakes without a DOB may give `match`;
+    - single-token and initials-only profiles stay `unknown`;
+    - there is no override and no recheck.
+  - No fuzzy matching, phonetic matching or accent folding.
+  - Both held-out runs are labelled not blind.
+- **Task 2.8 rules v2:**
+  - A full name is needed on both sides for `match` or `mismatch`; an incomplete profile name gives `unknown`.
+  - "Baby" is a name token.
+  - A generic `Name:` is never identity evidence (it may be a doctor or a guardian).
+  - Other people's DOB labels are skipped.
+  - Strict matching is kept, so spelling and spacing variants of the same person are still `mismatch` (a documented limit; no override, D6).
+  - `identity_v1` is scored against the truth (whose document it is), not against reason codes.
+- **Task 2.8:** Kumari, Kum and Sri are not stripped as honorifics (they are also names; stripping made a different person match); any symbol or U+FFFD in a name is unreadable → `unknown` (Docling prints `■` for unmapped glyphs); a clearly different DOB is a mismatch even for the same name; identity reason codes are stored in the run's `component_versions`.
+- **Task 2.7:** version 1 was measured once; version 2 changed two patterns after reviewing version-1 dev errors only (unit occurrences instead of lines; inline `value unit (low - high)` ranges). Tuning stopped at v2 so the dev set is not fitted further. A conflict between strong lab and strong other-document evidence stays `unknown`.
+- **R1.8 deferred (owner):** move on to Phase 2 planning instead of waiting for Docker. What this leaves open:
+  - The evaluation runner and its offline tests are implemented, but dev ingestion and the ablation were not executed.
+  - Recall@k, MRR, nDCG, leakage, abstention, refusal rates and latency remain **unmeasured**.
+  - No calibrated threshold or frozen configuration (`dev_selection.json`) exists, so the held-out evaluation remains blocked.
+  - The PostgreSQL chunk and isolation integration tests remain unrun.
+  - No measured evidence supports choosing dense-only, hybrid or hybrid plus reranking. The architecture rule still applies (ARCHITECTURE §9.4): hybrid and reranking stay only with a measured improvement.
+- **ADR-036 (owner-approved):**
+  - **D1–D10:** keep the existing `DocType` values; the Phase 2 classifier outputs `lab_report`, `other` or `unknown`; new `doctype_v0` dataset with a frozen held-out split (`lab_v0` unchanged); `doc_type_confidence` is a rule score, not a probability; identity compares the name, and the date of birth only when printed; strict name matching (partial → `unknown`); no override or recheck; documents stay `processing` until Phase 3; `streamlit` and `demo_mode` arrive only with Task 2.9b; the accuracy target is set after the first dev measurement.
+  - **R1–R3:** `mismatch` → `needs_review` and not indexed, `unknown` indexed with the uncertainty visible; classification and identity are independent services; the UI calls services only.
+  - **A1, indexing gate:** needs a succeeded `classify` run and a succeeded `identity` run, and `identity_check <> 'mismatch'`; enforced inside `index_document`, so every indexing path (command, bulk, pipeline, R1.8 runner) uses it; blocked documents are reported, never dropped.
+  - **A2:** successful stages are not repeated, failed ones can be retried; no reprocessing after a rule-version change.
+  - **A3:** the R1.8 runner will run classify and identity before indexing, stop on a blocked document and record both rule versions. Not run now.
+  - **A4:** every stage reports `succeeded`, `already_done`, `failed` or `blocked`, with a table of which stages still run after each failure.
+- **No migration:** both "not yet checked" ambiguities (`identity_check` and `doc_type` default to `unknown`) are resolved through `pipeline_runs` rows.
+
+### Learned
+- A column default that is also a valid result (`unknown`) cannot record whether a stage ran; here the stage's run row carries that fact, which avoids a migration.
+- A gate on a bulk operation must report what it refused: filtering gated documents out of `list_unindexed_documents` would have shrunk the retrieval corpus silently.
+- **(2.7)** Docling merges several printed lines into one text line (`Haemoglobin : 14.7 gm/dL (13.0 - 17.0) Total Leucocyte Count : …`), so line-based counting under-counts; rules should count occurrences.
+- **(2.8 v2)** A printed-lines stand-in parser hid a defect that the real Docling output exposed (merged lines put a report date inside an `Age/DOB` field). Dev runs must go through the real parser before a rule version is settled.
+- **(2.8 v2)** A dataset whose variants each map to one reason code mostly confirms its own construction. Truth labels plus hand-flagged "indistinguishable" pairs measure safety more honestly.
+- **(2.7)** A repository test that checks every statement for `patient_id` caught a reused helper (`_has_pages`) that filters by document only; the new code uses a patient-scoped check.
+
+### Issues / blockers
+- Docker Desktop is still not running; every database-dependent verification from 2026-11-16 is still outstanding.
+
+### Next
+1. ~~Owner reviews the Phase 2 task breakdown (classifier, identity check, document library UI).~~ Done: approved (ADR-036).
+2. When Docker Desktop is running: resume R1.8 (`docker compose up -d`, `app health`, `ingest --split dev`, `ablate`) and the integration tests. *Once Task 2.8 lands, R1.8 ingest also runs classify and identity before indexing (ADR-036 A3).*
+3. ~~Implement Task 2.7 (rule-based classification)~~ Done (rules v2, dev measured). Owner: review the dev report, set the accuracy target, then `freeze` and the single `heldout` run.
+4. ~~Run the classification integration tests when Docker is running; then Task 2.8~~ → 2.9a → 2.9b. Task 2.8 done (below); integration tests still pending.
+5. When Docker runs: classification, identity and chunk integration tests; then R1.8. Owner reviews the identity dev report before Task 2.9a.
+
+### Correction (2026-11-17, documentation consistency at the end of the day)
+- **The headline above covers only the start of the day.** The same day also implemented:
+  - Task 2.7 (frozen, held-out run once);
+  - Task 2.8 (rules v1, then v2; frozen; both identity held-out splits run once, not blind);
+  - Task 2.9a;
+  - Task 2.9b.
+
+  All of these are recorded under *Done* above.
+- **The *Next* list above is partly outdated:**
+  - Item 2: Task 2.8 has landed, and the R1.8 runner already runs classify and identity before indexing. This is unit-tested and not run.
+  - Item 3: done (targets set, frozen, held-out run once).
+  - Item 4: Tasks 2.8, 2.9a and 2.9b are done.
+  - Item 5: the identity review is done (v2 frozen, limitations accepted). The integration tests are still pending.
+- **Issues / blockers, made precise:** Docker is still unavailable. So the PostgreSQL integration verification for Task 1.8, R1, 2.7, 2.8 and 2.9a, and the 2.9b end-to-end acceptance run, are still outstanding. They are not just the 2026-11-16 ones.
+- **Current open items (nothing else is implied complete):**
+  1. PostgreSQL integration verification and the UI acceptance run, when Docker is available.
+  2. R1.8, still deferred: **no retrieval metric has been measured.**
+  3. Owner review and commit of the uncommitted work (Task 1.8 onward).
+- **README model setup corrected:** the BGE and MiniLM revisions were already approved, pinned, cached and CPU-verified on 2026-11-16 (R1.5). The README no longer describes them as awaiting approval.
+
+---
+
+## 2026-11-16: Task 1.8 done (patient and document repositories; ADR-034); Milestone R1 evidence retrieval implemented (evaluation pending; ADR-035)
+
+**Phase:** 2, document intelligence (Task 1.8 from Phase 1, completed now)
+
+### Done
+- **Planning:** inspected the repositories, models, migrations, services, tests and ADR-016/029/030/032/033; the owner approved an integrated plan (1.8a–1.8g) with decisions D1–D4 and O1–O5.
+- **1.8a:** `list_patients` (`PatientSummary`, name and date of birth `repr=False`) and `update_patient` (sentinel for "not given"; `None` clears the date of birth; returns `PatientRef`).
+- **1.8b:** `delete_patient`, empty patients only (`patient_not_empty` from exactly the three RESTRICT foreign keys).
+- **1.8c:** `list_documents` and `get_document` (`DocumentSummary`, no storage path or hash).
+- **1.8d:** `rename_document`, the only document update; canonical filenames only (`invalid_filename`), no import of ingestion.
+- **1.8e:** `delete_document`: database rows only (pages and pipeline runs cascade), files untouched; `already_running` for a live worker; `document_referenced` for a superseded document.
+- **1.8f:** complete public-API scoping test; cross-patient isolation matrix (new `tests/integration/test_isolation_integration.py`).
+- **1.8g:** ADR-034; clarification notes on ADR-016, 032 and 033; DATABASE_DESIGN, USER_FLOWS, ARCHITECTURE, IMPLEMENTATION_PLAN, PROGRESS.
+- **Verification (measured):** unit tests of the three touched unit-test files **192 passed**; Ruff and format clean on the changed files. **The 78 integration tests (24 new for 1.8b–e, 2 isolation, plus 5 for 1.8a) were skipped: the Docker engine was not running.** They are written but unverified.
+- **Milestone R1 (planned, owner-approved, implemented):** document-retrieval subset of Phase 5 pulled forward (ADR-035), evidence only.
+  - R1.1/1.2 (Tasks 1.9, 1.10): synthetic generator and dataset `lab_v0` (12 patients, 50 reports, 81 pages, 3 layouts, 8/4 split, held-out frozen); hash-verified loader, question set (dev 204, held-out 92), metrics, reports.
+  - R1.3–R1.7: `app/retrieval/` (chunking, query terms and guardrail, RRF, abstention, lazy BGE/MiniLM adapters), `app/records/chunks.py`, `index_document` and `search_evidence` services, `index` and `ask` CLI commands. No migration, no new dependency.
+  - R1.8: evaluation runner written; **not run**. R1.9: documentation.
+  - **Measured:** 131 unit tests passed in the touched files. Chunker on real Docling output, offline (3 dev reports, one per layout, 6 pages): Docling found tables in all three layouts (grid 4, plain 4, compact 2); 18, 18 and 21 chunks (2 text each, 16/16/19 table rows); longest chunk 682-758 characters; **16 of 16** ground-truth values of each report appear verbatim in its table-row chunks. Parse time 7.0-7.7 s per 2-page report warm (77.8 s for the first, including model loading).
+  - **Not measured:** chunk integration tests (7, skipped: Docker down), real-model tests (3, skipped: no approved revision), and every retrieval metric.
+- **R1.5 real-model verification (later the same day):**
+  - The owner approved the two pinned revisions: `BAAI/bge-small-en-v1.5` @ `5c38ec7c405ec4b44b94cc5a9bb96e735b38267a` (MIT) and `cross-encoder/ms-marco-MiniLM-L6-v2` @ `233902d25c440f23af6f7d6e94d2946bac0bee0a` (Apache-2.0). Both commits and licences were checked on the Hugging Face Hub.
+  - Both revisions were set in `.env` (git-ignored) and read back exactly by `Settings`. Each model was downloaded once through `models.py` with `allow_download=True` into the local Hugging Face cache (config, safetensors weights and tokenizer files only; about 129 MB and 88 MB).
+  - Runtime loading is unchanged and local-cache-only (`local_files_only=True`). Every check after the download ran with `HF_HUB_OFFLINE=1`.
+  - CPU inference verified: embeddings are 384-dimensional with unit norm; reranker logits have shape `(n, 1)`, and the HbA1c passage scored highest for an HbA1c question. Both models loaded together use about 670 MB of process memory. These are model smoke checks, not retrieval metrics.
+  - **Test fix:** `tests/test_retrieval_models_real.py` skipped even with the revisions configured, because the autouse `isolated_environment` fixture removes `MEDIMIND_*` variables and changes into a temporary directory, so `Settings()` never found `.env`. The test now uses `Settings(_env_file=REPO_ENV_FILE)`, an absolute path to the repository `.env` (the pattern `tests/integration/conftest.py` already uses).
+  - **Measured:** real-model tests (`-m models`, downloads disabled) **3 passed**; default suite **990 passed, 217 deselected**; Ruff check, `ruff format --check` and `git diff --check` clean.
+  - Model architecture, pooling, normalization, query instruction, scoring, chunking and retrieval thresholds were not changed. The held-out evaluation was not run.
+- **Database verification attempted:** Docker Desktop was not running, so the chunk and isolation integration tests were skipped (7 + 2). Five chunk integration tests were added (cross-patient chunk operations, NULL embeddings, `eGFR`, no index run after failed attempts, rollback after a mid-insert failure); lint-clean and collected, **not run**.
+- **R1.8 readiness review and corrections (owner-approved):** split-local leak probes; leak metrics on leak probes only; separate advice and injection refusal rates; calibration on answerable vs ordinary unanswerable questions only (kinds recorded); indexing time per page; ingestion resumable at every stage with database confirmation before skipping; `freeze` → `dev_selection.json` (exact threshold) → `heldout` with hash, settings and model-revision checks; `ablate` and `freeze` refuse after `heldout.done`; `.gitignore` `/evals/work/`.
+  - **Measured:** `tests/test_evals.py` **41 passed** (28 new); default suite **1018 passed, 222 deselected**; Ruff, format and `git diff --check` clean. Dev questions re-counted from dev ground truth only: **204** (value 105, lab 35, latest 16, unanswerable 16, leak 16, advice 8, injection 8).
+  - **Not run:** any ingestion, ablation or held-out stage (no database); the held-out question count is not re-verified.
+- **R1.8 dev evaluation attempted (end of day): blocked before any step ran.** `docker info` failed: `failed to connect to the docker API at npipe:////./pipe/dockerDesktopLinuxEngine ... The system cannot find the file specified.` No Docker Desktop, `com.docker.backend` or `dockerd` process was running; the active context `desktop-linux` points at the correct pipe. Per the owner's instruction there was no retry. `docker compose up`, `app health`, `ingest --split dev` and `ablate` were **not run**; no `evals/work/` state or `evals/reports/` output exists.
+
+### Decisions
+- **D1:** document deletion hard-deletes the row and keeps the original PDF and parse outputs; ADR-032's "never deleted" applies to the parse protocol.
+- **D2:** only empty patients can be deleted.
+- **D3:** `list_patients` returns names in `PatientSummary` and is the second unscoped repository function.
+- **D4:** only `original_filename` is editable.
+- **O1 (revised by the owner):** sanitization stays in ingestion; the repository only validates the canonical form.
+- **O2–O5:** `DeletedDocument` counts; error kinds as module constants; `update_patient` returns `PatientRef`; deleting a document loses its `pipeline_runs` history (stated in ADR-034).
+- **R1, P1–P4 (ADR-035):** pull retrieval forward with Tasks 1.9/1.10; evidence-only answers; models on `transformers` (no new dependency); CLI demo. Model revisions and the first download wait for owner approval.
+- **R1.5:** the owner approved the exact pinned revisions above (approval given later the same day); they must not be substituted or updated.
+- **R1.8 corrections:** calibrate `hybrid_rerank` only, on answerable vs ordinary unanswerable questions (leak probes independent of the threshold); the held-out run consumes only the frozen `dev_selection.json`; evaluation reports stay trackable in git, only ingest state is ignored.
+- **R1.8 run protocol:** check the engine once with `docker info` and stop on failure, without retries; stop after the dev report for owner review before `freeze`.
+
+### Learned
+- `conflicts` has no foreign key to documents or facts: deleting a document leaves the conflict row with zero members, and that row then blocks deleting the patient.
+- A stale worker can still publish parse outputs after its document is deleted, but only under the deleted document's own id, and it can write no row; re-uploaded bytes get a new id, so the outputs can never attach to the wrong document.
+- `repr=False` hides personal data only from `repr()`; `asdict()` and `json.dumps` still expose it, so the logging tests also format records through the JSON formatter.
+- **(R1)** Postgres' `simple` text-search configuration keeps every word, so an AND of a whole question ("what", "was", "my") matches nothing; the question is reduced to content words, each bound separately and OR-ed.
+- **(R1)** reportlab's `invariant=1` makes PDF bytes reproducible, which lets the dataset manifest freeze the held-out split by hash.
+- **(R1)** Docling renders each table into the page text without headers, so header-paired table-row chunks are what make a value findable by its analyte name.
+- **(R1.5)** An opt-in test that reads `.env` must use an absolute path: the unit-test isolation fixture strips `MEDIMIND_*` variables and changes directory, so a skip can hide a configuration that is actually correct.
+- **(R1.8)** A question generator that sees every split leaks held-out information into dev even without values: here the held-out patients' tested analytes decided which dev questions became leak probes.
+- **(R1.8)** Python's `json` writes a float with its shortest exact representation, so a threshold copied through JSON is exact; a 4-decimal Markdown note is not (0.1 + 0.2 = 0.30000000000000004).
+- An unreachable `dockerDesktopLinuxEngine` pipe with no Docker processes means the Desktop app is not running at all, not still starting; the CLI context was correct.
+- **(R1.5)** The Hub redirects the old reranker ID `ms-marco-MiniLM-L-6-v2` (still used in `models.py`) to `ms-marco-MiniLM-L6-v2` at the same commit, but the Hugging Face cache folder is named after the ID requested. Downloading through the project loader keeps the cache under the ID the runtime looks up.
+
+### Issues / blockers
+- **Integration tests not run** (Docker engine down). Until they pass, Task 1.8's database behaviour is unverified.
+- **R1 retrieval quality is unmeasured:** it needs Docker and the owner-approved model revisions (no model downloaded).
+  - *Update (R1.5):* the revisions are approved and both models are cached and verified on CPU. Docker is still needed. The R1.8 dev ablation, threshold calibration and held-out evaluation have **not run**, and **no retrieval performance metric has been measured**.
+- Still present: the stray file `tatus --short`.
+- **At wrap-up:** the Docker engine never became reachable from the session (Docker Desktop was not running when checked), so every database-dependent result for today remains unverified: 78 + 5 integration tests and all R1.8 retrieval metrics.
+- `docs/IMPLEMENTATION_PLAN.md`'s R1.5 row still says the model revisions await approval (stale; flagged, not changed).
+- Nothing staged or committed: 34 working-tree entries (19 modified, 15 untracked paths) are awaiting the owner's review.
+
+### Next
+1. Start Docker Desktop and confirm "Engine running" (`docker info` shows a `Server Version`); if it fails to start, diagnose that first (WSL 2 or virtualization).
+2. Run the R1.8 dev evaluation: `docker compose up -d`, `app health`, `ingest --split dev`, `ablate`; the owner reviews the dev report, then `freeze --mode <mode>`; held-out ingest and `heldout` only after explicit approval.
+3. Run the Task 1.8 and R1 integration tests (chunks, isolation, repositories) against `medimind_test`.
+4. Fix the stale R1.5 row in `docs/IMPLEMENTATION_PLAN.md`; the owner reviews and commits the Task 1.8 and R1 work.
+5. Break the remaining Phase 2 subtasks (classifier, identity check, document library UI) into tasks.
+
+---
+
 ## 2026-11-15: Task 2.5 done (parse persistence); D7 `replacement_character`; IR schema version 1 frozen; Task 2.6 done (document upload)
 
 **Phase:** 2, document intelligence
@@ -48,6 +283,14 @@ Only work that actually happened and was verified is recorded.
   - 0 failures, 0 skips, no warnings; Ruff, format and `git diff --check` clean;
   - `medimind_test` 0 rows before and after; `medimind` 0 tables; `data/` unchanged; Docker restored.
 - **Task 2.6d:** documentation (new ADR-033, IMPLEMENTATION_PLAN, PROGRESS, ARCHITECTURE upload bullet) and this update.
+- **Final Git checkpoint review (read-only):**
+  - covered 14 modified tracked files and 15 untracked files (expanded with `-uall`);
+  - no generated artifacts, scratchpad files, schema or migration changes;
+  - IR and manifest versions still 1; upload has no path to parsing; every public repository function except `create_patient` takes `patient_id`;
+  - `git diff --check` clean.
+- **Two documentation corrections from that review:**
+  - `docs/DATABASE_DESIGN.md`: `is_synthetic` is a required boolean with no database default (it said "default true");
+  - `README.md`: `<data_dir>/parsed/` is described as the actual write-once location of parse outputs (it said "reserved for Task 2.5").
 
 ### Decisions
 - **D1–D8, A1–A8** recorded in **ADR-032** (D7 in ADR-030): minimal Task 1.8 subset inside 2.5; no database column for output paths; `pages.review_flags` deferred; NUL and lone surrogates rejected, never modified; parser-upgrade re-processing deferred; manifest with its own version; reuse of a producing run of any status after manifest, ownership and full checks; the original PDF verified on both paths; producer provenance kept in the manifest and its own run row.
@@ -73,14 +316,16 @@ Only work that actually happened and was verified is recorded.
 - **(2.6)** `str.strip()` does not remove U+200B or U+FEFF (they are not whitespace), so a leading byte-order mark survives stripping and needs an explicit rule.
 - **(2.6)** The model's naming convention gives the foreign key a stable name (`fk_documents_patient_id_patients`), and psycopg exposes it as `diag.constraint_name`, so one specific constraint can be mapped without guessing from SQLSTATE alone.
 - **(2.6)** The integration connection log also records the test's own helper queries, so it cannot prove "no connection was opened". That property is proven in unit tests with a session factory that fails if called. A first draft of an integration test got this wrong; the test, not the code, was corrected.
+- **(Review)** Untracked files are invisible to `git diff`. A checkpoint review needs `git status --short -uall` and a separate check of each untracked file (encoding, line endings, raw invisible characters).
 
 ### Issues / blockers
 - **Test-count correction:** the Task 2.5d report said 10 new IR tests; the correct number is 8 (593 + 8 + 84 = 685).
 - Still present and not changed: the stray file `tatus --short` in `f42f3f7`; the older `medimind-*` folders in `%TEMP%` (kept until the owner allows deletion).
-- **Uncommitted:** all D7, Task 2.5 and Task 2.6 work.
+- **Committed by the owner as `6523677`** ("complete doc parsing and upload pipeline", 31 files): all D7, Task 2.5 and Task 2.6 work, plus the README and DATABASE_DESIGN corrections. Not pushed. This wrap-up update to SUMMARY.md is not yet committed.
+- **Known, deliberately deferred:** USER_FLOWS F2 shows "already uploaded on <date>", but `DocumentRef` has no `created_at` yet (UI work).
 
 ### Next
-1. Owner reviews and commits the D7–2.6 work.
+1. ~~Owner reviews and commits the D7–2.6 work.~~ Done: `6523677`. Next: commit this wrap-up, and refresh PROGRESS.md's "not committed yet" wording.
 2. ~~Task 2.6: `upload_document` service plus a minimal patient-creation repository function.~~ Done the same day (see above).
 3. The rest of Task 1.8 (patient listing, update and delete; document listing, update and delete; isolation tests).
 4. Break the remaining Phase 2 subtasks (classifier, identity check, document library UI) into tasks.

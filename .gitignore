@@ -38,3 +38,8 @@ data/*
 # (%USERPROFILE%\MediMind-backups); these rules are a safety net.
 backups/
 *.dump
+
+# --- Evaluation outputs (R1.8) ---
+# Ingest state written by evals/run_retrieval.py (database ids, stage progress, timings).
+# Anchored to this folder only: evals/reports/, evals/ source and data/synthetic/ stay tracked.
+/evals/work/

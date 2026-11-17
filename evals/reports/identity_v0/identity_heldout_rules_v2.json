@@ -1,0 +1,2535 @@
+{
+  "dataset_version": "identity_v0@1b4ec4a51b35",
+  "heldout_sha256": "1b4ec4a51b35108e8cc81429c457b1883c76044958dcef493e05c859f2652b90",
+  "metrics": {
+    "accuracy": 1.0,
+    "by_variant": {
+      "dob_named": {
+        "own": {
+          "match": 4
+        },
+        "swapped": {
+          "mismatch": 12
+        }
+      },
+      "dob_numeric": {
+        "own": {
+          "match": 3,
+          "unknown": 1
+        },
+        "swapped": {
+          "mismatch": 11,
+          "unknown": 1
+        }
+      },
+      "fffd": {
+        "own": {
+          "unknown": 4
+        },
+        "swapped": {
+          "unknown": 12
+        }
+      },
+      "first_only": {
+        "own": {
+          "unknown": 4
+        },
+        "swapped": {
+          "unknown": 12
+        }
+      },
+      "initials": {
+        "own": {
+          "unknown": 4
+        },
+        "swapped": {
+          "unknown": 12
+        }
+      },
+      "lab_header": {
+        "own": {
+          "match": 4
+        },
+        "swapped": {
+          "match": 2,
+          "mismatch": 10
+        }
+      },
+      "no_label": {
+        "own": {
+          "unknown": 4
+        },
+        "swapped": {
+          "unknown": 12
+        }
+      },
+      "reordered": {
+        "own": {
+          "match": 4
+        },
+        "swapped": {
+          "match": 2,
+          "mismatch": 10
+        }
+      },
+      "two_names": {
+        "own": {
+          "unknown": 4
+        },
+        "swapped": {
+          "unknown": 12
+        }
+      },
+      "unreadable": {
+        "own": {
+          "unknown": 4
+        },
+        "swapped": {
+          "unknown": 12
+        }
+      }
+    },
+    "confusion_expected_by_actual": {
+      "match": {
+        "match": 19,
+        "mismatch": 0,
+        "unknown": 0
+      },
+      "mismatch": {
+        "match": 0,
+        "mismatch": 43,
+        "unknown": 0
+      },
+      "unknown": {
+        "match": 0,
+        "mismatch": 0,
+        "unknown": 98
+      }
+    },
+    "documents": 40,
+    "false_matches_on_swapped_profiles": 0,
+    "namesake_pairs_without_dob": {
+      "match": 4,
+      "mismatch": 0,
+      "pairs": 4,
+      "unknown": 0
+    },
+    "own_profile": {
+      "match": 15,
+      "mismatch": 0,
+      "unknown": 25
+    },
+    "own_profile_false_mismatches": 0,
+    "pairs": 160,
+    "swapped_profile": {
+      "match": 4,
+      "mismatch": 43,
+      "unknown": 73
+    }
+  },
+  "notice": "NOT a blind or independent validation. The identity rules, this dataset's generator, the held-out documents and their expected outcomes were written by the same developer, with the same templates and categories as dev. Read these numbers as a regression check of the frozen rules on unseen synthetic patients, not as evidence of real-world accuracy.",
+  "pairs": [
+    {
+      "actual": "match",
+      "document_id": "I09-LH",
+      "document_patient": "I09",
+      "expected": "match",
+      "namesake_without_dob": false,
+      "own": true,
+      "profile": "I09",
+      "reason_codes": [
+        "dob_not_printed",
+        "name_match"
+      ],
+      "source": "pdf",
+      "variant": "lab_header"
+    },
+    {
+      "actual": "match",
+      "document_id": "I09-LH",
+      "document_patient": "I09",
+      "expected": "match",
+      "namesake_without_dob": true,
+      "own": false,
+      "profile": "I10",
+      "reason_codes": [
+        "dob_not_printed",
+        "name_match"
+      ],
+      "source": "pdf",
+      "variant": "lab_header"
+    },
+    {
+      "actual": "mismatch",
+      "document_id": "I09-LH",
+      "document_patient": "I09",
+      "expected": "mismatch",
+      "namesake_without_dob": false,
+      "own": false,
+      "profile": "I11",
+      "reason_codes": [
+        "dob_not_printed",
+        "name_mismatch"
+      ],
+      "source": "pdf",
+      "variant": "lab_header"
+    },
+    {
+      "actual": "mismatch",
+      "document_id": "I09-LH",
+      "document_patient": "I09",
+      "expected": "mismatch",
+      "namesake_without_dob": false,
+      "own": false,
+      "profile": "I12",
+      "reason_codes": [
+        "dob_not_printed",
+        "name_mismatch"
+      ],
+      "source": "pdf",
+      "variant": "lab_header"
+    },
+    {
+      "actual": "match",
+      "document_id": "I09-RO",
+      "document_patient": "I09",
+      "expected": "match",
+      "namesake_without_dob": false,
+      "own": true,
+      "profile": "I09",
+      "reason_codes": [
+        "dob_not_printed",
+        "name_match"
+      ],
+      "source": "pdf",
+      "variant": "reordered"
+    },
+    {
+      "actual": "match",
+      "document_id": "I09-RO",
+      "document_patient": "I09",
+      "expected": "match",
+      "namesake_without_dob": true,
+      "own": false,
+      "profile": "I10",
+      "reason_codes": [
+        "dob_not_printed",
+        "name_match"
+      ],
+      "source": "pdf",
+      "variant": "reordered"
+    },
+    {
+      "actual": "mismatch",
+      "document_id": "I09-RO",
+      "document_patient": "I09",
+      "expected": "mismatch",
+      "namesake_without_dob": false,
+      "own": false,
+      "profile": "I11",
+      "reason_codes": [
+        "dob_not_printed",
+        "name_mismatch"
+      ],
+      "source": "pdf",
+      "variant": "reordered"
+    },
+    {
+      "actual": "mismatch",
+      "document_id": "I09-RO",
+      "document_patient": "I09",
+      "expected": "mismatch",
+      "namesake_without_dob": false,
+      "own": false,
+      "profile": "I12",
+      "reason_codes": [
+        "dob_not_printed",
+        "name_mismatch"
+      ],
+      "source": "pdf",
+      "variant": "reordered"
+    },
+    {
+      "actual": "match",
+      "document_id": "I09-DN",
+      "document_patient": "I09",
+      "expected": "match",
+      "namesake_without_dob": false,
+      "own": true,
+      "profile": "I09",
+      "reason_codes": [
+        "dob_match",
+        "name_match"
+      ],
+      "source": "pdf",
+      "variant": "dob_named"
+    },
+    {
+      "actual": "mismatch",
+      "document_id": "I09-DN",
+      "document_patient": "I09",
+      "expected": "mismatch",
+      "namesake_without_dob": false,
+      "own": false,
+      "profile": "I10",
+      "reason_codes": [
+        "dob_mismatch",
+        "name_match"
+      ],
+      "source": "pdf",
+      "variant": "dob_named"
+    },
+    {
+      "actual": "mismatch",
+      "document_id": "I09-DN",
+      "document_patient": "I09",
+      "expected": "mismatch",
+      "namesake_without_dob": false,
+      "own": false,
+      "profile": "I11",
+      "reason_codes": [
+        "dob_mismatch",
+        "name_mismatch"
+      ],
+      "source": "pdf",
+      "variant": "dob_named"
+    },
+    {
+      "actual": "mismatch",
+      "document_id": "I09-DN",
+      "document_patient": "I09",
+      "expected": "mismatch",
+      "namesake_without_dob": false,
+      "own": false,
+      "profile": "I12",
+      "reason_codes": [
+        "dob_mismatch",
+        "name_mismatch"
+      ],
+      "source": "pdf",
+      "variant": "dob_named"
+    },
+    {
+      "actual": "unknown",
+      "document_id": "I09-DD",
+      "document_patient": "I09",
+      "expected": "unknown",
+      "namesake_without_dob": false,
+      "own": true,
+      "profile": "I09",
+      "reason_codes": [
+        "dob_ambiguous",
+        "name_match"
+      ],
+      "source": "pdf",
+      "variant": "dob_numeric"
+    },
+    {
+      "actual": "unknown",
+      "document_id": "I09-DD",
+      "document_patient": "I09",
+      "expected": "unknown",
+      "namesake_without_dob": false,
+      "own": false,
+      "profile": "I10",
+      "reason_codes": [
+        "dob_ambiguous",
+        "name_match"
+      ],
+      "source": "pdf",
+      "variant": "dob_numeric"
+    },
+    {
+      "actual": "mismatch",
+      "document_id": "I09-DD",
+      "document_patient": "I09",
+      "expected": "mismatch",
+      "namesake_without_dob": false,
+      "own": false,
+      "profile": "I11",
+      "reason_codes": [
+        "dob_ambiguous",
+        "name_mismatch"
+      ],
+      "source": "pdf",
+      "variant": "dob_numeric"
+    },
+    {
+      "actual": "mismatch",
+      "document_id": "I09-DD",
+      "document_patient": "I09",
+      "expected": "mismatch",
+      "namesake_without_dob": false,
+      "own": false,
+      "profile": "I12",
+      "reason_codes": [
+        "dob_ambiguous",
+        "name_mismatch"
+      ],
+      "source": "pdf",
+      "variant": "dob_numeric"
+    },
+    {
+      "actual": "unknown",
+      "document_id": "I09-IN",
+      "document_patient": "I09",
+      "expected": "unknown",
+      "namesake_without_dob": false,
+      "own": true,
+      "profile": "I09",
+      "reason_codes": [
+        "dob_not_printed",
+        "name_initials"
+      ],
+      "source": "pdf",
+      "variant": "initials"
+    },
+    {
+      "actual": "unknown",
+      "document_id": "I09-IN",
+      "document_patient": "I09",
+      "expected": "unknown",
+      "namesake_without_dob": false,
+      "own": false,
+      "profile": "I10",
+      "reason_codes": [
+        "dob_not_printed",
+        "name_initials"
+      ],
+      "source": "pdf",
+      "variant": "initials"
+    },
+    {
+      "actual": "unknown",
+      "document_id": "I09-IN",
+      "document_patient": "I09",
+      "expected": "unknown",
+      "namesake_without_dob": false,
+      "own": false,
+      "profile": "I11",
+      "reason_codes": [
+        "dob_not_printed",
+        "name_initials"
+      ],
+      "source": "pdf",
+      "variant": "initials"
+    },
+    {
+      "actual": "unknown",
+      "document_id": "I09-IN",
+      "document_patient": "I09",
+      "expected": "unknown",
+      "namesake_without_dob": false,
+      "own": false,
+      "profile": "I12",
+      "reason_codes": [
+        "dob_not_printed",
+        "name_initials"
+      ],
+      "source": "pdf",
+      "variant": "initials"
+    },
+    {
+      "actual": "unknown",
+      "document_id": "I09-FO",
+      "document_patient": "I09",
+      "expected": "unknown",
+      "namesake_without_dob": false,
+      "own": true,
+      "profile": "I09",
+      "reason_codes": [
+        "dob_not_printed",
+        "name_partial"
+      ],
+      "source": "pdf",
+      "variant": "first_only"
+    },
+    {
+      "actual": "unknown",
+      "document_id": "I09-FO",
+      "document_patient": "I09",
+      "expected": "unknown",
+      "namesake_without_dob": false,
+      "own": false,
+      "profile": "I10",
+      "reason_codes": [
+        "dob_not_printed",
+        "name_partial"
+      ],
+      "source": "pdf",
+      "variant": "first_only"
+    },
+    {
+      "actual": "unknown",
+      "document_id": "I09-FO",
+      "document_patient": "I09",
+      "expected": "unknown",
+      "namesake_without_dob": false,
+      "own": false,
+      "profile": "I11",
+      "reason_codes": [
+        "dob_not_printed",
+        "name_partial"
+      ],
+      "source": "pdf",
+      "variant": "first_only"
+    },
+    {
+      "actual": "unknown",
+      "document_id": "I09-FO",
+      "document_patient": "I09",
+      "expected": "unknown",
+      "namesake_without_dob": false,
+      "own": false,
+      "profile": "I12",
+      "reason_codes": [
+        "dob_not_printed",
+        "name_partial"
+      ],
+      "source": "pdf",
+      "variant": "first_only"
+    },
+    {
+      "actual": "unknown",
+      "document_id": "I09-NL",
+      "document_patient": "I09",
+      "expected": "unknown",
+      "namesake_without_dob": false,
+      "own": true,
+      "profile": "I09",
+      "reason_codes": [
+        "dob_not_printed",
+        "name_not_found"
+      ],
+      "source": "pdf",
+      "variant": "no_label"
+    },
+    {
+      "actual": "unknown",
+      "document_id": "I09-NL",
+      "document_patient": "I09",
+      "expected": "unknown",
+      "namesake_without_dob": false,
+      "own": false,
+      "profile": "I10",
+      "reason_codes": [
+        "dob_not_printed",
+        "name_not_found"
+      ],
+      "source": "pdf",
+      "variant": "no_label"
+    },
+    {
+      "actual": "unknown",
+      "document_id": "I09-NL",
+      "document_patient": "I09",
+      "expected": "unknown",
+      "namesake_without_dob": false,
+      "own": false,
+      "profile": "I11",
+      "reason_codes": [
+        "dob_not_printed",
+        "name_not_found"
+      ],
+      "source": "pdf",
+      "variant": "no_label"
+    },
+    {
+      "actual": "unknown",
+      "document_id": "I09-NL",
+      "document_patient": "I09",
+      "expected": "unknown",
+      "namesake_without_dob": false,
+      "own": false,
+      "profile": "I12",
+      "reason_codes": [
+        "dob_not_printed",
+        "name_not_found"
+      ],
+      "source": "pdf",
+      "variant": "no_label"
+    },
+    {
+      "actual": "unknown",
+      "document_id": "I09-TN",
+      "document_patient": "I09",
+      "expected": "unknown",
+      "namesake_without_dob": false,
+      "own": true,
+      "profile": "I09",
+      "reason_codes": [
+        "dob_not_printed",
+        "name_multiple"
+      ],
+      "source": "pdf",
+      "variant": "two_names"
+    },
+    {
+      "actual": "unknown",
+      "document_id": "I09-TN",
+      "document_patient": "I09",
+      "expected": "unknown",
+      "namesake_without_dob": false,
+      "own": false,
+      "profile": "I10",
+      "reason_codes": [
+        "dob_not_printed",
+        "name_multiple"
+      ],
+      "source": "pdf",
+      "variant": "two_names"
+    },
+    {
+      "actual": "unknown",
+      "document_id": "I09-TN",
+      "document_patient": "I09",
+      "expected": "unknown",
+      "namesake_without_dob": false,
+      "own": false,
+      "profile": "I11",
+      "reason_codes": [
+        "dob_not_printed",
+        "name_multiple"
+      ],
+      "source": "pdf",
+      "variant": "two_names"
+    },
+    {
+      "actual": "unknown",
+      "document_id": "I09-TN",
+      "document_patient": "I09",
+      "expected": "unknown",
+      "namesake_without_dob": false,
+      "own": false,
+      "profile": "I12",
+      "reason_codes": [
+        "dob_not_printed",
+        "name_multiple"
+      ],
+      "source": "pdf",
+      "variant": "two_names"
+    },
+    {
+      "actual": "unknown",
+      "document_id": "I09-UR",
+      "document_patient": "I09",
+      "expected": "unknown",
+      "namesake_without_dob": false,
+      "own": true,
+      "profile": "I09",
+      "reason_codes": [
+        "dob_not_printed",
+        "name_unreadable"
+      ],
+      "source": "pdf",
+      "variant": "unreadable"
+    },
+    {
+      "actual": "unknown",
+      "document_id": "I09-UR",
+      "document_patient": "I09",
+      "expected": "unknown",
+      "namesake_without_dob": false,
+      "own": false,
+      "profile": "I10",
+      "reason_codes": [
+        "dob_not_printed",
+        "name_unreadable"
+      ],
+      "source": "pdf",
+      "variant": "unreadable"
+    },
+    {
+      "actual": "unknown",
+      "document_id": "I09-UR",
+      "document_patient": "I09",
+      "expected": "unknown",
+      "namesake_without_dob": false,
+      "own": false,
+      "profile": "I11",
+      "reason_codes": [
+        "dob_not_printed",
+        "name_unreadable"
+      ],
+      "source": "pdf",
+      "variant": "unreadable"
+    },
+    {
+      "actual": "unknown",
+      "document_id": "I09-UR",
+      "document_patient": "I09",
+      "expected": "unknown",
+      "namesake_without_dob": false,
+      "own": false,
+      "profile": "I12",
+      "reason_codes": [
+        "dob_not_printed",
+        "name_unreadable"
+      ],
+      "source": "pdf",
+      "variant": "unreadable"
+    },
+    {
+      "actual": "unknown",
+      "document_id": "I09-FF",
+      "document_patient": "I09",
+      "expected": "unknown",
+      "namesake_without_dob": false,
+      "own": true,
+      "profile": "I09",
+      "reason_codes": [
+        "dob_not_printed",
+        "name_unreadable"
+      ],
+      "source": "text",
+      "variant": "fffd"
+    },
+    {
+      "actual": "unknown",
+      "document_id": "I09-FF",
+      "document_patient": "I09",
+      "expected": "unknown",
+      "namesake_without_dob": false,
+      "own": false,
+      "profile": "I10",
+      "reason_codes": [
+        "dob_not_printed",
+        "name_unreadable"
+      ],
+      "source": "text",
+      "variant": "fffd"
+    },
+    {
+      "actual": "unknown",
+      "document_id": "I09-FF",
+      "document_patient": "I09",
+      "expected": "unknown",
+      "namesake_without_dob": false,
+      "own": false,
+      "profile": "I11",
+      "reason_codes": [
+        "dob_not_printed",
+        "name_unreadable"
+      ],
+      "source": "text",
+      "variant": "fffd"
+    },
+    {
+      "actual": "unknown",
+      "document_id": "I09-FF",
+      "document_patient": "I09",
+      "expected": "unknown",
+      "namesake_without_dob": false,
+      "own": false,
+      "profile": "I12",
+      "reason_codes": [
+        "dob_not_printed",
+        "name_unreadable"
+      ],
+      "source": "text",
+      "variant": "fffd"
+    },
+    {
+      "actual": "match",
+      "document_id": "I10-LH",
+      "document_patient": "I10",
+      "expected": "match",
+      "namesake_without_dob": true,
+      "own": false,
+      "profile": "I09",
+      "reason_codes": [
+        "dob_not_printed",
+        "name_match"
+      ],
+      "source": "pdf",
+      "variant": "lab_header"
+    },
+    {
+      "actual": "match",
+      "document_id": "I10-LH",
+      "document_patient": "I10",
+      "expected": "match",
+      "namesake_without_dob": false,
+      "own": true,
+      "profile": "I10",
+      "reason_codes": [
+        "dob_not_printed",
+        "name_match"
+      ],
+      "source": "pdf",
+      "variant": "lab_header"
+    },
+    {
+      "actual": "mismatch",
+      "document_id": "I10-LH",
+      "document_patient": "I10",
+      "expected": "mismatch",
+      "namesake_without_dob": false,
+      "own": false,
+      "profile": "I11",
+      "reason_codes": [
+        "dob_not_printed",
+        "name_mismatch"
+      ],
+      "source": "pdf",
+      "variant": "lab_header"
+    },
+    {
+      "actual": "mismatch",
+      "document_id": "I10-LH",
+      "document_patient": "I10",
+      "expected": "mismatch",
+      "namesake_without_dob": false,
+      "own": false,
+      "profile": "I12",
+      "reason_codes": [
+        "dob_not_printed",
+        "name_mismatch"
+      ],
+      "source": "pdf",
+      "variant": "lab_header"
+    },
+    {
+      "actual": "match",
+      "document_id": "I10-RO",
+      "document_patient": "I10",
+      "expected": "match",
+      "namesake_without_dob": true,
+      "own": false,
+      "profile": "I09",
+      "reason_codes": [
+        "dob_not_printed",
+        "name_match"
+      ],
+      "source": "pdf",
+      "variant": "reordered"
+    },
+    {
+      "actual": "match",
+      "document_id": "I10-RO",
+      "document_patient": "I10",
+      "expected": "match",
+      "namesake_without_dob": false,
+      "own": true,
+      "profile": "I10",
+      "reason_codes": [
+        "dob_not_printed",
+        "name_match"
+      ],
+      "source": "pdf",
+      "variant": "reordered"
+    },
+    {
+      "actual": "mismatch",
+      "document_id": "I10-RO",
+      "document_patient": "I10",
+      "expected": "mismatch",
+      "namesake_without_dob": false,
+      "own": false,
+      "profile": "I11",
+      "reason_codes": [
+        "dob_not_printed",
+        "name_mismatch"
+      ],
+      "source": "pdf",
+      "variant": "reordered"
+    },
+    {
+      "actual": "mismatch",
+      "document_id": "I10-RO",
+      "document_patient": "I10",
+      "expected": "mismatch",
+      "namesake_without_dob": false,
+      "own": false,
+      "profile": "I12",
+      "reason_codes": [
+        "dob_not_printed",
+        "name_mismatch"
+      ],
+      "source": "pdf",
+      "variant": "reordered"
+    },
+    {
+      "actual": "mismatch",
+      "document_id": "I10-DN",
+      "document_patient": "I10",
+      "expected": "mismatch",
+      "namesake_without_dob": false,
+      "own": false,
+      "profile": "I09",
+      "reason_codes": [
+        "dob_mismatch",
+        "name_match"
+      ],
+      "source": "pdf",
+      "variant": "dob_named"
+    },
+    {
+      "actual": "match",
+      "document_id": "I10-DN",
+      "document_patient": "I10",
+      "expected": "match",
+      "namesake_without_dob": false,
+      "own": true,
+      "profile": "I10",
+      "reason_codes": [
+        "dob_match",
+        "name_match"
+      ],
+      "source": "pdf",
+      "variant": "dob_named"
+    },
+    {
+      "actual": "mismatch",
+      "document_id": "I10-DN",
+      "document_patient": "I10",
+      "expected": "mismatch",
+      "namesake_without_dob": false,
+      "own": false,
+      "profile": "I11",
+      "reason_codes": [
+        "dob_mismatch",
+        "name_mismatch"
+      ],
+      "source": "pdf",
+      "variant": "dob_named"
+    },
+    {
+      "actual": "mismatch",
+      "document_id": "I10-DN",
+      "document_patient": "I10",
+      "expected": "mismatch",
+      "namesake_without_dob": false,
+      "own": false,
+      "profile": "I12",
+      "reason_codes": [
+        "dob_mismatch",
+        "name_mismatch"
+      ],
+      "source": "pdf",
+      "variant": "dob_named"
+    },
+    {
+      "actual": "mismatch",
+      "document_id": "I10-DD",
+      "document_patient": "I10",
+      "expected": "mismatch",
+      "namesake_without_dob": false,
+      "own": false,
+      "profile": "I09",
+      "reason_codes": [
+        "dob_mismatch",
+        "name_match"
+      ],
+      "source": "pdf",
+      "variant": "dob_numeric"
+    },
+    {
+      "actual": "match",
+      "document_id": "I10-DD",
+      "document_patient": "I10",
+      "expected": "match",
+      "namesake_without_dob": false,
+      "own": true,
+      "profile": "I10",
+      "reason_codes": [
+        "dob_match",
+        "name_match"
+      ],
+      "source": "pdf",
+      "variant": "dob_numeric"
+    },
+    {
+      "actual": "mismatch",
+      "document_id": "I10-DD",
+      "document_patient": "I10",
+      "expected": "mismatch",
+      "namesake_without_dob": false,
+      "own": false,
+      "profile": "I11",
+      "reason_codes": [
+        "dob_mismatch",
+        "name_mismatch"
+      ],
+      "source": "pdf",
+      "variant": "dob_numeric"
+    },
+    {
+      "actual": "mismatch",
+      "document_id": "I10-DD",
+      "document_patient": "I10",
+      "expected": "mismatch",
+      "namesake_without_dob": false,
+      "own": false,
+      "profile": "I12",
+      "reason_codes": [
+        "dob_mismatch",
+        "name_mismatch"
+      ],
+      "source": "pdf",
+      "variant": "dob_numeric"
+    },
+    {
+      "actual": "unknown",
+      "document_id": "I10-IN",
+      "document_patient": "I10",
+      "expected": "unknown",
+      "namesake_without_dob": false,
+      "own": false,
+      "profile": "I09",
+      "reason_codes": [
+        "dob_not_printed",
+        "name_initials"
+      ],
+      "source": "pdf",
+      "variant": "initials"
+    },
+    {
+      "actual": "unknown",
+      "document_id": "I10-IN",
+      "document_patient": "I10",
+      "expected": "unknown",
+      "namesake_without_dob": false,
+      "own": true,
+      "profile": "I10",
+      "reason_codes": [
+        "dob_not_printed",
+        "name_initials"
+      ],
+      "source": "pdf",
+      "variant": "initials"
+    },
+    {
+      "actual": "unknown",
+      "document_id": "I10-IN",
+      "document_patient": "I10",
+      "expected": "unknown",
+      "namesake_without_dob": false,
+      "own": false,
+      "profile": "I11",
+      "reason_codes": [
+        "dob_not_printed",
+        "name_initials"
+      ],
+      "source": "pdf",
+      "variant": "initials"
+    },
+    {
+      "actual": "unknown",
+      "document_id": "I10-IN",
+      "document_patient": "I10",
+      "expected": "unknown",
+      "namesake_without_dob": false,
+      "own": false,
+      "profile": "I12",
+      "reason_codes": [
+        "dob_not_printed",
+        "name_initials"
+      ],
+      "source": "pdf",
+      "variant": "initials"
+    },
+    {
+      "actual": "unknown",
+      "document_id": "I10-FO",
+      "document_patient": "I10",
+      "expected": "unknown",
+      "namesake_without_dob": false,
+      "own": false,
+      "profile": "I09",
+      "reason_codes": [
+        "dob_not_printed",
+        "name_partial"
+      ],
+      "source": "pdf",
+      "variant": "first_only"
+    },
+    {
+      "actual": "unknown",
+      "document_id": "I10-FO",
+      "document_patient": "I10",
+      "expected": "unknown",
+      "namesake_without_dob": false,
+      "own": true,
+      "profile": "I10",
+      "reason_codes": [
+        "dob_not_printed",
+        "name_partial"
+      ],
+      "source": "pdf",
+      "variant": "first_only"
+    },
+    {
+      "actual": "unknown",
+      "document_id": "I10-FO",
+      "document_patient": "I10",
+      "expected": "unknown",
+      "namesake_without_dob": false,
+      "own": false,
+      "profile": "I11",
+      "reason_codes": [
+        "dob_not_printed",
+        "name_partial"
+      ],
+      "source": "pdf",
+      "variant": "first_only"
+    },
+    {
+      "actual": "unknown",
+      "document_id": "I10-FO",
+      "document_patient": "I10",
+      "expected": "unknown",
+      "namesake_without_dob": false,
+      "own": false,
+      "profile": "I12",
+      "reason_codes": [
+        "dob_not_printed",
+        "name_partial"
+      ],
+      "source": "pdf",
+      "variant": "first_only"
+    },
+    {
+      "actual": "unknown",
+      "document_id": "I10-NL",
+      "document_patient": "I10",
+      "expected": "unknown",
+      "namesake_without_dob": false,
+      "own": false,
+      "profile": "I09",
+      "reason_codes": [
+        "dob_not_printed",
+        "name_not_found"
+      ],
+      "source": "pdf",
+      "variant": "no_label"
+    },
+    {
+      "actual": "unknown",
+      "document_id": "I10-NL",
+      "document_patient": "I10",
+      "expected": "unknown",
+      "namesake_without_dob": false,
+      "own": true,
+      "profile": "I10",
+      "reason_codes": [
+        "dob_not_printed",
+        "name_not_found"
+      ],
+      "source": "pdf",
+      "variant": "no_label"
+    },
+    {
+      "actual": "unknown",
+      "document_id": "I10-NL",
+      "document_patient": "I10",
+      "expected": "unknown",
+      "namesake_without_dob": false,
+      "own": false,
+      "profile": "I11",
+      "reason_codes": [
+        "dob_not_printed",
+        "name_not_found"
+      ],
+      "source": "pdf",
+      "variant": "no_label"
+    },
+    {
+      "actual": "unknown",
+      "document_id": "I10-NL",
+      "document_patient": "I10",
+      "expected": "unknown",
+      "namesake_without_dob": false,
+      "own": false,
+      "profile": "I12",
+      "reason_codes": [
+        "dob_not_printed",
+        "name_not_found"
+      ],
+      "source": "pdf",
+      "variant": "no_label"
+    },
+    {
+      "actual": "unknown",
+      "document_id": "I10-TN",
+      "document_patient": "I10",
+      "expected": "unknown",
+      "namesake_without_dob": false,
+      "own": false,
+      "profile": "I09",
+      "reason_codes": [
+        "dob_not_printed",
+        "name_multiple"
+      ],
+      "source": "pdf",
+      "variant": "two_names"
+    },
+    {
+      "actual": "unknown",
+      "document_id": "I10-TN",
+      "document_patient": "I10",
+      "expected": "unknown",
+      "namesake_without_dob": false,
+      "own": true,
+      "profile": "I10",
+      "reason_codes": [
+        "dob_not_printed",
+        "name_multiple"
+      ],
+      "source": "pdf",
+      "variant": "two_names"
+    },
+    {
+      "actual": "unknown",
+      "document_id": "I10-TN",
+      "document_patient": "I10",
+      "expected": "unknown",
+      "namesake_without_dob": false,
+      "own": false,
+      "profile": "I11",
+      "reason_codes": [
+        "dob_not_printed",
+        "name_multiple"
+      ],
+      "source": "pdf",
+      "variant": "two_names"
+    },
+    {
+      "actual": "unknown",
+      "document_id": "I10-TN",
+      "document_patient": "I10",
+      "expected": "unknown",
+      "namesake_without_dob": false,
+      "own": false,
+      "profile": "I12",
+      "reason_codes": [
+        "dob_not_printed",
+        "name_multiple"
+      ],
+      "source": "pdf",
+      "variant": "two_names"
+    },
+    {
+      "actual": "unknown",
+      "document_id": "I10-UR",
+      "document_patient": "I10",
+      "expected": "unknown",
+      "namesake_without_dob": false,
+      "own": false,
+      "profile": "I09",
+      "reason_codes": [
+        "dob_not_printed",
+        "name_unreadable"
+      ],
+      "source": "pdf",
+      "variant": "unreadable"
+    },
+    {
+      "actual": "unknown",
+      "document_id": "I10-UR",
+      "document_patient": "I10",
+      "expected": "unknown",
+      "namesake_without_dob": false,
+      "own": true,
+      "profile": "I10",
+      "reason_codes": [
+        "dob_not_printed",
+        "name_unreadable"
+      ],
+      "source": "pdf",
+      "variant": "unreadable"
+    },
+    {
+      "actual": "unknown",
+      "document_id": "I10-UR",
+      "document_patient": "I10",
+      "expected": "unknown",
+      "namesake_without_dob": false,
+      "own": false,
+      "profile": "I11",
+      "reason_codes": [
+        "dob_not_printed",
+        "name_unreadable"
+      ],
+      "source": "pdf",
+      "variant": "unreadable"
+    },
+    {
+      "actual": "unknown",
+      "document_id": "I10-UR",
+      "document_patient": "I10",
+      "expected": "unknown",
+      "namesake_without_dob": false,
+      "own": false,
+      "profile": "I12",
+      "reason_codes": [
+        "dob_not_printed",
+        "name_unreadable"
+      ],
+      "source": "pdf",
+      "variant": "unreadable"
+    },
+    {
+      "actual": "unknown",
+      "document_id": "I10-FF",
+      "document_patient": "I10",
+      "expected": "unknown",
+      "namesake_without_dob": false,
+      "own": false,
+      "profile": "I09",
+      "reason_codes": [
+        "dob_not_printed",
+        "name_unreadable"
+      ],
+      "source": "text",
+      "variant": "fffd"
+    },
+    {
+      "actual": "unknown",
+      "document_id": "I10-FF",
+      "document_patient": "I10",
+      "expected": "unknown",
+      "namesake_without_dob": false,
+      "own": true,
+      "profile": "I10",
+      "reason_codes": [
+        "dob_not_printed",
+        "name_unreadable"
+      ],
+      "source": "text",
+      "variant": "fffd"
+    },
+    {
+      "actual": "unknown",
+      "document_id": "I10-FF",
+      "document_patient": "I10",
+      "expected": "unknown",
+      "namesake_without_dob": false,
+      "own": false,
+      "profile": "I11",
+      "reason_codes": [
+        "dob_not_printed",
+        "name_unreadable"
+      ],
+      "source": "text",
+      "variant": "fffd"
+    },
+    {
+      "actual": "unknown",
+      "document_id": "I10-FF",
+      "document_patient": "I10",
+      "expected": "unknown",
+      "namesake_without_dob": false,
+      "own": false,
+      "profile": "I12",
+      "reason_codes": [
+        "dob_not_printed",
+        "name_unreadable"
+      ],
+      "source": "text",
+      "variant": "fffd"
+    },
+    {
+      "actual": "mismatch",
+      "document_id": "I11-LH",
+      "document_patient": "I11",
+      "expected": "mismatch",
+      "namesake_without_dob": false,
+      "own": false,
+      "profile": "I09",
+      "reason_codes": [
+        "dob_not_printed",
+        "name_mismatch"
+      ],
+      "source": "pdf",
+      "variant": "lab_header"
+    },
+    {
+      "actual": "mismatch",
+      "document_id": "I11-LH",
+      "document_patient": "I11",
+      "expected": "mismatch",
+      "namesake_without_dob": false,
+      "own": false,
+      "profile": "I10",
+      "reason_codes": [
+        "dob_not_printed",
+        "name_mismatch"
+      ],
+      "source": "pdf",
+      "variant": "lab_header"
+    },
+    {
+      "actual": "match",
+      "document_id": "I11-LH",
+      "document_patient": "I11",
+      "expected": "match",
+      "namesake_without_dob": false,
+      "own": true,
+      "profile": "I11",
+      "reason_codes": [
+        "dob_not_printed",
+        "name_match"
+      ],
+      "source": "pdf",
+      "variant": "lab_header"
+    },
+    {
+      "actual": "mismatch",
+      "document_id": "I11-LH",
+      "document_patient": "I11",
+      "expected": "mismatch",
+      "namesake_without_dob": false,
+      "own": false,
+      "profile": "I12",
+      "reason_codes": [
+        "dob_not_printed",
+        "name_mismatch"
+      ],
+      "source": "pdf",
+      "variant": "lab_header"
+    },
+    {
+      "actual": "mismatch",
+      "document_id": "I11-RO",
+      "document_patient": "I11",
+      "expected": "mismatch",
+      "namesake_without_dob": false,
+      "own": false,
+      "profile": "I09",
+      "reason_codes": [
+        "dob_not_printed",
+        "name_mismatch"
+      ],
+      "source": "pdf",
+      "variant": "reordered"
+    },
+    {
+      "actual": "mismatch",
+      "document_id": "I11-RO",
+      "document_patient": "I11",
+      "expected": "mismatch",
+      "namesake_without_dob": false,
+      "own": false,
+      "profile": "I10",
+      "reason_codes": [
+        "dob_not_printed",
+        "name_mismatch"
+      ],
+      "source": "pdf",
+      "variant": "reordered"
+    },
+    {
+      "actual": "match",
+      "document_id": "I11-RO",
+      "document_patient": "I11",
+      "expected": "match",
+      "namesake_without_dob": false,
+      "own": true,
+      "profile": "I11",
+      "reason_codes": [
+        "dob_not_printed",
+        "name_match"
+      ],
+      "source": "pdf",
+      "variant": "reordered"
+    },
+    {
+      "actual": "mismatch",
+      "document_id": "I11-RO",
+      "document_patient": "I11",
+      "expected": "mismatch",
+      "namesake_without_dob": false,
+      "own": false,
+      "profile": "I12",
+      "reason_codes": [
+        "dob_not_printed",
+        "name_mismatch"
+      ],
+      "source": "pdf",
+      "variant": "reordered"
+    },
+    {
+      "actual": "mismatch",
+      "document_id": "I11-DN",
+      "document_patient": "I11",
+      "expected": "mismatch",
+      "namesake_without_dob": false,
+      "own": false,
+      "profile": "I09",
+      "reason_codes": [
+        "dob_mismatch",
+        "name_mismatch"
+      ],
+      "source": "pdf",
+      "variant": "dob_named"
+    },
+    {
+      "actual": "mismatch",
+      "document_id": "I11-DN",
+      "document_patient": "I11",
+      "expected": "mismatch",
+      "namesake_without_dob": false,
+      "own": false,
+      "profile": "I10",
+      "reason_codes": [
+        "dob_mismatch",
+        "name_mismatch"
+      ],
+      "source": "pdf",
+      "variant": "dob_named"
+    },
+    {
+      "actual": "match",
+      "document_id": "I11-DN",
+      "document_patient": "I11",
+      "expected": "match",
+      "namesake_without_dob": false,
+      "own": true,
+      "profile": "I11",
+      "reason_codes": [
+        "dob_match",
+        "name_match"
+      ],
+      "source": "pdf",
+      "variant": "dob_named"
+    },
+    {
+      "actual": "mismatch",
+      "document_id": "I11-DN",
+      "document_patient": "I11",
+      "expected": "mismatch",
+      "namesake_without_dob": false,
+      "own": false,
+      "profile": "I12",
+      "reason_codes": [
+        "dob_mismatch",
+        "name_mismatch"
+      ],
+      "source": "pdf",
+      "variant": "dob_named"
+    },
+    {
+      "actual": "mismatch",
+      "document_id": "I11-DD",
+      "document_patient": "I11",
+      "expected": "mismatch",
+      "namesake_without_dob": false,
+      "own": false,
+      "profile": "I09",
+      "reason_codes": [
+        "dob_mismatch",
+        "name_mismatch"
+      ],
+      "source": "pdf",
+      "variant": "dob_numeric"
+    },
+    {
+      "actual": "mismatch",
+      "document_id": "I11-DD",
+      "document_patient": "I11",
+      "expected": "mismatch",
+      "namesake_without_dob": false,
+      "own": false,
+      "profile": "I10",
+      "reason_codes": [
+        "dob_mismatch",
+        "name_mismatch"
+      ],
+      "source": "pdf",
+      "variant": "dob_numeric"
+    },
+    {
+      "actual": "match",
+      "document_id": "I11-DD",
+      "document_patient": "I11",
+      "expected": "match",
+      "namesake_without_dob": false,
+      "own": true,
+      "profile": "I11",
+      "reason_codes": [
+        "dob_match",
+        "name_match"
+      ],
+      "source": "pdf",
+      "variant": "dob_numeric"
+    },
+    {
+      "actual": "mismatch",
+      "document_id": "I11-DD",
+      "document_patient": "I11",
+      "expected": "mismatch",
+      "namesake_without_dob": false,
+      "own": false,
+      "profile": "I12",
+      "reason_codes": [
+        "dob_mismatch",
+        "name_mismatch"
+      ],
+      "source": "pdf",
+      "variant": "dob_numeric"
+    },
+    {
+      "actual": "unknown",
+      "document_id": "I11-IN",
+      "document_patient": "I11",
+      "expected": "unknown",
+      "namesake_without_dob": false,
+      "own": false,
+      "profile": "I09",
+      "reason_codes": [
+        "dob_not_printed",
+        "name_initials"
+      ],
+      "source": "pdf",
+      "variant": "initials"
+    },
+    {
+      "actual": "unknown",
+      "document_id": "I11-IN",
+      "document_patient": "I11",
+      "expected": "unknown",
+      "namesake_without_dob": false,
+      "own": false,
+      "profile": "I10",
+      "reason_codes": [
+        "dob_not_printed",
+        "name_initials"
+      ],
+      "source": "pdf",
+      "variant": "initials"
+    },
+    {
+      "actual": "unknown",
+      "document_id": "I11-IN",
+      "document_patient": "I11",
+      "expected": "unknown",
+      "namesake_without_dob": false,
+      "own": true,
+      "profile": "I11",
+      "reason_codes": [
+        "dob_not_printed",
+        "name_initials"
+      ],
+      "source": "pdf",
+      "variant": "initials"
+    },
+    {
+      "actual": "unknown",
+      "document_id": "I11-IN",
+      "document_patient": "I11",
+      "expected": "unknown",
+      "namesake_without_dob": false,
+      "own": false,
+      "profile": "I12",
+      "reason_codes": [
+        "dob_not_printed",
+        "name_initials"
+      ],
+      "source": "pdf",
+      "variant": "initials"
+    },
+    {
+      "actual": "unknown",
+      "document_id": "I11-FO",
+      "document_patient": "I11",
+      "expected": "unknown",
+      "namesake_without_dob": false,
+      "own": false,
+      "profile": "I09",
+      "reason_codes": [
+        "dob_not_printed",
+        "name_partial"
+      ],
+      "source": "pdf",
+      "variant": "first_only"
+    },
+    {
+      "actual": "unknown",
+      "document_id": "I11-FO",
+      "document_patient": "I11",
+      "expected": "unknown",
+      "namesake_without_dob": false,
+      "own": false,
+      "profile": "I10",
+      "reason_codes": [
+        "dob_not_printed",
+        "name_partial"
+      ],
+      "source": "pdf",
+      "variant": "first_only"
+    },
+    {
+      "actual": "unknown",
+      "document_id": "I11-FO",
+      "document_patient": "I11",
+      "expected": "unknown",
+      "namesake_without_dob": false,
+      "own": true,
+      "profile": "I11",
+      "reason_codes": [
+        "dob_not_printed",
+        "name_partial"
+      ],
+      "source": "pdf",
+      "variant": "first_only"
+    },
+    {
+      "actual": "unknown",
+      "document_id": "I11-FO",
+      "document_patient": "I11",
+      "expected": "unknown",
+      "namesake_without_dob": false,
+      "own": false,
+      "profile": "I12",
+      "reason_codes": [
+        "dob_not_printed",
+        "name_partial"
+      ],
+      "source": "pdf",
+      "variant": "first_only"
+    },
+    {
+      "actual": "unknown",
+      "document_id": "I11-NL",
+      "document_patient": "I11",
+      "expected": "unknown",
+      "namesake_without_dob": false,
+      "own": false,
+      "profile": "I09",
+      "reason_codes": [
+        "dob_not_printed",
+        "name_not_found"
+      ],
+      "source": "pdf",
+      "variant": "no_label"
+    },
+    {
+      "actual": "unknown",
+      "document_id": "I11-NL",
+      "document_patient": "I11",
+      "expected": "unknown",
+      "namesake_without_dob": false,
+      "own": false,
+      "profile": "I10",
+      "reason_codes": [
+        "dob_not_printed",
+        "name_not_found"
+      ],
+      "source": "pdf",
+      "variant": "no_label"
+    },
+    {
+      "actual": "unknown",
+      "document_id": "I11-NL",
+      "document_patient": "I11",
+      "expected": "unknown",
+      "namesake_without_dob": false,
+      "own": true,
+      "profile": "I11",
+      "reason_codes": [
+        "dob_not_printed",
+        "name_not_found"
+      ],
+      "source": "pdf",
+      "variant": "no_label"
+    },
+    {
+      "actual": "unknown",
+      "document_id": "I11-NL",
+      "document_patient": "I11",
+      "expected": "unknown",
+      "namesake_without_dob": false,
+      "own": false,
+      "profile": "I12",
+      "reason_codes": [
+        "dob_not_printed",
+        "name_not_found"
+      ],
+      "source": "pdf",
+      "variant": "no_label"
+    },
+    {
+      "actual": "unknown",
+      "document_id": "I11-TN",
+      "document_patient": "I11",
+      "expected": "unknown",
+      "namesake_without_dob": false,
+      "own": false,
+      "profile": "I09",
+      "reason_codes": [
+        "dob_not_printed",
+        "name_multiple"
+      ],
+      "source": "pdf",
+      "variant": "two_names"
+    },
+    {
+      "actual": "unknown",
+      "document_id": "I11-TN",
+      "document_patient": "I11",
+      "expected": "unknown",
+      "namesake_without_dob": false,
+      "own": false,
+      "profile": "I10",
+      "reason_codes": [
+        "dob_not_printed",
+        "name_multiple"
+      ],
+      "source": "pdf",
+      "variant": "two_names"
+    },
+    {
+      "actual": "unknown",
+      "document_id": "I11-TN",
+      "document_patient": "I11",
+      "expected": "unknown",
+      "namesake_without_dob": false,
+      "own": true,
+      "profile": "I11",
+      "reason_codes": [
+        "dob_not_printed",
+        "name_multiple"
+      ],
+      "source": "pdf",
+      "variant": "two_names"
+    },
+    {
+      "actual": "unknown",
+      "document_id": "I11-TN",
+      "document_patient": "I11",
+      "expected": "unknown",
+      "namesake_without_dob": false,
+      "own": false,
+      "profile": "I12",
+      "reason_codes": [
+        "dob_not_printed",
+        "name_multiple"
+      ],
+      "source": "pdf",
+      "variant": "two_names"
+    },
+    {
+      "actual": "unknown",
+      "document_id": "I11-UR",
+      "document_patient": "I11",
+      "expected": "unknown",
+      "namesake_without_dob": false,
+      "own": false,
+      "profile": "I09",
+      "reason_codes": [
+        "dob_not_printed",
+        "name_unreadable"
+      ],
+      "source": "pdf",
+      "variant": "unreadable"
+    },
+    {
+      "actual": "unknown",
+      "document_id": "I11-UR",
+      "document_patient": "I11",
+      "expected": "unknown",
+      "namesake_without_dob": false,
+      "own": false,
+      "profile": "I10",
+      "reason_codes": [
+        "dob_not_printed",
+        "name_unreadable"
+      ],
+      "source": "pdf",
+      "variant": "unreadable"
+    },
+    {
+      "actual": "unknown",
+      "document_id": "I11-UR",
+      "document_patient": "I11",
+      "expected": "unknown",
+      "namesake_without_dob": false,
+      "own": true,
+      "profile": "I11",
+      "reason_codes": [
+        "dob_not_printed",
+        "name_unreadable"
+      ],
+      "source": "pdf",
+      "variant": "unreadable"
+    },
+    {
+      "actual": "unknown",
+      "document_id": "I11-UR",
+      "document_patient": "I11",
+      "expected": "unknown",
+      "namesake_without_dob": false,
+      "own": false,
+      "profile": "I12",
+      "reason_codes": [
+        "dob_not_printed",
+        "name_unreadable"
+      ],
+      "source": "pdf",
+      "variant": "unreadable"
+    },
+    {
+      "actual": "unknown",
+      "document_id": "I11-FF",
+      "document_patient": "I11",
+      "expected": "unknown",
+      "namesake_without_dob": false,
+      "own": false,
+      "profile": "I09",
+      "reason_codes": [
+        "dob_not_printed",
+        "name_unreadable"
+      ],
+      "source": "text",
+      "variant": "fffd"
+    },
+    {
+      "actual": "unknown",
+      "document_id": "I11-FF",
+      "document_patient": "I11",
+      "expected": "unknown",
+      "namesake_without_dob": false,
+      "own": false,
+      "profile": "I10",
+      "reason_codes": [
+        "dob_not_printed",
+        "name_unreadable"
+      ],
+      "source": "text",
+      "variant": "fffd"
+    },
+    {
+      "actual": "unknown",
+      "document_id": "I11-FF",
+      "document_patient": "I11",
+      "expected": "unknown",
+      "namesake_without_dob": false,
+      "own": true,
+      "profile": "I11",
+      "reason_codes": [
+        "dob_not_printed",
+        "name_unreadable"
+      ],
+      "source": "text",
+      "variant": "fffd"
+    },
+    {
+      "actual": "unknown",
+      "document_id": "I11-FF",
+      "document_patient": "I11",
+      "expected": "unknown",
+      "namesake_without_dob": false,
+      "own": false,
+      "profile": "I12",
+      "reason_codes": [
+        "dob_not_printed",
+        "name_unreadable"
+      ],
+      "source": "text",
+      "variant": "fffd"
+    },
+    {
+      "actual": "mismatch",
+      "document_id": "I12-LH",
+      "document_patient": "I12",
+      "expected": "mismatch",
+      "namesake_without_dob": false,
+      "own": false,
+      "profile": "I09",
+      "reason_codes": [
+        "dob_not_printed",
+        "name_mismatch"
+      ],
+      "source": "pdf",
+      "variant": "lab_header"
+    },
+    {
+      "actual": "mismatch",
+      "document_id": "I12-LH",
+      "document_patient": "I12",
+      "expected": "mismatch",
+      "namesake_without_dob": false,
+      "own": false,
+      "profile": "I10",
+      "reason_codes": [
+        "dob_not_printed",
+        "name_mismatch"
+      ],
+      "source": "pdf",
+      "variant": "lab_header"
+    },
+    {
+      "actual": "mismatch",
+      "document_id": "I12-LH",
+      "document_patient": "I12",
+      "expected": "mismatch",
+      "namesake_without_dob": false,
+      "own": false,
+      "profile": "I11",
+      "reason_codes": [
+        "dob_not_printed",
+        "name_mismatch"
+      ],
+      "source": "pdf",
+      "variant": "lab_header"
+    },
+    {
+      "actual": "match",
+      "document_id": "I12-LH",
+      "document_patient": "I12",
+      "expected": "match",
+      "namesake_without_dob": false,
+      "own": true,
+      "profile": "I12",
+      "reason_codes": [
+        "dob_not_printed",
+        "name_match"
+      ],
+      "source": "pdf",
+      "variant": "lab_header"
+    },
+    {
+      "actual": "mismatch",
+      "document_id": "I12-RO",
+      "document_patient": "I12",
+      "expected": "mismatch",
+      "namesake_without_dob": false,
+      "own": false,
+      "profile": "I09",
+      "reason_codes": [
+        "dob_not_printed",
+        "name_mismatch"
+      ],
+      "source": "pdf",
+      "variant": "reordered"
+    },
+    {
+      "actual": "mismatch",
+      "document_id": "I12-RO",
+      "document_patient": "I12",
+      "expected": "mismatch",
+      "namesake_without_dob": false,
+      "own": false,
+      "profile": "I10",
+      "reason_codes": [
+        "dob_not_printed",
+        "name_mismatch"
+      ],
+      "source": "pdf",
+      "variant": "reordered"
+    },
+    {
+      "actual": "mismatch",
+      "document_id": "I12-RO",
+      "document_patient": "I12",
+      "expected": "mismatch",
+      "namesake_without_dob": false,
+      "own": false,
+      "profile": "I11",
+      "reason_codes": [
+        "dob_not_printed",
+        "name_mismatch"
+      ],
+      "source": "pdf",
+      "variant": "reordered"
+    },
+    {
+      "actual": "match",
+      "document_id": "I12-RO",
+      "document_patient": "I12",
+      "expected": "match",
+      "namesake_without_dob": false,
+      "own": true,
+      "profile": "I12",
+      "reason_codes": [
+        "dob_not_printed",
+        "name_match"
+      ],
+      "source": "pdf",
+      "variant": "reordered"
+    },
+    {
+      "actual": "mismatch",
+      "document_id": "I12-DN",
+      "document_patient": "I12",
+      "expected": "mismatch",
+      "namesake_without_dob": false,
+      "own": false,
+      "profile": "I09",
+      "reason_codes": [
+        "dob_mismatch",
+        "name_mismatch"
+      ],
+      "source": "pdf",
+      "variant": "dob_named"
+    },
+    {
+      "actual": "mismatch",
+      "document_id": "I12-DN",
+      "document_patient": "I12",
+      "expected": "mismatch",
+      "namesake_without_dob": false,
+      "own": false,
+      "profile": "I10",
+      "reason_codes": [
+        "dob_mismatch",
+        "name_mismatch"
+      ],
+      "source": "pdf",
+      "variant": "dob_named"
+    },
+    {
+      "actual": "mismatch",
+      "document_id": "I12-DN",
+      "document_patient": "I12",
+      "expected": "mismatch",
+      "namesake_without_dob": false,
+      "own": false,
+      "profile": "I11",
+      "reason_codes": [
+        "dob_mismatch",
+        "name_mismatch"
+      ],
+      "source": "pdf",
+      "variant": "dob_named"
+    },
+    {
+      "actual": "match",
+      "document_id": "I12-DN",
+      "document_patient": "I12",
+      "expected": "match",
+      "namesake_without_dob": false,
+      "own": true,
+      "profile": "I12",
+      "reason_codes": [
+        "dob_match",
+        "name_match"
+      ],
+      "source": "pdf",
+      "variant": "dob_named"
+    },
+    {
+      "actual": "mismatch",
+      "document_id": "I12-DD",
+      "document_patient": "I12",
+      "expected": "mismatch",
+      "namesake_without_dob": false,
+      "own": false,
+      "profile": "I09",
+      "reason_codes": [
+        "dob_mismatch",
+        "name_mismatch"
+      ],
+      "source": "pdf",
+      "variant": "dob_numeric"
+    },
+    {
+      "actual": "mismatch",
+      "document_id": "I12-DD",
+      "document_patient": "I12",
+      "expected": "mismatch",
+      "namesake_without_dob": false,
+      "own": false,
+      "profile": "I10",
+      "reason_codes": [
+        "dob_mismatch",
+        "name_mismatch"
+      ],
+      "source": "pdf",
+      "variant": "dob_numeric"
+    },
+    {
+      "actual": "mismatch",
+      "document_id": "I12-DD",
+      "document_patient": "I12",
+      "expected": "mismatch",
+      "namesake_without_dob": false,
+      "own": false,
+      "profile": "I11",
+      "reason_codes": [
+        "dob_mismatch",
+        "name_mismatch"
+      ],
+      "source": "pdf",
+      "variant": "dob_numeric"
+    },
+    {
+      "actual": "match",
+      "document_id": "I12-DD",
+      "document_patient": "I12",
+      "expected": "match",
+      "namesake_without_dob": false,
+      "own": true,
+      "profile": "I12",
+      "reason_codes": [
+        "dob_match",
+        "name_match"
+      ],
+      "source": "pdf",
+      "variant": "dob_numeric"
+    },
+    {
+      "actual": "unknown",
+      "document_id": "I12-IN",
+      "document_patient": "I12",
+      "expected": "unknown",
+      "namesake_without_dob": false,
+      "own": false,
+      "profile": "I09",
+      "reason_codes": [
+        "dob_not_printed",
+        "name_initials"
+      ],
+      "source": "pdf",
+      "variant": "initials"
+    },
+    {
+      "actual": "unknown",
+      "document_id": "I12-IN",
+      "document_patient": "I12",
+      "expected": "unknown",
+      "namesake_without_dob": false,
+      "own": false,
+      "profile": "I10",
+      "reason_codes": [
+        "dob_not_printed",
+        "name_initials"
+      ],
+      "source": "pdf",
+      "variant": "initials"
+    },
+    {
+      "actual": "unknown",
+      "document_id": "I12-IN",
+      "document_patient": "I12",
+      "expected": "unknown",
+      "namesake_without_dob": false,
+      "own": false,
+      "profile": "I11",
+      "reason_codes": [
+        "dob_not_printed",
+        "name_initials"
+      ],
+      "source": "pdf",
+      "variant": "initials"
+    },
+    {
+      "actual": "unknown",
+      "document_id": "I12-IN",
+      "document_patient": "I12",
+      "expected": "unknown",
+      "namesake_without_dob": false,
+      "own": true,
+      "profile": "I12",
+      "reason_codes": [
+        "dob_not_printed",
+        "name_initials"
+      ],
+      "source": "pdf",
+      "variant": "initials"
+    },
+    {
+      "actual": "unknown",
+      "document_id": "I12-FO",
+      "document_patient": "I12",
+      "expected": "unknown",
+      "namesake_without_dob": false,
+      "own": false,
+      "profile": "I09",
+      "reason_codes": [
+        "dob_not_printed",
+        "name_partial"
+      ],
+      "source": "pdf",
+      "variant": "first_only"
+    },
+    {
+      "actual": "unknown",
+      "document_id": "I12-FO",
+      "document_patient": "I12",
+      "expected": "unknown",
+      "namesake_without_dob": false,
+      "own": false,
+      "profile": "I10",
+      "reason_codes": [
+        "dob_not_printed",
+        "name_partial"
+      ],
+      "source": "pdf",
+      "variant": "first_only"
+    },
+    {
+      "actual": "unknown",
+      "document_id": "I12-FO",
+      "document_patient": "I12",
+      "expected": "unknown",
+      "namesake_without_dob": false,
+      "own": false,
+      "profile": "I11",
+      "reason_codes": [
+        "dob_not_printed",
+        "name_partial"
+      ],
+      "source": "pdf",
+      "variant": "first_only"
+    },
+    {
+      "actual": "unknown",
+      "document_id": "I12-FO",
+      "document_patient": "I12",
+      "expected": "unknown",
+      "namesake_without_dob": false,
+      "own": true,
+      "profile": "I12",
+      "reason_codes": [
+        "dob_not_printed",
+        "name_partial"
+      ],
+      "source": "pdf",
+      "variant": "first_only"
+    },
+    {
+      "actual": "unknown",
+      "document_id": "I12-NL",
+      "document_patient": "I12",
+      "expected": "unknown",
+      "namesake_without_dob": false,
+      "own": false,
+      "profile": "I09",
+      "reason_codes": [
+        "dob_not_printed",
+        "name_not_found"
+      ],
+      "source": "pdf",
+      "variant": "no_label"
+    },
+    {
+      "actual": "unknown",
+      "document_id": "I12-NL",
+      "document_patient": "I12",
+      "expected": "unknown",
+      "namesake_without_dob": false,
+      "own": false,
+      "profile": "I10",
+      "reason_codes": [
+        "dob_not_printed",
+        "name_not_found"
+      ],
+      "source": "pdf",
+      "variant": "no_label"
+    },
+    {
+      "actual": "unknown",
+      "document_id": "I12-NL",
+      "document_patient": "I12",
+      "expected": "unknown",
+      "namesake_without_dob": false,
+      "own": false,
+      "profile": "I11",
+      "reason_codes": [
+        "dob_not_printed",
+        "name_not_found"
+      ],
+      "source": "pdf",
+      "variant": "no_label"
+    },
+    {
+      "actual": "unknown",
+      "document_id": "I12-NL",
+      "document_patient": "I12",
+      "expected": "unknown",
+      "namesake_without_dob": false,
+      "own": true,
+      "profile": "I12",
+      "reason_codes": [
+        "dob_not_printed",
+        "name_not_found"
+      ],
+      "source": "pdf",
+      "variant": "no_label"
+    },
+    {
+      "actual": "unknown",
+      "document_id": "I12-TN",
+      "document_patient": "I12",
+      "expected": "unknown",
+      "namesake_without_dob": false,
+      "own": false,
+      "profile": "I09",
+      "reason_codes": [
+        "dob_not_printed",
+        "name_multiple"
+      ],
+      "source": "pdf",
+      "variant": "two_names"
+    },
+    {
+      "actual": "unknown",
+      "document_id": "I12-TN",
+      "document_patient": "I12",
+      "expected": "unknown",
+      "namesake_without_dob": false,
+      "own": false,
+      "profile": "I10",
+      "reason_codes": [
+        "dob_not_printed",
+        "name_multiple"
+      ],
+      "source": "pdf",
+      "variant": "two_names"
+    },
+    {
+      "actual": "unknown",
+      "document_id": "I12-TN",
+      "document_patient": "I12",
+      "expected": "unknown",
+      "namesake_without_dob": false,
+      "own": false,
+      "profile": "I11",
+      "reason_codes": [
+        "dob_not_printed",
+        "name_multiple"
+      ],
+      "source": "pdf",
+      "variant": "two_names"
+    },
+    {
+      "actual": "unknown",
+      "document_id": "I12-TN",
+      "document_patient": "I12",
+      "expected": "unknown",
+      "namesake_without_dob": false,
+      "own": true,
+      "profile": "I12",
+      "reason_codes": [
+        "dob_not_printed",
+        "name_multiple"
+      ],
+      "source": "pdf",
+      "variant": "two_names"
+    },
+    {
+      "actual": "unknown",
+      "document_id": "I12-UR",
+      "document_patient": "I12",
+      "expected": "unknown",
+      "namesake_without_dob": false,
+      "own": false,
+      "profile": "I09",
+      "reason_codes": [
+        "dob_not_printed",
+        "name_unreadable"
+      ],
+      "source": "pdf",
+      "variant": "unreadable"
+    },
+    {
+      "actual": "unknown",
+      "document_id": "I12-UR",
+      "document_patient": "I12",
+      "expected": "unknown",
+      "namesake_without_dob": false,
+      "own": false,
+      "profile": "I10",
+      "reason_codes": [
+        "dob_not_printed",
+        "name_unreadable"
+      ],
+      "source": "pdf",
+      "variant": "unreadable"
+    },
+    {
+      "actual": "unknown",
+      "document_id": "I12-UR",
+      "document_patient": "I12",
+      "expected": "unknown",
+      "namesake_without_dob": false,
+      "own": false,
+      "profile": "I11",
+      "reason_codes": [
+        "dob_not_printed",
+        "name_unreadable"
+      ],
+      "source": "pdf",
+      "variant": "unreadable"
+    },
+    {
+      "actual": "unknown",
+      "document_id": "I12-UR",
+      "document_patient": "I12",
+      "expected": "unknown",
+      "namesake_without_dob": false,
+      "own": true,
+      "profile": "I12",
+      "reason_codes": [
+        "dob_not_printed",
+        "name_unreadable"
+      ],
+      "source": "pdf",
+      "variant": "unreadable"
+    },
+    {
+      "actual": "unknown",
+      "document_id": "I12-FF",
+      "document_patient": "I12",
+      "expected": "unknown",
+      "namesake_without_dob": false,
+      "own": false,
+      "profile": "I09",
+      "reason_codes": [
+        "dob_not_printed",
+        "name_unreadable"
+      ],
+      "source": "text",
+      "variant": "fffd"
+    },
+    {
+      "actual": "unknown",
+      "document_id": "I12-FF",
+      "document_patient": "I12",
+      "expected": "unknown",
+      "namesake_without_dob": false,
+      "own": false,
+      "profile": "I10",
+      "reason_codes": [
+        "dob_not_printed",
+        "name_unreadable"
+      ],
+      "source": "text",
+      "variant": "fffd"
+    },
+    {
+      "actual": "unknown",
+      "document_id": "I12-FF",
+      "document_patient": "I12",
+      "expected": "unknown",
+      "namesake_without_dob": false,
+      "own": false,
+      "profile": "I11",
+      "reason_codes": [
+        "dob_not_printed",
+        "name_unreadable"
+      ],
+      "source": "text",
+      "variant": "fffd"
+    },
+    {
+      "actual": "unknown",
+      "document_id": "I12-FF",
+      "document_patient": "I12",
+      "expected": "unknown",
+      "namesake_without_dob": false,
+      "own": true,
+      "profile": "I12",
+      "reason_codes": [
+        "dob_not_printed",
+        "name_unreadable"
+      ],
+      "source": "text",
+      "variant": "fffd"
+    }
+  ],
+  "rules_version": "2",
+  "split": "heldout"
+}

@@ -1,0 +1,235 @@
+{
+  "dataset": "lab_v0",
+  "files": {
+    "ground_truth.json": {
+      "sha256": "254c4f0d9304a92089cb8f4365ce70ef4e98a38fe473de48f832dfc59a4a557a",
+      "size": 199256
+    },
+    "pdfs/P01-R01.pdf": {
+      "sha256": "92ef6d07c46cf7f209acb5ea49fa0ee9b44045e0fae1d9823c5a86c40a70d2e2",
+      "size": 4012
+    },
+    "pdfs/P01-R02.pdf": {
+      "sha256": "5ca1f5f852ec3c50123e148aebd64e6d6feedb8b08082a757835f2395d2971ec",
+      "size": 3602
+    },
+    "pdfs/P01-R03.pdf": {
+      "sha256": "3f6c8adcfc65dba09cbec2150341a514ee47857cff3fded4173d13e69b6e2006",
+      "size": 3621
+    },
+    "pdfs/P01-R04.pdf": {
+      "sha256": "3464509aca0d06ab12e1fbba60cdf29671bbbbba8e7cf5ed0038556d3b683cc6",
+      "size": 3703
+    },
+    "pdfs/P01-R05.pdf": {
+      "sha256": "1505c3a4142f4cbc29647ebb0e30e5cc2db16963513ac4314cdda4e2ab46881a",
+      "size": 3741
+    },
+    "pdfs/P02-R01.pdf": {
+      "sha256": "a667d0e52b38675184529d8e63be02f4cc6fe27700c3bdfeffb47a6bc5e4c96f",
+      "size": 4222
+    },
+    "pdfs/P02-R02.pdf": {
+      "sha256": "5a41241a7cd04374aaa88cc25bd393d294a6ca4226187cb800f241050bb09262",
+      "size": 2669
+    },
+    "pdfs/P02-R03.pdf": {
+      "sha256": "a34d6f124d1bee3ef71f63b82cf42e0e637d9ff528b718f16dd7633189a14ac5",
+      "size": 3598
+    },
+    "pdfs/P02-R04.pdf": {
+      "sha256": "78a4e6f2d7cffbc1b27049fc3b8be321a1e1706c359bdb0b4f582ada75eca591",
+      "size": 4252
+    },
+    "pdfs/P03-R01.pdf": {
+      "sha256": "5b1ed98c47df878192a2c588a8bddff8c425b433be3e402ef6f7ffdf67da100e",
+      "size": 3365
+    },
+    "pdfs/P03-R02.pdf": {
+      "sha256": "7d8ba3c045d45f85b99f847ac37efaf671bdb0f658396bac01477af84613a63d",
+      "size": 2370
+    },
+    "pdfs/P03-R03.pdf": {
+      "sha256": "525503fa590cbc569b6c93c8ad35fb3aa7828fcb206b6b1293be2f9b868dd0f5",
+      "size": 2668
+    },
+    "pdfs/P03-R04.pdf": {
+      "sha256": "bb2b020a620edf81ebcc13a75d68abb67ee72ac3223e524dacd8db881d8f08bb",
+      "size": 3759
+    },
+    "pdfs/P04-R01.pdf": {
+      "sha256": "a8e5ec22da19ee1d5b5e1f3e8b6454065a3fad9c610518c1524ed9cb52518a8e",
+      "size": 2578
+    },
+    "pdfs/P04-R02.pdf": {
+      "sha256": "826d384c148e66f6e17faae2a1c92d69ef02a5c93ba4efebfbda32d052d6cb51",
+      "size": 3371
+    },
+    "pdfs/P04-R03.pdf": {
+      "sha256": "b02474856d423ddcddf2e0147029c2dc914cd9d72bda6bce410999a783808ef6",
+      "size": 2388
+    },
+    "pdfs/P04-R04.pdf": {
+      "sha256": "cdaf8c72d25f307147ab2bc53585337a141976bc1b5d419f55dc878acda40ece",
+      "size": 3360
+    },
+    "pdfs/P04-R05.pdf": {
+      "sha256": "3fb4dffdbbde9096a356ee0a773a70b8fe0088fcfe1e85f14d91222b266b409b",
+      "size": 2378
+    },
+    "pdfs/P05-R01.pdf": {
+      "sha256": "d1a180fc8b9137cce107032b4592f3c542a510d86dcc8c07078394963d884958",
+      "size": 2338
+    },
+    "pdfs/P05-R02.pdf": {
+      "sha256": "0f9c964110d416d63848e3f7b51882494f5b4e0828392a6a9068610226f809c2",
+      "size": 3677
+    },
+    "pdfs/P05-R03.pdf": {
+      "sha256": "a620c15d304e5210fb592a1cf199fe763acf89ed46308c639cf43f5fab75d30e",
+      "size": 2671
+    },
+    "pdfs/P06-R01.pdf": {
+      "sha256": "c0a0da94033dcc74d230196683b7ff9735039ffd0663a4f465d756c31933778f",
+      "size": 3680
+    },
+    "pdfs/P06-R02.pdf": {
+      "sha256": "c32b153770b529d787bf2f3597dfec8e8cab88abb11b78dcd855b9d80e6a08fe",
+      "size": 2412
+    },
+    "pdfs/P06-R03.pdf": {
+      "sha256": "e9cd2427637d94e9c25ba30cb12fb49b48ba02ff3c74fd70b790432cf7204b07",
+      "size": 3457
+    },
+    "pdfs/P06-R04.pdf": {
+      "sha256": "0afc85c33347da212fe77ad20fc469b4ed2422cd01396154e187ab3ded4c7b8a",
+      "size": 3686
+    },
+    "pdfs/P06-R05.pdf": {
+      "sha256": "c4d13c3acd51a3d8a2f310eb9ad7ed4f24113ec40c9f67a05beed4087a62c7b3",
+      "size": 3791
+    },
+    "pdfs/P07-R01.pdf": {
+      "sha256": "7cc6afa62480a4226e97546424e8ffa6dbef075f7db478c72ae8d6a8f442caa0",
+      "size": 3817
+    },
+    "pdfs/P07-R02.pdf": {
+      "sha256": "390a38e206bf3df57b9b964461e602fbf603151193d78fbf8b798d9bd4a9fbb3",
+      "size": 4254
+    },
+    "pdfs/P07-R03.pdf": {
+      "sha256": "75f55a223e5eb5e6b52ff82f877449fb3d1a777f3e5f6be5d93076586e24d2bd",
+      "size": 3705
+    },
+    "pdfs/P07-R04.pdf": {
+      "sha256": "c82ce61791d40c5a6a6212dc3efc0d9f80466a73eecf4c31b783c4fc68f75b45",
+      "size": 3603
+    },
+    "pdfs/P08-R01.pdf": {
+      "sha256": "f7f0ced5db3e4bf3fe1954dc79e5f10d6d78ebdfb6422c7b481cebff67729073",
+      "size": 3954
+    },
+    "pdfs/P08-R02.pdf": {
+      "sha256": "e7e196462a3df41c5401ba117c63f4efbba74f2d0714b4a9529da0ec426bf29b",
+      "size": 2368
+    },
+    "pdfs/P08-R03.pdf": {
+      "sha256": "6b0bf32e68ee67e7c9cdfd51f8ae417e1851d4e975a33462eeb2f9f5721616e6",
+      "size": 3390
+    },
+    "pdfs/P09-R01.pdf": {
+      "sha256": "4146ce2765ae74ae926a90980d476f679aa073e200c45447bc21e910390a7ab6",
+      "size": 2416
+    },
+    "pdfs/P09-R02.pdf": {
+      "sha256": "e159e9f4d9cb8ca67bee9016e32bd666584df12540f39ea906be24f4cd9af80f",
+      "size": 2377
+    },
+    "pdfs/P09-R03.pdf": {
+      "sha256": "f90d9cfbdef29b53c51ae2696e479a34181e5a7673cdc317d7b3166553c8073b",
+      "size": 3727
+    },
+    "pdfs/P09-R04.pdf": {
+      "sha256": "e58c56ecedc2e0a7879d239c91c0b73fa26214f6e145e1408dc16523021ddb4a",
+      "size": 3723
+    },
+    "pdfs/P10-R01.pdf": {
+      "sha256": "b8e0ac10c0e6192322755cd0383014716a3b9608c29753e7bd819ff23e20d974",
+      "size": 2404
+    },
+    "pdfs/P10-R02.pdf": {
+      "sha256": "62e6b669422d18b8654f7bb9ca70d3b3d80cf8a7a2254aab794d0e8069de846d",
+      "size": 2453
+    },
+    "pdfs/P10-R03.pdf": {
+      "sha256": "fe582c2645b687d5c7aad4aec95976a891421fd527f7a4715aa8b8601ee976e5",
+      "size": 2378
+    },
+    "pdfs/P10-R04.pdf": {
+      "sha256": "e57214c4900ba7eabb99c1639025c656c99adcaa7011349707b5435005c70343",
+      "size": 2651
+    },
+    "pdfs/P11-R01.pdf": {
+      "sha256": "900ae70c8e6b8db3520b49e060290476400572cf520be3107135f955cabd6ef3",
+      "size": 2670
+    },
+    "pdfs/P11-R02.pdf": {
+      "sha256": "d85bd386ff07f5d58ea7111dffc4e8fc187fbfbd296be2b00e2e9a404c7c2c12",
+      "size": 3822
+    },
+    "pdfs/P11-R03.pdf": {
+      "sha256": "1fd6004e28ab54939752f6a346c51eb95b52f0bbefb94f3250ae54e62a8355d4",
+      "size": 2360
+    },
+    "pdfs/P11-R04.pdf": {
+      "sha256": "9d12222925c257fb0eb0db26861e2e4d6a08be02a79375889c1112b67db6bc43",
+      "size": 4004
+    },
+    "pdfs/P12-R01.pdf": {
+      "sha256": "a40810214513838bf237ada8ddb2e708121617bd3a54267110f5ac7244b8eb62",
+      "size": 3758
+    },
+    "pdfs/P12-R02.pdf": {
+      "sha256": "2369c9b0a878422812d1f6a8dd76681b02d3079c5204833a7bc21857cea24d6d",
+      "size": 3450
+    },
+    "pdfs/P12-R03.pdf": {
+      "sha256": "e77caee1ef75496d70465389362aa68e0a72d90d48c14e48fee71249510221a0",
+      "size": 3526
+    },
+    "pdfs/P12-R04.pdf": {
+      "sha256": "366d2af833bcd19593b30004e5579b3bcc25ba2e10ec24c8cd42ac323d3e2c3b",
+      "size": 2451
+    },
+    "pdfs/P12-R05.pdf": {
+      "sha256": "d7da6763f0bdec104bb57966290f01b88ee3c54928ab78794fef2d80aea793e6",
+      "size": 3494
+    }
+  },
+  "generator_version": "0.1",
+  "heldout_sha256": "5dcdc7dfa3ff4c082585281ad3716e6c79164d90382e5fbb8e04a39156c8a56a",
+  "manifest_version": 1,
+  "pages": 81,
+  "patients": 12,
+  "reports": 50,
+  "seed": 20261116,
+  "split": {
+    "dev": [
+      "P01",
+      "P04",
+      "P05",
+      "P06",
+      "P07",
+      "P09",
+      "P10",
+      "P12"
+    ],
+    "heldout": [
+      "P02",
+      "P03",
+      "P08",
+      "P11"
+    ]
+  },
+  "synthetic": true
+}

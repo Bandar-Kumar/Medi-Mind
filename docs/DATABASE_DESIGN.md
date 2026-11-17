@@ -128,7 +128,10 @@ The region profile itself (date order, digit grouping, unit spellings) is applic
 
 - Every repository method takes `patient_id` as a required argument. There is no unscoped query method.
 - Composite foreign keys (`document_id`, `patient_id`) prevent rows from claiming a different patient than their document.
-- Deleting a document cascades to its pages, chunks, facts, review decisions and conflict memberships. A conflict left with fewer than two members is closed.
+- Deleting a document cascades to its pages, **pipeline runs** (its processing history), chunks, facts, review decisions and conflict memberships (ADR-034). The original PDF and the parse outputs on disk are **not** deleted.
+- The parent `conflicts` row has no foreign key to documents or facts, so it stays after a document deletion, status unchanged, possibly with no members, and it blocks deleting the patient (RESTRICT). Closing a conflict left with fewer than two members is planned application logic; it is not implemented yet.
+- A patient can be deleted only when empty: `documents`, `pipeline_runs` and `conflicts` reference `patients` with `ON DELETE RESTRICT`, and the repository maps exactly those violations to `patient_not_empty`.
+- `list_patients` and `create_patient` are the only repository functions without `patient_id` (ADR-034).
 - **Tests:** For two patients, A and B, every repository and retrieval function returns only rows for the requested patient.
 
 ## 6. Deferred or optional

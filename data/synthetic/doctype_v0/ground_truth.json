@@ -1,0 +1,686 @@
+[
+  {
+    "date_of_birth": "1964-04-07",
+    "display_name": "Rohan Fictional",
+    "documents": [
+      {
+        "document_id": "P01-LS",
+        "kind": "lab_standard",
+        "page_count": 2,
+        "true_type": "lab_report",
+        "variant": "plain"
+      },
+      {
+        "document_id": "P01-LH",
+        "kind": "lab_hard",
+        "page_count": 1,
+        "true_type": "lab_report",
+        "variant": "narrative"
+      },
+      {
+        "document_id": "P01-RX",
+        "kind": "prescription",
+        "page_count": 1,
+        "true_type": "other",
+        "variant": "rx"
+      },
+      {
+        "document_id": "P01-DS",
+        "kind": "discharge",
+        "page_count": 2,
+        "true_type": "other",
+        "variant": "with_lab_table"
+      },
+      {
+        "document_id": "P01-LT",
+        "kind": "letter",
+        "page_count": 1,
+        "true_type": "other",
+        "variant": "lab_cover"
+      },
+      {
+        "document_id": "P01-IN",
+        "kind": "invoice",
+        "page_count": 1,
+        "true_type": "other",
+        "variant": "hospital_bill"
+      },
+      {
+        "document_id": "P01-AM",
+        "kind": "ambiguous",
+        "page_count": 1,
+        "true_type": "other",
+        "variant": "sample_receipt"
+      }
+    ],
+    "patient_key": "P01",
+    "sex": "M"
+  },
+  {
+    "date_of_birth": "1953-10-12",
+    "display_name": "Nikhil Testwala",
+    "documents": [
+      {
+        "document_id": "P02-LS",
+        "kind": "lab_standard",
+        "page_count": 1,
+        "true_type": "lab_report",
+        "variant": "plain"
+      },
+      {
+        "document_id": "P02-LH",
+        "kind": "lab_hard",
+        "page_count": 1,
+        "true_type": "lab_report",
+        "variant": "culture"
+      },
+      {
+        "document_id": "P02-RX",
+        "kind": "prescription",
+        "page_count": 1,
+        "true_type": "other",
+        "variant": "plain"
+      },
+      {
+        "document_id": "P02-DS",
+        "kind": "discharge",
+        "page_count": 1,
+        "true_type": "other",
+        "variant": "inline_results"
+      },
+      {
+        "document_id": "P02-LT",
+        "kind": "letter",
+        "page_count": 1,
+        "true_type": "other",
+        "variant": "referral"
+      },
+      {
+        "document_id": "P02-IN",
+        "kind": "invoice",
+        "page_count": 1,
+        "true_type": "other",
+        "variant": "hospital_bill"
+      },
+      {
+        "document_id": "P02-AM",
+        "kind": "ambiguous",
+        "page_count": 1,
+        "true_type": "other",
+        "variant": "appointment"
+      }
+    ],
+    "patient_key": "P02",
+    "sex": "M"
+  },
+  {
+    "date_of_birth": "1981-10-08",
+    "display_name": "Yash Demorao",
+    "documents": [
+      {
+        "document_id": "P03-LS",
+        "kind": "lab_standard",
+        "page_count": 2,
+        "true_type": "lab_report",
+        "variant": "compact"
+      },
+      {
+        "document_id": "P03-LH",
+        "kind": "lab_hard",
+        "page_count": 1,
+        "true_type": "lab_report",
+        "variant": "key_value"
+      },
+      {
+        "document_id": "P03-RX",
+        "kind": "prescription",
+        "page_count": 1,
+        "true_type": "other",
+        "variant": "with_tests"
+      },
+      {
+        "document_id": "P03-DS",
+        "kind": "discharge",
+        "page_count": 1,
+        "true_type": "other",
+        "variant": "inline_results"
+      },
+      {
+        "document_id": "P03-LT",
+        "kind": "letter",
+        "page_count": 1,
+        "true_type": "other",
+        "variant": "fitness"
+      },
+      {
+        "document_id": "P03-IN",
+        "kind": "invoice",
+        "page_count": 1,
+        "true_type": "other",
+        "variant": "lab_bill"
+      },
+      {
+        "document_id": "P03-AM",
+        "kind": "ambiguous",
+        "page_count": 1,
+        "true_type": "other",
+        "variant": "sample_receipt"
+      }
+    ],
+    "patient_key": "P03",
+    "sex": "M"
+  },
+  {
+    "date_of_birth": "1996-12-11",
+    "display_name": "Rohan Placeholder",
+    "documents": [
+      {
+        "document_id": "P04-LS",
+        "kind": "lab_standard",
+        "page_count": 2,
+        "true_type": "lab_report",
+        "variant": "grid"
+      },
+      {
+        "document_id": "P04-LH",
+        "kind": "lab_hard",
+        "page_count": 1,
+        "true_type": "lab_report",
+        "variant": "key_value"
+      },
+      {
+        "document_id": "P04-RX",
+        "kind": "prescription",
+        "page_count": 1,
+        "true_type": "other",
+        "variant": "with_tests"
+      },
+      {
+        "document_id": "P04-DS",
+        "kind": "discharge",
+        "page_count": 1,
+        "true_type": "other",
+        "variant": "inline_results"
+      },
+      {
+        "document_id": "P04-LT",
+        "kind": "letter",
+        "page_count": 1,
+        "true_type": "other",
+        "variant": "lab_cover"
+      },
+      {
+        "document_id": "P04-IN",
+        "kind": "invoice",
+        "page_count": 1,
+        "true_type": "other",
+        "variant": "hospital_bill"
+      },
+      {
+        "document_id": "P04-AM",
+        "kind": "ambiguous",
+        "page_count": 1,
+        "true_type": "other",
+        "variant": "sample_receipt"
+      }
+    ],
+    "patient_key": "P04",
+    "sex": "F"
+  },
+  {
+    "date_of_birth": "1969-02-03",
+    "display_name": "Nikhil Placeholder",
+    "documents": [
+      {
+        "document_id": "P05-LS",
+        "kind": "lab_standard",
+        "page_count": 1,
+        "true_type": "lab_report",
+        "variant": "plain"
+      },
+      {
+        "document_id": "P05-LH",
+        "kind": "lab_hard",
+        "page_count": 1,
+        "true_type": "lab_report",
+        "variant": "narrative"
+      },
+      {
+        "document_id": "P05-RX",
+        "kind": "prescription",
+        "page_count": 1,
+        "true_type": "other",
+        "variant": "plain"
+      },
+      {
+        "document_id": "P05-DS",
+        "kind": "discharge",
+        "page_count": 1,
+        "true_type": "other",
+        "variant": "inline_results"
+      },
+      {
+        "document_id": "P05-LT",
+        "kind": "letter",
+        "page_count": 1,
+        "true_type": "other",
+        "variant": "referral"
+      },
+      {
+        "document_id": "P05-IN",
+        "kind": "invoice",
+        "page_count": 1,
+        "true_type": "other",
+        "variant": "lab_bill"
+      },
+      {
+        "document_id": "P05-AM",
+        "kind": "ambiguous",
+        "page_count": 1,
+        "true_type": "other",
+        "variant": "sample_receipt"
+      }
+    ],
+    "patient_key": "P05",
+    "sex": "M"
+  },
+  {
+    "date_of_birth": "1972-06-24",
+    "display_name": "Vihaan Mockrishnan",
+    "documents": [
+      {
+        "document_id": "P06-LS",
+        "kind": "lab_standard",
+        "page_count": 2,
+        "true_type": "lab_report",
+        "variant": "compact"
+      },
+      {
+        "document_id": "P06-LH",
+        "kind": "lab_hard",
+        "page_count": 1,
+        "true_type": "lab_report",
+        "variant": "narrative"
+      },
+      {
+        "document_id": "P06-RX",
+        "kind": "prescription",
+        "page_count": 1,
+        "true_type": "other",
+        "variant": "plain"
+      },
+      {
+        "document_id": "P06-DS",
+        "kind": "discharge",
+        "page_count": 2,
+        "true_type": "other",
+        "variant": "with_lab_table"
+      },
+      {
+        "document_id": "P06-LT",
+        "kind": "letter",
+        "page_count": 1,
+        "true_type": "other",
+        "variant": "referral"
+      },
+      {
+        "document_id": "P06-IN",
+        "kind": "invoice",
+        "page_count": 1,
+        "true_type": "other",
+        "variant": "lab_bill"
+      },
+      {
+        "document_id": "P06-AM",
+        "kind": "ambiguous",
+        "page_count": 1,
+        "true_type": "other",
+        "variant": "sample_receipt"
+      }
+    ],
+    "patient_key": "P06",
+    "sex": "F"
+  },
+  {
+    "date_of_birth": "1993-02-25",
+    "display_name": "Tara Sampleton",
+    "documents": [
+      {
+        "document_id": "P07-LS",
+        "kind": "lab_standard",
+        "page_count": 1,
+        "true_type": "lab_report",
+        "variant": "plain"
+      },
+      {
+        "document_id": "P07-LH",
+        "kind": "lab_hard",
+        "page_count": 1,
+        "true_type": "lab_report",
+        "variant": "narrative"
+      },
+      {
+        "document_id": "P07-RX",
+        "kind": "prescription",
+        "page_count": 1,
+        "true_type": "other",
+        "variant": "rx"
+      },
+      {
+        "document_id": "P07-DS",
+        "kind": "discharge",
+        "page_count": 1,
+        "true_type": "other",
+        "variant": "inline_results"
+      },
+      {
+        "document_id": "P07-LT",
+        "kind": "letter",
+        "page_count": 1,
+        "true_type": "other",
+        "variant": "lab_cover"
+      },
+      {
+        "document_id": "P07-IN",
+        "kind": "invoice",
+        "page_count": 1,
+        "true_type": "other",
+        "variant": "lab_bill"
+      },
+      {
+        "document_id": "P07-AM",
+        "kind": "ambiguous",
+        "page_count": 1,
+        "true_type": "other",
+        "variant": "sample_receipt"
+      }
+    ],
+    "patient_key": "P07",
+    "sex": "F"
+  },
+  {
+    "date_of_birth": "1955-01-01",
+    "display_name": "Ishita Mockrishnan",
+    "documents": [
+      {
+        "document_id": "P08-LS",
+        "kind": "lab_standard",
+        "page_count": 1,
+        "true_type": "lab_report",
+        "variant": "plain"
+      },
+      {
+        "document_id": "P08-LH",
+        "kind": "lab_hard",
+        "page_count": 1,
+        "true_type": "lab_report",
+        "variant": "narrative"
+      },
+      {
+        "document_id": "P08-RX",
+        "kind": "prescription",
+        "page_count": 1,
+        "true_type": "other",
+        "variant": "rx"
+      },
+      {
+        "document_id": "P08-DS",
+        "kind": "discharge",
+        "page_count": 1,
+        "true_type": "other",
+        "variant": "inline_results"
+      },
+      {
+        "document_id": "P08-LT",
+        "kind": "letter",
+        "page_count": 1,
+        "true_type": "other",
+        "variant": "fitness"
+      },
+      {
+        "document_id": "P08-IN",
+        "kind": "invoice",
+        "page_count": 1,
+        "true_type": "other",
+        "variant": "lab_bill"
+      },
+      {
+        "document_id": "P08-AM",
+        "kind": "ambiguous",
+        "page_count": 1,
+        "true_type": "other",
+        "variant": "sample_receipt"
+      }
+    ],
+    "patient_key": "P08",
+    "sex": "M"
+  },
+  {
+    "date_of_birth": "1963-09-06",
+    "display_name": "Diya Placeholder",
+    "documents": [
+      {
+        "document_id": "P09-LS",
+        "kind": "lab_standard",
+        "page_count": 2,
+        "true_type": "lab_report",
+        "variant": "grid"
+      },
+      {
+        "document_id": "P09-LH",
+        "kind": "lab_hard",
+        "page_count": 1,
+        "true_type": "lab_report",
+        "variant": "culture"
+      },
+      {
+        "document_id": "P09-RX",
+        "kind": "prescription",
+        "page_count": 1,
+        "true_type": "other",
+        "variant": "plain"
+      },
+      {
+        "document_id": "P09-DS",
+        "kind": "discharge",
+        "page_count": 1,
+        "true_type": "other",
+        "variant": "inline_results"
+      },
+      {
+        "document_id": "P09-LT",
+        "kind": "letter",
+        "page_count": 1,
+        "true_type": "other",
+        "variant": "fitness"
+      },
+      {
+        "document_id": "P09-IN",
+        "kind": "invoice",
+        "page_count": 1,
+        "true_type": "other",
+        "variant": "lab_bill"
+      },
+      {
+        "document_id": "P09-AM",
+        "kind": "ambiguous",
+        "page_count": 1,
+        "true_type": "other",
+        "variant": "appointment"
+      }
+    ],
+    "patient_key": "P09",
+    "sex": "M"
+  },
+  {
+    "date_of_birth": "1967-02-07",
+    "display_name": "Lakshmi Testwala",
+    "documents": [
+      {
+        "document_id": "P10-LS",
+        "kind": "lab_standard",
+        "page_count": 2,
+        "true_type": "lab_report",
+        "variant": "plain"
+      },
+      {
+        "document_id": "P10-LH",
+        "kind": "lab_hard",
+        "page_count": 1,
+        "true_type": "lab_report",
+        "variant": "narrative"
+      },
+      {
+        "document_id": "P10-RX",
+        "kind": "prescription",
+        "page_count": 1,
+        "true_type": "other",
+        "variant": "rx"
+      },
+      {
+        "document_id": "P10-DS",
+        "kind": "discharge",
+        "page_count": 1,
+        "true_type": "other",
+        "variant": "inline_results"
+      },
+      {
+        "document_id": "P10-LT",
+        "kind": "letter",
+        "page_count": 1,
+        "true_type": "other",
+        "variant": "fitness"
+      },
+      {
+        "document_id": "P10-IN",
+        "kind": "invoice",
+        "page_count": 1,
+        "true_type": "other",
+        "variant": "hospital_bill"
+      },
+      {
+        "document_id": "P10-AM",
+        "kind": "ambiguous",
+        "page_count": 1,
+        "true_type": "other",
+        "variant": "appointment"
+      }
+    ],
+    "patient_key": "P10",
+    "sex": "M"
+  },
+  {
+    "date_of_birth": "1991-10-08",
+    "display_name": "Ishita Sampleton",
+    "documents": [
+      {
+        "document_id": "P11-LS",
+        "kind": "lab_standard",
+        "page_count": 1,
+        "true_type": "lab_report",
+        "variant": "grid"
+      },
+      {
+        "document_id": "P11-LH",
+        "kind": "lab_hard",
+        "page_count": 1,
+        "true_type": "lab_report",
+        "variant": "key_value"
+      },
+      {
+        "document_id": "P11-RX",
+        "kind": "prescription",
+        "page_count": 1,
+        "true_type": "other",
+        "variant": "with_tests"
+      },
+      {
+        "document_id": "P11-DS",
+        "kind": "discharge",
+        "page_count": 1,
+        "true_type": "other",
+        "variant": "inline_results"
+      },
+      {
+        "document_id": "P11-LT",
+        "kind": "letter",
+        "page_count": 1,
+        "true_type": "other",
+        "variant": "lab_cover"
+      },
+      {
+        "document_id": "P11-IN",
+        "kind": "invoice",
+        "page_count": 1,
+        "true_type": "other",
+        "variant": "lab_bill"
+      },
+      {
+        "document_id": "P11-AM",
+        "kind": "ambiguous",
+        "page_count": 1,
+        "true_type": "other",
+        "variant": "appointment"
+      }
+    ],
+    "patient_key": "P11",
+    "sex": "M"
+  },
+  {
+    "date_of_birth": "1951-06-23",
+    "display_name": "Ananya Testwala",
+    "documents": [
+      {
+        "document_id": "P12-LS",
+        "kind": "lab_standard",
+        "page_count": 2,
+        "true_type": "lab_report",
+        "variant": "compact"
+      },
+      {
+        "document_id": "P12-LH",
+        "kind": "lab_hard",
+        "page_count": 1,
+        "true_type": "lab_report",
+        "variant": "narrative"
+      },
+      {
+        "document_id": "P12-RX",
+        "kind": "prescription",
+        "page_count": 1,
+        "true_type": "other",
+        "variant": "with_tests"
+      },
+      {
+        "document_id": "P12-DS",
+        "kind": "discharge",
+        "page_count": 1,
+        "true_type": "other",
+        "variant": "inline_results"
+      },
+      {
+        "document_id": "P12-LT",
+        "kind": "letter",
+        "page_count": 1,
+        "true_type": "other",
+        "variant": "lab_cover"
+      },
+      {
+        "document_id": "P12-IN",
+        "kind": "invoice",
+        "page_count": 1,
+        "true_type": "other",
+        "variant": "lab_bill"
+      },
+      {
+        "document_id": "P12-AM",
+        "kind": "ambiguous",
+        "page_count": 1,
+        "true_type": "other",
+        "variant": "sample_receipt"
+      }
+    ],
+    "patient_key": "P12",
+    "sex": "M"
+  }
+]

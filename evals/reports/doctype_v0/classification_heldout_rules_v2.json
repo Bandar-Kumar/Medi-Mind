@@ -1,0 +1,433 @@
+{
+  "dataset_version": "doctype_v0@8d71ffb5f01f",
+  "heldout_sha256": "8d71ffb5f01fd7bcbd1cd10a1047482ade0d2607ef1a7891e0bd602522d7a01d",
+  "metrics": {
+    "accuracy": 0.9642857142857143,
+    "by_kind": {
+      "ambiguous": {
+        "other": 4
+      },
+      "discharge": {
+        "other": 3,
+        "unknown": 1
+      },
+      "invoice": {
+        "other": 4
+      },
+      "lab_hard": {
+        "lab_report": 4
+      },
+      "lab_standard": {
+        "lab_report": 4
+      },
+      "letter": {
+        "other": 4
+      },
+      "prescription": {
+        "other": 4
+      }
+    },
+    "confusion": {
+      "lab_report": {
+        "lab_report": 8,
+        "other": 0,
+        "unknown": 0
+      },
+      "other": {
+        "lab_report": 0,
+        "other": 19,
+        "unknown": 1
+      }
+    },
+    "decided_accuracy": 1.0,
+    "documents": 28,
+    "lab_report_precision": 1.0,
+    "lab_report_recall": 1.0,
+    "unknown_rate": 0.03571428571428571
+  },
+  "outcomes": [
+    {
+      "document_id": "P05-LS",
+      "kind": "lab_standard",
+      "predicted": "lab_report",
+      "rule_ids": [
+        "lab.has_tables",
+        "lab.letterhead",
+        "lab.reference_range",
+        "lab.results_header",
+        "lab.sample",
+        "lab.section_heading",
+        "lab.units"
+      ],
+      "score": 0.923,
+      "true_type": "lab_report",
+      "variant": "plain"
+    },
+    {
+      "document_id": "P05-LH",
+      "kind": "lab_hard",
+      "predicted": "lab_report",
+      "rule_ids": [
+        "lab.letterhead",
+        "lab.reference_range",
+        "lab.sample",
+        "lab.verified_by"
+      ],
+      "score": 0.462,
+      "true_type": "lab_report",
+      "variant": "narrative"
+    },
+    {
+      "document_id": "P05-RX",
+      "kind": "prescription",
+      "predicted": "other",
+      "rule_ids": [
+        "other.prescription"
+      ],
+      "score": 0.5,
+      "true_type": "other",
+      "variant": "plain"
+    },
+    {
+      "document_id": "P05-DS",
+      "kind": "discharge",
+      "predicted": "other",
+      "rule_ids": [
+        "other.diagnosis",
+        "other.discharge",
+        "other.prescription"
+      ],
+      "score": 1.0,
+      "true_type": "other",
+      "variant": "inline_results"
+    },
+    {
+      "document_id": "P05-LT",
+      "kind": "letter",
+      "predicted": "other",
+      "rule_ids": [
+        "other.letter"
+      ],
+      "score": 0.5,
+      "true_type": "other",
+      "variant": "referral"
+    },
+    {
+      "document_id": "P05-IN",
+      "kind": "invoice",
+      "predicted": "other",
+      "rule_ids": [
+        "lab.has_tables",
+        "lab.letterhead",
+        "lab.section_heading",
+        "other.invoice"
+      ],
+      "score": 0.5,
+      "true_type": "other",
+      "variant": "lab_bill"
+    },
+    {
+      "document_id": "P05-AM",
+      "kind": "ambiguous",
+      "predicted": "other",
+      "rule_ids": [
+        "lab.letterhead",
+        "lab.sample",
+        "lab.section_heading",
+        "other.booking"
+      ],
+      "score": 0.5,
+      "true_type": "other",
+      "variant": "sample_receipt"
+    },
+    {
+      "document_id": "P06-LS",
+      "kind": "lab_standard",
+      "predicted": "lab_report",
+      "rule_ids": [
+        "lab.has_tables",
+        "lab.letterhead",
+        "lab.reference_range",
+        "lab.results_header",
+        "lab.sample",
+        "lab.section_heading",
+        "lab.units"
+      ],
+      "score": 0.923,
+      "true_type": "lab_report",
+      "variant": "compact"
+    },
+    {
+      "document_id": "P06-LH",
+      "kind": "lab_hard",
+      "predicted": "lab_report",
+      "rule_ids": [
+        "lab.letterhead",
+        "lab.reference_range",
+        "lab.sample",
+        "lab.verified_by"
+      ],
+      "score": 0.462,
+      "true_type": "lab_report",
+      "variant": "narrative"
+    },
+    {
+      "document_id": "P06-RX",
+      "kind": "prescription",
+      "predicted": "other",
+      "rule_ids": [
+        "other.prescription"
+      ],
+      "score": 0.5,
+      "true_type": "other",
+      "variant": "plain"
+    },
+    {
+      "document_id": "P06-DS",
+      "kind": "discharge",
+      "predicted": "unknown",
+      "rule_ids": [
+        "doc.conflict",
+        "lab.has_tables",
+        "lab.reference_range",
+        "lab.results_header",
+        "lab.units",
+        "other.diagnosis",
+        "other.discharge",
+        "other.prescription"
+      ],
+      "score": 0.0,
+      "true_type": "other",
+      "variant": "with_lab_table"
+    },
+    {
+      "document_id": "P06-LT",
+      "kind": "letter",
+      "predicted": "other",
+      "rule_ids": [
+        "other.letter"
+      ],
+      "score": 0.5,
+      "true_type": "other",
+      "variant": "referral"
+    },
+    {
+      "document_id": "P06-IN",
+      "kind": "invoice",
+      "predicted": "other",
+      "rule_ids": [
+        "lab.has_tables",
+        "lab.letterhead",
+        "lab.section_heading",
+        "other.invoice"
+      ],
+      "score": 0.5,
+      "true_type": "other",
+      "variant": "lab_bill"
+    },
+    {
+      "document_id": "P06-AM",
+      "kind": "ambiguous",
+      "predicted": "other",
+      "rule_ids": [
+        "lab.letterhead",
+        "lab.sample",
+        "lab.section_heading",
+        "other.booking"
+      ],
+      "score": 0.5,
+      "true_type": "other",
+      "variant": "sample_receipt"
+    },
+    {
+      "document_id": "P08-LS",
+      "kind": "lab_standard",
+      "predicted": "lab_report",
+      "rule_ids": [
+        "lab.has_tables",
+        "lab.letterhead",
+        "lab.reference_range",
+        "lab.results_header",
+        "lab.sample",
+        "lab.section_heading",
+        "lab.units"
+      ],
+      "score": 0.923,
+      "true_type": "lab_report",
+      "variant": "plain"
+    },
+    {
+      "document_id": "P08-LH",
+      "kind": "lab_hard",
+      "predicted": "lab_report",
+      "rule_ids": [
+        "lab.letterhead",
+        "lab.reference_range",
+        "lab.sample",
+        "lab.verified_by"
+      ],
+      "score": 0.462,
+      "true_type": "lab_report",
+      "variant": "narrative"
+    },
+    {
+      "document_id": "P08-RX",
+      "kind": "prescription",
+      "predicted": "other",
+      "rule_ids": [
+        "other.prescription"
+      ],
+      "score": 0.5,
+      "true_type": "other",
+      "variant": "rx"
+    },
+    {
+      "document_id": "P08-DS",
+      "kind": "discharge",
+      "predicted": "other",
+      "rule_ids": [
+        "other.diagnosis",
+        "other.discharge",
+        "other.prescription"
+      ],
+      "score": 1.0,
+      "true_type": "other",
+      "variant": "inline_results"
+    },
+    {
+      "document_id": "P08-LT",
+      "kind": "letter",
+      "predicted": "other",
+      "rule_ids": [
+        "other.letter"
+      ],
+      "score": 0.5,
+      "true_type": "other",
+      "variant": "fitness"
+    },
+    {
+      "document_id": "P08-IN",
+      "kind": "invoice",
+      "predicted": "other",
+      "rule_ids": [
+        "lab.has_tables",
+        "lab.letterhead",
+        "lab.section_heading",
+        "other.invoice"
+      ],
+      "score": 0.5,
+      "true_type": "other",
+      "variant": "lab_bill"
+    },
+    {
+      "document_id": "P08-AM",
+      "kind": "ambiguous",
+      "predicted": "other",
+      "rule_ids": [
+        "lab.letterhead",
+        "lab.sample",
+        "lab.section_heading",
+        "other.booking"
+      ],
+      "score": 0.5,
+      "true_type": "other",
+      "variant": "sample_receipt"
+    },
+    {
+      "document_id": "P11-LS",
+      "kind": "lab_standard",
+      "predicted": "lab_report",
+      "rule_ids": [
+        "lab.has_tables",
+        "lab.letterhead",
+        "lab.reference_range",
+        "lab.results_header",
+        "lab.sample",
+        "lab.section_heading",
+        "lab.units"
+      ],
+      "score": 0.923,
+      "true_type": "lab_report",
+      "variant": "grid"
+    },
+    {
+      "document_id": "P11-LH",
+      "kind": "lab_hard",
+      "predicted": "lab_report",
+      "rule_ids": [
+        "lab.letterhead",
+        "lab.reference_range",
+        "lab.section_heading",
+        "lab.units"
+      ],
+      "score": 0.538,
+      "true_type": "lab_report",
+      "variant": "key_value"
+    },
+    {
+      "document_id": "P11-RX",
+      "kind": "prescription",
+      "predicted": "other",
+      "rule_ids": [
+        "lab.section_heading",
+        "other.prescription"
+      ],
+      "score": 0.5,
+      "true_type": "other",
+      "variant": "with_tests"
+    },
+    {
+      "document_id": "P11-DS",
+      "kind": "discharge",
+      "predicted": "other",
+      "rule_ids": [
+        "other.diagnosis",
+        "other.discharge",
+        "other.prescription"
+      ],
+      "score": 1.0,
+      "true_type": "other",
+      "variant": "inline_results"
+    },
+    {
+      "document_id": "P11-LT",
+      "kind": "letter",
+      "predicted": "other",
+      "rule_ids": [
+        "other.letter"
+      ],
+      "score": 0.5,
+      "true_type": "other",
+      "variant": "lab_cover"
+    },
+    {
+      "document_id": "P11-IN",
+      "kind": "invoice",
+      "predicted": "other",
+      "rule_ids": [
+        "lab.has_tables",
+        "lab.letterhead",
+        "lab.section_heading",
+        "other.invoice"
+      ],
+      "score": 0.5,
+      "true_type": "other",
+      "variant": "lab_bill"
+    },
+    {
+      "document_id": "P11-AM",
+      "kind": "ambiguous",
+      "predicted": "other",
+      "rule_ids": [
+        "lab.letterhead",
+        "lab.section_heading",
+        "other.booking"
+      ],
+      "score": 0.5,
+      "true_type": "other",
+      "variant": "appointment"
+    }
+  ],
+  "rules_version": "2",
+  "split": "heldout"
+}

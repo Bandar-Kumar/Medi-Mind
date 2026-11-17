@@ -1,0 +1,217 @@
+{
+  "dataset": "identity_v1",
+  "documents": 48,
+  "files": {
+    "ground_truth.json": {
+      "sha256": "1eb3195b7a582da0bc0332b6c62c554a5e0c15047025158c01cfc702a1f4fffc",
+      "size": 14863
+    },
+    "pdfs/E01-DIS.pdf": {
+      "sha256": "e8addacfb20e689c031af5cdfc266d3a7847ff99898938a8d3de6cdded8010ae",
+      "size": 1876
+    },
+    "pdfs/E01-LAB.pdf": {
+      "sha256": "d0a7101cffc39c5963bca773b7c4272c5433eb7798070efe85ae9a7cb34ad3bc",
+      "size": 1805
+    },
+    "pdfs/E02-GRD.pdf": {
+      "sha256": "5a8387c74662c39d495ab311aa2087d165d45ff5e61521ed9c52d8512dc2e7e2",
+      "size": 1832
+    },
+    "pdfs/E02-NEO.pdf": {
+      "sha256": "338585e86c2660fc20960f29374de76e6dd43229b7ef1072d0345fd6a10ded5e",
+      "size": 1842
+    },
+    "pdfs/E03-FAD.pdf": {
+      "sha256": "2625c6c1dd11b10da70e2aa044b0247cc0d3900b2ddff08e0de4718f932ecd28",
+      "size": 1771
+    },
+    "pdfs/E03-GEN.pdf": {
+      "sha256": "5e0813a007a408ab2e9fa50d3101912c5a536a7869b61f892fd2f6a2cd863ec1",
+      "size": 1757
+    },
+    "pdfs/E04-INI.pdf": {
+      "sha256": "02ac0af0dc51c92b33b07c17a43eb935c820b5888ccd7cfe9037f48dd8f7be05",
+      "size": 1767
+    },
+    "pdfs/E04-INX.pdf": {
+      "sha256": "d3088f261636992c6c15d68512156757d54785533b94da8db17f768717dbacb8",
+      "size": 1772
+    },
+    "pdfs/E05-RAM.pdf": {
+      "sha256": "d848ae9c4a3d66f2df58bb4733e8a678c7985a58182a271a3a7c570ed758116a",
+      "size": 1774
+    },
+    "pdfs/E06-MON.pdf": {
+      "sha256": "e99c17d1b7334fca7974b81818dba3d3f00a08b1445eae6c79817128028860ca",
+      "size": 1762
+    },
+    "pdfs/E06-MOX.pdf": {
+      "sha256": "37acae9a620ca5062987692b914c8d340ec311e6e35691c7e900e31523d1d97f",
+      "size": 1754
+    },
+    "pdfs/E07-NEA.pdf": {
+      "sha256": "10a37107ec653d8033ac4d89943a8e1d70b614ba51ffcb6e27e31c52d8f42e05",
+      "size": 1772
+    },
+    "pdfs/E07-TYP.pdf": {
+      "sha256": "4ce48e02915c4d79516ecfec5365d40cd09c416f2572bf36f4c5225fe97b6a84",
+      "size": 1771
+    },
+    "pdfs/E08-CUR.pdf": {
+      "sha256": "347558309d19ed56dc78d9b23301b7aa6bc41babf40b9d8fc67076d763f7632d",
+      "size": 1781
+    },
+    "pdfs/E09-DOB.pdf": {
+      "sha256": "c0b8eab8af3616047814bb5025bbaf5308b27815f6e28c57ee689d0cd8d3c949",
+      "size": 1834
+    },
+    "pdfs/E10-ORC.pdf": {
+      "sha256": "b7ca96124cbb99bb1124686c95f0f8f65fc9b7471afc1455ba6df46191f65906",
+      "size": 1784
+    },
+    "pdfs/E10-ORD.pdf": {
+      "sha256": "8e4579e6368c9bfa28a382d3dca5ede8e77d93cdd375a61a5b1aeb75afb856f3",
+      "size": 1769
+    },
+    "pdfs/E12-NSK.pdf": {
+      "sha256": "d6efe743c20561fc868c893515389e80e93858fdb55a8b0208bbd4f6e348c05c",
+      "size": 1772
+    },
+    "pdfs/E13-NSD.pdf": {
+      "sha256": "02439fcb7c68ecc63278f720b7436353229a1d5f0d55e2d32bb7095f16b59667",
+      "size": 1772
+    },
+    "pdfs/E14-JOK.pdf": {
+      "sha256": "8ec386b82f4cffd46f487d070842818973324618bf5889e16c95e3b0acaec96c",
+      "size": 1777
+    },
+    "pdfs/E14-SPC.pdf": {
+      "sha256": "4140891daa92fba0ecc49ec502c1aaf772206fa1266f2db11d3b06d01a79e096",
+      "size": 1757
+    },
+    "pdfs/H01-DIS.pdf": {
+      "sha256": "0294ce16e83fc24d3179397e0ff7f4cffa2f45b6b76061b9d88ccae075100c8e",
+      "size": 1860
+    },
+    "pdfs/H01-LAB.pdf": {
+      "sha256": "8c657c210be67764278aa735b1c18f8312c83e4e522f62fdf7615b5c8eaa51e5",
+      "size": 1805
+    },
+    "pdfs/H02-GRD.pdf": {
+      "sha256": "f4e574d09a1bed26e7cb260ba0933e67bd3f9fef34dd3730d91f28c1f048496c",
+      "size": 1824
+    },
+    "pdfs/H02-NEO.pdf": {
+      "sha256": "77354c024c9819f559a87fce07d8b6f82c763db7a74d30c3839cd02f3dfb7640",
+      "size": 1862
+    },
+    "pdfs/H03-FAD.pdf": {
+      "sha256": "6a3df58f78c116f97933fd6614eacf4fbc5b0b76ee7fd8d6867882c426efc44e",
+      "size": 1772
+    },
+    "pdfs/H04-INI.pdf": {
+      "sha256": "a74b47c25ce1fea8f6d4f384a2297079c18479f3b6448693d0a81fa62c34992f",
+      "size": 1750
+    },
+    "pdfs/H04-INX.pdf": {
+      "sha256": "90f720a7a2372681a3e96a312b77be2c82a74c2b3935852c697ac676f66c019f",
+      "size": 1780
+    },
+    "pdfs/H05-GEN.pdf": {
+      "sha256": "6fecbf1e75e2931a8e43408c55119c514be721f58bb2b72cef8456de19f075a1",
+      "size": 1764
+    },
+    "pdfs/H05-RAM.pdf": {
+      "sha256": "41fb8709465c6c24c7f561983d058f1044af99b7238ee8ea2992d2300d3ca3da",
+      "size": 1777
+    },
+    "pdfs/H06-MON.pdf": {
+      "sha256": "020e945c35c9e6f546a4aaa673145894f695780babdecc650e123527918f1bf6",
+      "size": 1764
+    },
+    "pdfs/H06-MOX.pdf": {
+      "sha256": "fc36537f5d53cac125db6676ebfe0a20a91ff2abaffc7bf1640c8577214f669e",
+      "size": 1757
+    },
+    "pdfs/H07-NEA.pdf": {
+      "sha256": "fed095d65f007e62dd74e9f48c0d28586d5017c006f5da099b0a39eb443fe98d",
+      "size": 1771
+    },
+    "pdfs/H07-TYP.pdf": {
+      "sha256": "6872d0a0ab807449aad40d3973e4dd5c8102cdcf608b1fa0ee1e10059117ee05",
+      "size": 1751
+    },
+    "pdfs/H08-CUR.pdf": {
+      "sha256": "8ee89e9839e8b5215cac7a64eb411fa3494c6ce64c592af371ace7c12da38ec1",
+      "size": 1780
+    },
+    "pdfs/H09-DOB.pdf": {
+      "sha256": "f0c52f4dfbb405aa815aac4d24fd77764662de7d5d7ec37f886fb01660b58a08",
+      "size": 1827
+    },
+    "pdfs/H10-ORC.pdf": {
+      "sha256": "c2e2c002ded9727af8444c47284a0600fb9cc72dac27e4c957bfd83ef5d89754",
+      "size": 1780
+    },
+    "pdfs/H10-ORD.pdf": {
+      "sha256": "312c710fd316b82bc530c0d630b997075bde8564bd4bc7972df21b1ead6b90d3",
+      "size": 1770
+    },
+    "pdfs/H12-NSK.pdf": {
+      "sha256": "399f8decfe23152385828db64c4b3413846ae65329203d4c58277dbac000b76e",
+      "size": 1757
+    },
+    "pdfs/H13-NSD.pdf": {
+      "sha256": "45d4cc2d67ded9369f4bf2ac36b5b7d928d29a1c04433ff92392d528e5f357d1",
+      "size": 1775
+    },
+    "pdfs/H14-JOK.pdf": {
+      "sha256": "a0f12f47a9b517a05f1733ce19fb22192c1c2a3a5853f250d601a3e348f162e3",
+      "size": 1777
+    },
+    "pdfs/H14-SPC.pdf": {
+      "sha256": "4ab5440c9b64075384620ac467ec70ca3fc398e2e2d61e78332b9eabce8d71b3",
+      "size": 1760
+    }
+  },
+  "generator_version": "0.1",
+  "heldout_sha256": "12ea2976caac91531fd88787b6a8d3041802b69e2c06026ee8b8a15c8e72415c",
+  "manifest_version": 1,
+  "patients": 28,
+  "split": {
+    "dev": [
+      "E01",
+      "E02",
+      "E03",
+      "E04",
+      "E05",
+      "E06",
+      "E07",
+      "E08",
+      "E09",
+      "E10",
+      "E11",
+      "E12",
+      "E13",
+      "E14"
+    ],
+    "heldout": [
+      "H01",
+      "H02",
+      "H03",
+      "H04",
+      "H05",
+      "H06",
+      "H07",
+      "H08",
+      "H09",
+      "H10",
+      "H11",
+      "H12",
+      "H13",
+      "H14"
+    ]
+  },
+  "synthetic": true
+}

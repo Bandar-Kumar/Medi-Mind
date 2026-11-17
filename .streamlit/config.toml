@@ -1,0 +1,21 @@
+# Streamlit settings for the local MediMind UI (Task 2.9b). Read from the project root.
+
+[server]
+# Local only: listen on IPv4 loopback, never on the network.
+address = "127.0.0.1"
+headless = true
+# Megabytes; matches MEDIMIND_MAX_UPLOAD_BYTES (20 MB). The service re-checks the exact byte limit.
+maxUploadSize = 20
+
+[browser]
+# No usage statistics are sent.
+gatherUsageStats = false
+
+[client]
+# Never show exception messages or tracebacks in the browser: the UI shows fixed reasons only.
+showErrorDetails = "none"
+toolbarMode = "minimal"
+
+[runner]
+# No "magic" st.write of bare expressions.
+magicEnabled = false

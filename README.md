@@ -17,7 +17,7 @@ All demo data is **fictional and synthetic**.
 
 ## Status
 
-**Phase 2: Medical document intelligence.** The foundation is in place: configuration, logging, error handling, a health check and tests, plus a local PostgreSQL + pgvector database, an authenticated connection and migrations. Phase 2 adds PDF validation, read-only storage of original files, and Docling parsing (layout, tables, OCR) into a versioned intermediate representation. Parsing runs only from the tests so far: there is no ingest command or UI, and parse results are not saved yet. There are no LLM features yet. See [docs/PROGRESS.md](docs/PROGRESS.md).
+**Phase 2: Medical document intelligence, plus Milestone R1 (evidence retrieval, pulled forward; ADR-035).** The foundation is in place: configuration, logging, error handling, a health check and tests, plus a local PostgreSQL + pgvector database, an authenticated connection and migrations. Phase 2 adds PDF validation, read-only storage of original files, Docling parsing (layout, tables, OCR) into a versioned intermediate representation, persisted pages, an upload service and patient-scoped patient and document repositories. Milestone R1 adds chunking, local embeddings, hybrid search and page-cited evidence from the command line; its retrieval metrics are **not measured yet**. Rule-based classification and patient identity checks gate indexing (ADR-036), and a minimal local Streamlit UI drives the whole flow (see [Local UI](#local-ui-streamlit)). There are no LLM features. See [docs/PROGRESS.md](docs/PROGRESS.md).
 
 ### Roadmap
 | Phase | Focus |
@@ -287,6 +287,83 @@ To confirm nothing was downloaded, compare the size of the Hugging Face cache be
 - peak memory about 1.1 GB for a native page and 2.1 GB for a scanned page (Task 2.1);
 - the offline Docling test run: 48 tests in about 3 minutes.
 
+## Evidence search (Milestone R1, no LLM)
+
+Ask a question about **one patient's** documents and get the matching pages, cited, with the stored text exactly as parsed. Nothing is generated; with too little evidence the answer is "not enough evidence", and advice-seeking questions get a fixed refusal (ADR-022, ADR-035).
+
+**Models (approved, pinned and verified; ADR-002, ADR-035):** the owner approved these exact revisions on 2026-11-16. Both models are downloaded into the local Hugging Face cache and verified on CPU, and the real-model tests pass.
+
+| Model | Revision | Setting in `.env` |
+|---|---|---|
+| `BAAI/bge-small-en-v1.5` (embedding, MIT) | `5c38ec7c405ec4b44b94cc5a9bb96e735b38267a` | `MEDIMIND_EMBEDDING_MODEL_REVISION` |
+| `cross-encoder/ms-marco-MiniLM-L6-v2` (reranker, Apache-2.0) | `233902d25c440f23af6f7d6e94d2946bac0bee0a` | `MEDIMIND_RERANKER_MODEL_REVISION` |
+
+- **Settings:** put both revisions in `.env` (`.env.example` leaves them empty). Without them, `index` and `ask` stop with `revision_not_configured`, and the UI offers `lexical` search only.
+- **Repository name:** the code requests the earlier name `cross-encoder/ms-marco-MiniLM-L-6-v2`, which the Hub redirects to the same repository at the same commit.
+- **Cache only:** models are loaded from the local cache only (`local_files_only=True`). MediMind never downloads a model at runtime, so a model missing from the cache is an error, not a download.
+- **New machine:** the cache must be populated once, by an explicit, deliberate call to `app/retrieval/models.py` with `allow_download=True` for exactly these revisions, as was done on 2026-11-16. Then check offline with `HF_HUB_OFFLINE=1 uv run pytest -m models`.
+
+```powershell
+uv run python -m app index --patient <patient-id>                 # every parsed, unindexed document
+uv run python -m app index --patient <patient-id> --document <id> # one document
+uv run python -m app ask --patient <patient-id> "What was my HbA1c in the report dated 05/06/2024?"
+uv run python -m app ask --patient <patient-id> --mode lexical "eGFR"   # dense | lexical | hybrid | hybrid_rerank
+```
+
+Each passage is printed as `[filename, p. N]` with its section, date and score; OCR pages are marked "OCR text - unverified". The question and the excerpts are never logged.
+
+**Evaluation:** the synthetic dataset `data/synthetic/lab_v0` (fictional; build with `uv run python -m evals.synthetic.build --out <dir>`) and `evals/run_retrieval.py` (stages `ingest`, `ablate` (dev ablation and calibration), `freeze` (writes `dev_selection.json` with the exact threshold), and `heldout` (one run of the frozen selection)). Results are written to `evals/reports/`; ingest state goes to the git-ignored `evals/work/`. **No retrieval metric has been measured yet:** R1.8 is deferred until Docker is available. Real-model tests are opt-in: `uv run pytest -m models`.
+
+## Local UI (Streamlit)
+
+A minimal local interface for patients, documents, processing and evidence search (Task 2.9b). It calls the service layer only: SQL, rules, the indexing gate and orchestration stay in `app/records/` and `app/services/` (ADR-036 R3).
+
+**Start it** (after `uv sync`, with `.env` configured and the database running):
+
+```powershell
+docker compose up -d                              # PostgreSQL + pgvector
+uv run python -m app migrate                      # once, or after an upgrade
+uv run streamlit run app/ui/streamlit_app.py      # opens http://127.0.0.1:8501
+```
+
+`.streamlit/config.toml` binds the server to `127.0.0.1` only, turns off Streamlit's usage statistics, limits uploads to 20 MB (the same as `MEDIMIND_MAX_UPLOAD_BYTES`), and hides exception details in the browser. Without a database, every page shows "The database could not be reached" and nothing else.
+
+**What you can do:**
+
+- **Patients:** list, create (display name, optional date of birth, optional "synthetic" flag), view, and edit the selected patient. You can also delete a patient, but only once that patient has no documents. Editing a profile never re-checks documents that were already checked.
+- **Documents:**
+  - Upload a PDF for the selected patient. The validation reason is shown on refusal, and an exact duplicate is selected instead of being stored twice.
+  - See the library: file, type with rule score, identity, status (parsed / indexed / awaiting extraction), pages and timestamps.
+  - Rename a document.
+  - Delete a document, after a confirmation. **Deleting removes the database records only: the original PDF and parsed files stay on disk.**
+- **Processing:**
+  - Run every stage for one document, or for all of the patient's documents, synchronously. The page waits and shows progress after each stage; there is no background processing.
+  - Every stage is shown as succeeded, already done, blocked or failed, with a fixed explanation. Exception messages are never shown.
+- **Warnings:**
+  - An identity **mismatch** is shown in red. The document is flagged for review and not indexed. There is no override; to file it elsewhere, delete it and upload it to the right patient.
+  - Identity **unknown** means it could not be confirmed. The document is still searchable, labelled "identity not confirmed".
+  - Type **unknown** means the rules could not determine the type confidently.
+  - A match is a consistency check of printed text, **not proof of identity**.
+- **Unfinished parse:** a parse that was started and never finished (for example, the app was closed mid-parse) is shown as such. **Automatic recovery is not available** in the UI, and running the document again only reports it as blocked.
+- **Evidence search:** page-cited excerpts from the selected patient's stored documents, or a clear abstention. Nothing is generated, and there is no medical interpretation. Only retrieval modes whose models are configured are offered (`lexical` needs none).
+
+**Demo mode** (`MEDIMIND_DEMO_MODE=true`, ADR-014):
+
+- Only synthetic (fictional) patients are listed or opened.
+- New patients are always created as synthetic.
+- Upload is disabled.
+- A banner says that demo mode is on.
+
+Nothing is loaded or created automatically, in either mode. Seeding a demo database from `data/synthetic/` is not implemented yet.
+
+**Known limitations:**
+
+- The UI has not yet been verified against a running PostgreSQL. Its tests use stand-in services; see [PostgreSQL verification](#integration-tests-optional-read-only).
+- Processing is synchronous: parsing takes about 10–20 s per page on CPU, and the first parse downloads Docling's models.
+- If the two model revision settings are left empty in `.env`, the index stage fails with "No approved embedding model revision is configured", and search offers `lexical` only. See [Evidence search](#evidence-search-milestone-r1-no-llm) for the approved values.
+- Single user, local only. There is no authentication.
+- The document table shows the state before a processing run until the next action refreshes it.
+
 ## Repository layout
 
 | Path | Purpose |
@@ -295,6 +372,10 @@ To confirm nothing was downloaded, compare the size of the Hugging Face cache be
 | `app/` | Application code. `app/main.py` is the entry point, and `app/core/` holds configuration, logging, errors and health checks |
 | `app/records/` | Database access (SQLAlchemy + psycopg). The **only** code allowed to talk to the database (ADR-016) |
 | `app/ingestion/` | PDF validation, read-only storage of originals, Docling parsing and the versioned parse IR (ADR-029). No database access |
+| `app/retrieval/` | Chunking, query terms and guardrail, RRF, abstention, lazy model adapters (pure logic, no database) |
+| `app/services/` | Orchestration: upload, parse, classify, identity, index, the document pipeline, library wrappers, evidence search |
+| `app/ui/` | Local Streamlit UI (Task 2.9b); imports `app.services` only. Server settings in `.streamlit/config.toml` |
+| `evals/` | Synthetic generator, dataset manifest, question set, metrics, report writer, retrieval evaluation runner |
 | `tests/` | Automated tests (pytest). `tests/integration/` needs the running database and `tests/docling/` needs Docling's and RapidOCR's models; both are opt-in |
 | `data/synthetic/` | Fictional demo records only. Never put real patient data here. |
 
