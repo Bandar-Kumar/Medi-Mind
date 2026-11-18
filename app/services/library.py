@@ -17,6 +17,7 @@ from typing import Final
 
 from app.core.errors import PatientError
 from app.records.chunks import get_index_target
+from app.records.facts import get_extraction_target, list_document_facts
 from app.records.repositories import (
     PATIENT_NOT_FOUND,
     DeletedDocument,
@@ -136,8 +137,12 @@ def delete_document(patient_id: uuid.UUID, document_id: uuid.UUID) -> DeletedDoc
     """Delete one document of this patient; its derived rows go by database cascade.
 
     No file is touched: the original PDF and the parse outputs stay on disk (Task 1.8e).
+    Conflicts with a member in the document close as ``member_deleted`` and stay as history; the
+    remaining facts are compared again (Phase 3, docs/PHASE_3_PLAN.md §6.7).
     """
-    return _delete_document(patient_id, document_id)
+    from app.services.fact_conflicts import build_detector
+
+    return _delete_document(patient_id, document_id, conflict_detector=build_detector())
 
 
 @dataclass(frozen=True)
@@ -155,6 +160,10 @@ class DocumentState:
     identity_checked: bool  # a succeeded identity run exists
     identity_check: str
     index_blocked_reason: str | None
+    extracted: bool = False  # a succeeded or skipped extract run exists (Phase 3)
+    extract_blocked_reason: str | None = None
+    facts_current: int = 0
+    facts_needs_review: int = 0
 
     @property
     def parsed(self) -> bool:
@@ -175,6 +184,8 @@ def get_document_state(patient_id: uuid.UUID, document_id: uuid.UUID) -> Documen
     """The document's stage state; ``document_not_found`` also for another patient's."""
     summary = _get_document(patient_id, document_id)
     target = get_index_target(patient_id, document_id)
+    extraction = get_extraction_target(patient_id, document_id)
+    facts = list_document_facts(patient_id, document_id)
     return DocumentState(
         document_id=document_id,
         processing_status=summary.processing_status,
@@ -184,4 +195,8 @@ def get_document_state(patient_id: uuid.UUID, document_id: uuid.UUID) -> Documen
         identity_checked=target.identity_checked,
         identity_check=target.identity_check,
         index_blocked_reason=target.blocked_reason,
+        extracted=extraction.extracted,
+        extract_blocked_reason=extraction.blocked_reason,
+        facts_current=len(facts),
+        facts_needs_review=sum(f.review_status == "needs_review" for f in facts),
     )

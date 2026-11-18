@@ -1,7 +1,8 @@
 """Unit tests for the document pipeline and the library wrappers (Task 2.9a, ADR-036 A4).
 
-The four stage services are replaced by stand-ins over an in-memory model of each document; the
-stand-in index stage applies the real indexing-gate rule (``app.records.chunks._gate_refusal``).
+The five stage services are replaced by stand-ins over an in-memory model of each document; the
+stand-in index stage applies the real indexing-gate rule (``app.records.chunks._gate_refusal``)
+and the stand-in extract stage the real extraction gate (``extraction_gate_refusal``, Phase 3).
 No database, parser or model is used. All data is fictional.
 """
 
@@ -20,11 +21,13 @@ from app.core.errors import (
     PatientError,
 )
 from app.records.chunks import _gate_refusal
+from app.records.facts import extraction_applies, extraction_gate_refusal
 from app.records.repositories import DocumentSummary
 from app.services import document_pipeline as pipe
 from app.services import library
 from app.services.check_identity import IdentityCheckResult
 from app.services.classify_document import ClassifyResult
+from app.services.extract_document import ExtractResult
 from app.services.index_document import IndexResult
 from app.services.process_document import ProcessResult
 
@@ -50,11 +53,13 @@ class Doc:
     identity_check: str = "unknown"  # the column (default "unknown")
     doc_type: str = "unknown"
     indexed: bool = False
+    extracted: bool = False
     # what the next attempt of each stage does
     parse_error: BaseException | None = None
     classify_error: BaseException | None = None
     identity_error: BaseException | None = None
     index_error: BaseException | None = None
+    extract_error: BaseException | None = None
     next_type: str = "lab_report"
     next_identity: str = "match"
 
@@ -123,6 +128,28 @@ class World:
         doc.indexed = True
         return IndexResult(document_id, 5, 4, 1, 6)
 
+    def extract(self, _settings, patient_id, document_id) -> ExtractResult:
+        self.calls.append((pipe.EXTRACT, document_id))
+        doc = self._doc(patient_id, document_id)
+        refusal = extraction_gate_refusal(
+            has_pages=doc.pages,
+            classified=doc.classified,
+            identity_checked=doc.identity_checked,
+            identity_check=doc.identity_check,
+        )
+        if refusal is not None:
+            raise _err(refusal)
+        if doc.extracted:
+            raise _err("already_extracted")
+        if doc.extract_error is not None:
+            raise doc.extract_error
+        doc.extracted = True
+        outcome = "extracted" if extraction_applies(doc.doc_type) else "not_applicable"
+        facts = 3 if outcome == "extracted" else 0
+        return ExtractResult(
+            document_id, outcome, uuid.uuid4(), facts, 0, {}, 0, 0, 0, doc.indexed, 7
+        )
+
     # library ----------------------------------------------------------------------------------
     def get_document(self, patient_id, document_id) -> DocumentSummary:
         return _summary(self._doc(patient_id, document_id))
@@ -150,6 +177,7 @@ def world(monkeypatch):
         monkeypatch.setattr(pipe, "classify_document", w.classify)
         monkeypatch.setattr(pipe, "check_document_identity", w.identity)
         monkeypatch.setattr(pipe, "index_document", w.index)
+        monkeypatch.setattr(pipe, "extract_document", w.extract)
         monkeypatch.setattr(pipe, "get_document", w.get_document)
         monkeypatch.setattr(pipe, "list_documents", w.list_documents)
         return w
@@ -177,12 +205,14 @@ def test_a_new_document_goes_through_every_stage_in_order(world) -> None:
         ("classify", "succeeded", None),
         ("identity", "succeeded", None),
         ("index", "succeeded", None),
+        ("extract", "succeeded", None),
     ]
     assert [stage for stage, _ in w.calls] == list(pipe.STAGES)
     assert isinstance(result.stage("classify").detail, ClassifyResult)
     assert result.stage("identity").detail.outcome == "match"  # type: ignore[union-attr]
     assert result.stage("index").detail.chunks == 5  # type: ignore[union-attr]
     assert result.indexed and result.document_id == doc.id
+    assert result.extracted and result.stage("extract").detail.outcome == "extracted"  # type: ignore[union-attr]
 
 
 def test_completed_stages_are_reported_already_done_and_not_repeated(world) -> None:
@@ -195,6 +225,7 @@ def test_completed_stages_are_reported_already_done_and_not_repeated(world) -> N
         ("classify", "already_done", "already_classified"),
         ("identity", "already_done", "already_checked"),
         ("index", "already_done", "already_indexed"),
+        ("extract", "already_done", "already_extracted"),
     ]
     assert again.indexed and all(s.detail is None for s in again.stages)
 
@@ -211,6 +242,7 @@ def test_a_classification_failure_does_not_stop_identity_and_blocks_indexing(wor
         ("classify", "failed", "unexpected"),
         ("identity", "succeeded", None),
         ("index", "blocked", "not_classified"),
+        ("extract", "blocked", "not_classified"),
     ]
     assert result.stage("classify").error_class == "RuntimeError"
     assert (pipe.IDENTITY, doc.id) in w.calls and not result.indexed
@@ -225,6 +257,7 @@ def test_an_identity_failure_does_not_stop_classification_and_blocks_indexing(wo
         ("classify", "succeeded", None),
         ("identity", "failed", "database_error"),
         ("index", "blocked", "identity_not_checked"),
+        ("extract", "blocked", "identity_not_checked"),
     ]
 
 
@@ -321,7 +354,7 @@ def test_without_pages_every_later_stage_is_blocked_not_skipped(
     w = world(doc)
     result = _run(doc)
     assert (result.stage("parse").status, result.stage("parse").reason) == (status, reason)
-    for stage in (pipe.CLASSIFY, pipe.IDENTITY, pipe.INDEX):
+    for stage in (pipe.CLASSIFY, pipe.IDENTITY, pipe.INDEX, pipe.EXTRACT):
         assert (result.stage(stage).status, result.stage(stage).reason) == ("blocked", "not_parsed")
     assert [stage for stage, _ in w.calls] == list(pipe.STAGES)  # every service was asked
 
@@ -348,10 +381,11 @@ def test_a_patient_run_reports_every_document_in_order_and_continues(world) -> N
     w = world(first, broken, last, other)
     results = pipe.run_patient_pipeline(None, None, None, PATIENT)  # type: ignore[arg-type]
     assert [r.document_id for r in results] == [first.id, broken.id, last.id]  # oldest first
-    assert all(len(r.stages) == 4 for r in results)
+    assert all(len(r.stages) == 5 for r in results)
     assert results[0].indexed
     assert results[1].stage("parse").status == "failed" and not results[1].indexed
     assert results[2].stage("index").reason == "identity_mismatch"
+    assert results[2].stage("extract").reason == "identity_mismatch"  # no facts for a mismatch
     assert all(document_id != other.id for _, document_id in w.calls)  # never another patient
 
 
@@ -427,7 +461,9 @@ def test_library_wrappers_pass_the_patient_scope_through_unchanged(
     calls = []
     monkeypatch.setattr(library, target, lambda *a, **kw: calls.append((a, kw)) or "result")
     returned = getattr(library, wrapper)(*args)
-    assert calls == [(args, {})]
+    assert [c[0] for c in calls] == [args]
+    # delete_document also hands the conflict detector to the repository (Phase 3, §6.7)
+    assert set(calls[0][1]) == ({"conflict_detector"} if wrapper == "delete_document" else set())
     assert returned == ("result" if wrapper != "delete_patient" else None)
 
 
@@ -455,3 +491,49 @@ def test_library_errors_propagate_unchanged(monkeypatch) -> None:
     with pytest.raises(DocumentProcessingError) as caught:
         library.get_document(PATIENT, uuid.uuid4())
     assert caught.value is error
+
+
+# --- extraction stage (Phase 3, docs/PHASE_3_PLAN.md §9) ---------------------------------------
+
+
+def test_extraction_is_independent_of_an_index_failure(world) -> None:
+    doc = Doc(index_error=DocumentProcessingError("x", kind="integrity_mismatch"))
+    world(doc)
+    result = _run(doc)
+    assert result.stage("index").status == "failed"
+    assert result.stage("extract").status == "succeeded" and result.extracted
+
+
+def test_identity_mismatch_blocks_extraction(world) -> None:
+    doc = Doc(next_identity="mismatch")
+    world(doc)
+    extract = _run(doc).stage("extract")
+    assert (extract.status, extract.reason) == ("blocked", "identity_mismatch")
+
+
+def test_unknown_identity_is_extracted(world) -> None:
+    doc = Doc(next_identity="unknown")
+    world(doc)
+    assert _run(doc).stage("extract").status == "succeeded"
+
+
+@pytest.mark.parametrize("doc_type", ["other", "unknown"])
+def test_other_document_types_are_not_applicable_but_complete(world, doc_type) -> None:
+    doc = Doc(next_type=doc_type)
+    world(doc)
+    first = _run(doc).stage("extract")
+    assert first.status == "succeeded" and first.reason is None
+    assert first.detail.outcome == "not_applicable" and first.detail.facts == 0  # type: ignore[union-attr]
+    again = _run(doc).stage("extract")
+    assert (again.status, again.reason) == ("already_done", "already_extracted")
+
+
+def test_an_extraction_failure_is_reported_and_retried_only_on_rerun(world) -> None:
+    doc = Doc(extract_error=DocumentProcessingError(SECRET, kind="reference_data_not_seeded"))
+    w = world(doc)
+    extract = _run(doc).stage("extract")
+    assert (extract.status, extract.reason) == ("failed", "reference_data_not_seeded")
+    assert SECRET not in repr(extract)
+    doc.extract_error = None
+    assert _run(doc).extracted
+    assert [s for s, _ in w.calls].count(pipe.EXTRACT) == 2

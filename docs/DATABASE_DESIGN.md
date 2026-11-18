@@ -57,7 +57,9 @@ A unique constraint on (`id`, `patient_id`) lets child tables use **composite fo
 `id`, `document_id` FK, `page_number`, `text`, `parse_method` (`native | ocr`), `has_tables`
 
 **pipeline_runs** (Phase 1)
-`id`, `document_id` (nullable), `stage`, `status`, `started_at`, `duration_ms`, `component_versions` (JSONB), `tokens_in`, `tokens_out`, `cost_usd`, `error`
+`id`, `document_id` (nullable), `stage`, `status`, `started_at`, `duration_ms`, `component_versions` (JSONB), `tokens_in`, `tokens_out`, `cost_usd`, `error_kind`, `error_class`
+
+*Correction (2026-11-17):* the error columns are `error_kind` (a fixed code) and `error_class` (a class name); no message text is stored. Migration 0004 adds `UNIQUE (id, document_id, patient_id)` as the target of the facts' run foreign keys; stage `extract` runs may be `skipped` (not a lab report).
 
 ### 4.2 Retrieval (Phase 5)
 
@@ -68,6 +70,8 @@ Indexes: HNSW on `embedding`, GIN on `tsv`, B-tree on (`patient_id`, `doc_date`)
 
 ### 4.3 Extracted facts (Phases 3–6)
 
+> **As built (2026-11-17, migration 0004; ADR-037, ADR-038, [PHASE_3_PLAN.md](PHASE_3_PLAN.md) §5):** the tables below were created by migration 0002 in Phase 1 (not in Phases 3–6). Migration 0004 adds to `extracted_facts`: `extraction_run_id` and `superseded_by_run_id` (composite foreign keys with `document_id` and `patient_id` to `pipeline_runs`), `source_locator` (`p<page>:t<table>:r<row>` or `p<page>:l<line>[:s<segment>]`), `normalizer_version`, `reference_data_version`, `quality_notes`, `superseded_at`; character offsets are required; `review_status` has no default, is never `extracted`, and `validated` has no reasons. **`validated` means only that automated checks passed** (a column comment says so). `observations` gains `effective_date_source`, `effective_time`, `time_raw`, the date's own span (`date_page_number`, `date_char_start`, `date_char_end`), the derived `ref_range_comparison` and `analyte_match`. Human corrections live in `review_decisions.corrected_values`; fact values are never updated. *Implementation notes (verified on PostgreSQL 2026-11-18):* nullable JSONB columns are mapped with `none_as_null=True`, so "no value" is SQL `NULL`, never JSON `'null'`; a colon inside a CHECK expression written as SQLAlchemy text is escaped (`\:`); a delete blocked by an `ON DELETE RESTRICT` key raises SQLSTATE `23001`.
+
 **extracted_facts** (base table)
 - **Identity and source:** `id`, `patient_id`, `document_id` (composite FK), `fact_type` (`observation | medication | allergy | event`)
 - **Provenance:** `page_number`, `source_excerpt`, `char_start`, `char_end` (nullable), `bbox` (JSONB, nullable)
@@ -75,6 +79,7 @@ Indexes: HNSW on `embedding`, GIN on `tsv`, B-tree on (`patient_id`, `doc_date`)
 - **Status:** `review_status` (`extracted | validated | needs_review | verified | corrected | rejected`, see ADR-023), `review_reasons` (text[]: e.g. `grounding_failed`, `implausible_value`, `ambiguous_date`, `unmapped_analyte`, `unknown_unit`)
   - **Rule:** `verified`, `corrected` and `rejected` are set only by the review service, which writes a `review_decisions` row in the same transaction. A test enforces this.
 - **Grouping and versions:** `duplicate_group_id` (nullable), `extractor_version`, `prompt_version`, `model_id`, `created_at`
+  - *As built (2026-11-18, Phase 4; ADR-039):* `duplicate_group_id` is **not used**. Cross-document duplicates are derived at read time from the usable facts and never stored, so no fact row is updated. No migration was added in Phase 4; the longitudinal reads use the existing tables and indexes.
 
 **observations**
 - **Analyte:** `fact_id` PK/FK, `analyte_raw`, `analyte_id` FK (nullable)
@@ -109,6 +114,8 @@ Indexes: HNSW on `embedding`, GIN on `tsv`, B-tree on (`patient_id`, `doc_date`)
 **conflict_members**
 `conflict_id` FK, `fact_id` FK
 
+*As built (migration 0004):* `conflicts.status` adds `closed` (with `closed_at`, `closed_reason`); history columns `analyte_id`, `effective_date`, `member_count_at_detection`; an idempotent `detection_key` (unique per patient) with `rule_version`. `description` is a template code, never values. Closed conflicts are kept as history and never reopened; deleting a document closes its conflicts (`member_deleted`) before the cascade.
+
 ### 4.5 Reference data (Phase 3)
 
 **analyte_catalog**
@@ -123,6 +130,8 @@ Indexes: HNSW on `embedding`, GIN on `tsv`, B-tree on (`patient_id`, `doc_date`)
 These tables are seeded from version-controlled CSV files. The MVP covers about 30–50 analytes common on Indian lab reports, including Indian and British name variants (e.g. "Haemoglobin", "Glycosylated Haemoglobin") and Indian unit spellings (`cumm`, `gm/dL`, `lakhs/cumm`). Raw units and reference ranges are always kept as printed (ADR-025).
 
 The region profile itself (date order, digit grouping, unit spellings) is application configuration, not database data.
+
+> **Phase 5 (2026-11-18):** no migration and no schema change. One read-only, patient-scoped repository function was added, `app/records/chunks.py::stored_chunks(patient_id, chunk_ids)`, used by the citation validator to compare a cited passage with the stored chunk. The copilot reads facts only through the Phase 4 repositories.
 
 ## 5. Scoping and integrity rules
 

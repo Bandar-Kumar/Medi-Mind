@@ -18,7 +18,9 @@ the R1.8 runner) calls ``index_document``, and ``index_document`` is the only ca
 ``insert_document_chunks``, which re-checks the gate under the row lock. ``index_patient``
 returns one explicit result per document: indexed, or blocked with the gate's reason.
 
-Nothing here writes or deletes a file, and the document's ``processing_status`` is unchanged.
+Nothing here writes or deletes a file. After a successful insert, the shared completion rule
+(``complete_document_if_ready``, Phase 3 §9.4) sets ``processed`` once every stage, extraction
+included, is complete; indexing itself never decides the status.
 Logs carry identifiers, counts and durations only.
 """
 
@@ -39,6 +41,7 @@ from app.records.chunks import (
     insert_document_chunks,
     list_unindexed_documents,
 )
+from app.records.facts import complete_document_if_ready
 from app.records.repositories import ProcessingErrorKind, parse_run_belongs_to_document
 from app.retrieval.chunking import CHUNKER_VERSION, chunk_document
 from app.retrieval.models import Embedder, check_embedding
@@ -155,6 +158,7 @@ def index_document(
         },
         duration_ms=duration_ms,
     )
+    complete_document_if_ready(patient_id, document_id)
     return IndexResult(
         document_id=document_id,
         chunks=len(records),

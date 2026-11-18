@@ -1,0 +1,1347 @@
+{
+  "dataset_version": "extract_v0@2f0e7a670576",
+  "documents": [
+    {
+      "abstentions": {
+        "line_analyte_unmapped": 2
+      },
+      "doc_id": "P03-CL",
+      "facts": 13,
+      "kind": "CL",
+      "needs_review": 13,
+      "predicted_doc_type": "lab_report"
+    },
+    {
+      "abstentions": {
+        "historical_column": 1,
+        "line_analyte_unmapped": 1,
+        "placeholder_value": 1
+      },
+      "doc_id": "P03-HD",
+      "facts": 9,
+      "kind": "HD",
+      "needs_review": 1,
+      "predicted_doc_type": "lab_report"
+    },
+    {
+      "abstentions": {
+        "line_analyte_unmapped": 1
+      },
+      "doc_id": "P03-LN",
+      "facts": 4,
+      "kind": "LN",
+      "needs_review": 0,
+      "predicted_doc_type": "lab_report"
+    },
+    {
+      "abstentions": {
+        "multiple_subjects": 1
+      },
+      "doc_id": "P03-FM",
+      "facts": 0,
+      "kind": "FM",
+      "needs_review": 0,
+      "predicted_doc_type": "lab_report"
+    },
+    {
+      "abstentions": {
+        "table_unrecognized": 1
+      },
+      "doc_id": "P03-RF",
+      "facts": 0,
+      "kind": "RF",
+      "needs_review": 0,
+      "predicted_doc_type": "lab_report"
+    },
+    {
+      "abstentions": {},
+      "doc_id": "P03-RX",
+      "facts": 0,
+      "kind": "RX",
+      "needs_review": 0,
+      "predicted_doc_type": "other"
+    },
+    {
+      "abstentions": {
+        "line_analyte_unmapped": 2
+      },
+      "doc_id": "P03-RS",
+      "facts": 13,
+      "kind": "RS",
+      "needs_review": 13,
+      "predicted_doc_type": "lab_report"
+    },
+    {
+      "abstentions": {
+        "line_analyte_unmapped": 1
+      },
+      "doc_id": "P05-CL",
+      "facts": 9,
+      "kind": "CL",
+      "needs_review": 0,
+      "predicted_doc_type": "lab_report"
+    },
+    {
+      "abstentions": {
+        "historical_column": 1,
+        "line_analyte_unmapped": 1,
+        "placeholder_value": 1
+      },
+      "doc_id": "P05-HD",
+      "facts": 9,
+      "kind": "HD",
+      "needs_review": 1,
+      "predicted_doc_type": "lab_report"
+    },
+    {
+      "abstentions": {
+        "line_analyte_unmapped": 1
+      },
+      "doc_id": "P05-LN",
+      "facts": 4,
+      "kind": "LN",
+      "needs_review": 0,
+      "predicted_doc_type": "lab_report"
+    },
+    {
+      "abstentions": {
+        "multiple_subjects": 1
+      },
+      "doc_id": "P05-FM",
+      "facts": 0,
+      "kind": "FM",
+      "needs_review": 0,
+      "predicted_doc_type": "lab_report"
+    },
+    {
+      "abstentions": {
+        "table_unrecognized": 1
+      },
+      "doc_id": "P05-RF",
+      "facts": 0,
+      "kind": "RF",
+      "needs_review": 0,
+      "predicted_doc_type": "lab_report"
+    },
+    {
+      "abstentions": {},
+      "doc_id": "P05-RX",
+      "facts": 0,
+      "kind": "RX",
+      "needs_review": 0,
+      "predicted_doc_type": "other"
+    },
+    {
+      "abstentions": {
+        "line_analyte_unmapped": 1
+      },
+      "doc_id": "P05-RS",
+      "facts": 9,
+      "kind": "RS",
+      "needs_review": 9,
+      "predicted_doc_type": "lab_report"
+    },
+    {
+      "abstentions": {
+        "line_analyte_unmapped": 2
+      },
+      "doc_id": "P10-CL",
+      "facts": 16,
+      "kind": "CL",
+      "needs_review": 0,
+      "predicted_doc_type": "lab_report"
+    },
+    {
+      "abstentions": {
+        "historical_column": 1,
+        "line_analyte_unmapped": 1,
+        "placeholder_value": 1
+      },
+      "doc_id": "P10-HD",
+      "facts": 9,
+      "kind": "HD",
+      "needs_review": 9,
+      "predicted_doc_type": "lab_report"
+    },
+    {
+      "abstentions": {
+        "line_analyte_unmapped": 1
+      },
+      "doc_id": "P10-LN",
+      "facts": 4,
+      "kind": "LN",
+      "needs_review": 0,
+      "predicted_doc_type": "lab_report"
+    },
+    {
+      "abstentions": {
+        "multiple_subjects": 1
+      },
+      "doc_id": "P10-FM",
+      "facts": 0,
+      "kind": "FM",
+      "needs_review": 0,
+      "predicted_doc_type": "lab_report"
+    },
+    {
+      "abstentions": {
+        "table_unrecognized": 1
+      },
+      "doc_id": "P10-RF",
+      "facts": 0,
+      "kind": "RF",
+      "needs_review": 0,
+      "predicted_doc_type": "lab_report"
+    },
+    {
+      "abstentions": {},
+      "doc_id": "P10-RX",
+      "facts": 0,
+      "kind": "RX",
+      "needs_review": 0,
+      "predicted_doc_type": "other"
+    },
+    {
+      "abstentions": {
+        "line_analyte_unmapped": 2
+      },
+      "doc_id": "P10-RS",
+      "facts": 13,
+      "kind": "RS",
+      "needs_review": 13,
+      "predicted_doc_type": "lab_report"
+    },
+    {
+      "abstentions": {
+        "line_analyte_unmapped": 2
+      },
+      "doc_id": "P12-CL",
+      "facts": 16,
+      "kind": "CL",
+      "needs_review": 0,
+      "predicted_doc_type": "lab_report"
+    },
+    {
+      "abstentions": {
+        "historical_column": 1,
+        "line_analyte_unmapped": 1,
+        "placeholder_value": 1
+      },
+      "doc_id": "P12-HD",
+      "facts": 9,
+      "kind": "HD",
+      "needs_review": 9,
+      "predicted_doc_type": "lab_report"
+    },
+    {
+      "abstentions": {
+        "line_analyte_unmapped": 1
+      },
+      "doc_id": "P12-LN",
+      "facts": 4,
+      "kind": "LN",
+      "needs_review": 0,
+      "predicted_doc_type": "lab_report"
+    },
+    {
+      "abstentions": {
+        "multiple_subjects": 1
+      },
+      "doc_id": "P12-FM",
+      "facts": 0,
+      "kind": "FM",
+      "needs_review": 0,
+      "predicted_doc_type": "lab_report"
+    },
+    {
+      "abstentions": {
+        "table_unrecognized": 1
+      },
+      "doc_id": "P12-RF",
+      "facts": 0,
+      "kind": "RF",
+      "needs_review": 0,
+      "predicted_doc_type": "lab_report"
+    },
+    {
+      "abstentions": {},
+      "doc_id": "P12-RX",
+      "facts": 0,
+      "kind": "RX",
+      "needs_review": 0,
+      "predicted_doc_type": "other"
+    },
+    {
+      "abstentions": {
+        "line_analyte_unmapped": 2
+      },
+      "doc_id": "P12-RS",
+      "facts": 16,
+      "kind": "RS",
+      "needs_review": 16,
+      "predicted_doc_type": "lab_report"
+    },
+    {
+      "abstentions": {
+        "line_analyte_unmapped": 1
+      },
+      "doc_id": "P14-CL",
+      "facts": 9,
+      "kind": "CL",
+      "needs_review": 9,
+      "predicted_doc_type": "lab_report"
+    },
+    {
+      "abstentions": {
+        "historical_column": 1,
+        "line_analyte_unmapped": 1,
+        "placeholder_value": 1
+      },
+      "doc_id": "P14-HD",
+      "facts": 9,
+      "kind": "HD",
+      "needs_review": 1,
+      "predicted_doc_type": "lab_report"
+    },
+    {
+      "abstentions": {
+        "line_analyte_unmapped": 1
+      },
+      "doc_id": "P14-LN",
+      "facts": 4,
+      "kind": "LN",
+      "needs_review": 0,
+      "predicted_doc_type": "lab_report"
+    },
+    {
+      "abstentions": {
+        "multiple_subjects": 1
+      },
+      "doc_id": "P14-FM",
+      "facts": 0,
+      "kind": "FM",
+      "needs_review": 0,
+      "predicted_doc_type": "lab_report"
+    },
+    {
+      "abstentions": {
+        "table_unrecognized": 1
+      },
+      "doc_id": "P14-RF",
+      "facts": 0,
+      "kind": "RF",
+      "needs_review": 0,
+      "predicted_doc_type": "lab_report"
+    },
+    {
+      "abstentions": {},
+      "doc_id": "P14-RX",
+      "facts": 0,
+      "kind": "RX",
+      "needs_review": 0,
+      "predicted_doc_type": "other"
+    },
+    {
+      "abstentions": {
+        "line_analyte_unmapped": 1
+      },
+      "doc_id": "P14-RS",
+      "facts": 9,
+      "kind": "RS",
+      "needs_review": 9,
+      "predicted_doc_type": "lab_report"
+    }
+  ],
+  "extractor_seconds_per_page": 0.00063,
+  "hard_gates": {
+    "mismatch_facts": 0,
+    "trap_extractions": 0,
+    "unsupported_facts": 0,
+    "wrong_subject_facts": 0
+  },
+  "hard_gates_pass": true,
+  "heldout_sha256": "2f0e7a670576a40771bc628f4870f0526c61579c921845bc03d59cb681fc54b7",
+  "metrics": {
+    "all": {
+      "abstention_correctness": 1.0,
+      "abstentions": {
+        "historical_column": 5,
+        "line_analyte_unmapped": 26,
+        "multiple_subjects": 5,
+        "placeholder_value": 5
+      },
+      "counts": {
+        "documents": 25,
+        "expected_abstentions": 10,
+        "expected_abstentions_seen": 10,
+        "expected_reasons": 127,
+        "expected_reasons_seen": 127,
+        "fully_correct_facts": 173,
+        "gold_facts": 191,
+        "matched_facts": 188,
+        "missed_facts": 3,
+        "needs_review": 103,
+        "predicted_facts": 188,
+        "provenance_correct": 186,
+        "trap_extractions": 0,
+        "validated": 85,
+        "wrong_subject_facts": 0
+      },
+      "duplicate_rate": 0.0,
+      "entity_f1": 0.9921,
+      "entity_precision": 1.0,
+      "entity_recall": 0.9843,
+      "expected_reason_recall": 1.0,
+      "false_extraction_rate": 0.0,
+      "fields": {
+        "comparator": {
+          "end_to_end_recall": 0.9843,
+          "f1": 0.9921,
+          "matched_pair_accuracy": 1.0,
+          "precision": 1.0
+        },
+        "date_precision": {
+          "end_to_end_recall": 0.9372,
+          "f1": 0.9446,
+          "matched_pair_accuracy": 0.9521,
+          "precision": 0.9521
+        },
+        "date_source": {
+          "end_to_end_recall": 0.9372,
+          "f1": 0.9446,
+          "matched_pair_accuracy": 0.9521,
+          "precision": 0.9521
+        },
+        "effective_date": {
+          "end_to_end_recall": 0.9372,
+          "f1": 0.9446,
+          "matched_pair_accuracy": 0.9521,
+          "precision": 0.9521
+        },
+        "effective_time": {
+          "end_to_end_recall": 0.9843,
+          "f1": 0.9921,
+          "matched_pair_accuracy": 1.0,
+          "precision": 1.0
+        },
+        "flag_as_printed": {
+          "end_to_end_recall": 0.9738,
+          "f1": 0.9815,
+          "matched_pair_accuracy": 0.9894,
+          "precision": 0.9894
+        },
+        "qualitative": {
+          "end_to_end_recall": 0.9843,
+          "f1": 0.9921,
+          "matched_pair_accuracy": 1.0,
+          "precision": 1.0
+        },
+        "ref_high": {
+          "end_to_end_recall": 0.9843,
+          "f1": 0.9921,
+          "matched_pair_accuracy": 1.0,
+          "precision": 1.0
+        },
+        "ref_low": {
+          "end_to_end_recall": 0.9843,
+          "f1": 0.9921,
+          "matched_pair_accuracy": 1.0,
+          "precision": 1.0
+        },
+        "unit_norm": {
+          "end_to_end_recall": 0.9529,
+          "f1": 0.9604,
+          "matched_pair_accuracy": 0.9681,
+          "precision": 0.9681
+        },
+        "unit_raw": {
+          "end_to_end_recall": 0.9476,
+          "f1": 0.9551,
+          "matched_pair_accuracy": 0.9628,
+          "precision": 0.9628
+        },
+        "value_num": {
+          "end_to_end_recall": 0.9738,
+          "f1": 0.9815,
+          "matched_pair_accuracy": 0.9894,
+          "precision": 0.9894
+        },
+        "value_num_norm": {
+          "end_to_end_recall": 0.9424,
+          "f1": 0.9498,
+          "matched_pair_accuracy": 0.9574,
+          "precision": 0.9574
+        }
+      },
+      "fully_correct_recall": 0.9058,
+      "needs_review_rate": 0.5479,
+      "provenance_accuracy": 0.9894,
+      "review_reasons": {
+        "ambiguous_date": 62,
+        "ocr_unverified_source": 60,
+        "unknown_unit": 6,
+        "unmapped_analyte": 5,
+        "unparsed_value": 2
+      },
+      "silent_error_rate": 0.0
+    },
+    "kind:CL": {
+      "abstention_correctness": null,
+      "abstentions": {
+        "line_analyte_unmapped": 8
+      },
+      "counts": {
+        "documents": 5,
+        "expected_reasons": 22,
+        "expected_reasons_seen": 22,
+        "fully_correct_facts": 63,
+        "gold_facts": 63,
+        "matched_facts": 63,
+        "needs_review": 22,
+        "predicted_facts": 63,
+        "provenance_correct": 63,
+        "trap_extractions": 0,
+        "validated": 41
+      },
+      "duplicate_rate": 0.0,
+      "entity_f1": 1.0,
+      "entity_precision": 1.0,
+      "entity_recall": 1.0,
+      "expected_reason_recall": 1.0,
+      "false_extraction_rate": 0.0,
+      "fields": {
+        "comparator": {
+          "end_to_end_recall": 1.0,
+          "f1": 1.0,
+          "matched_pair_accuracy": 1.0,
+          "precision": 1.0
+        },
+        "date_precision": {
+          "end_to_end_recall": 1.0,
+          "f1": 1.0,
+          "matched_pair_accuracy": 1.0,
+          "precision": 1.0
+        },
+        "date_source": {
+          "end_to_end_recall": 1.0,
+          "f1": 1.0,
+          "matched_pair_accuracy": 1.0,
+          "precision": 1.0
+        },
+        "effective_date": {
+          "end_to_end_recall": 1.0,
+          "f1": 1.0,
+          "matched_pair_accuracy": 1.0,
+          "precision": 1.0
+        },
+        "effective_time": {
+          "end_to_end_recall": 1.0,
+          "f1": 1.0,
+          "matched_pair_accuracy": 1.0,
+          "precision": 1.0
+        },
+        "flag_as_printed": {
+          "end_to_end_recall": 1.0,
+          "f1": 1.0,
+          "matched_pair_accuracy": 1.0,
+          "precision": 1.0
+        },
+        "qualitative": {
+          "end_to_end_recall": 1.0,
+          "f1": 1.0,
+          "matched_pair_accuracy": 1.0,
+          "precision": 1.0
+        },
+        "ref_high": {
+          "end_to_end_recall": 1.0,
+          "f1": 1.0,
+          "matched_pair_accuracy": 1.0,
+          "precision": 1.0
+        },
+        "ref_low": {
+          "end_to_end_recall": 1.0,
+          "f1": 1.0,
+          "matched_pair_accuracy": 1.0,
+          "precision": 1.0
+        },
+        "unit_norm": {
+          "end_to_end_recall": 1.0,
+          "f1": 1.0,
+          "matched_pair_accuracy": 1.0,
+          "precision": 1.0
+        },
+        "unit_raw": {
+          "end_to_end_recall": 1.0,
+          "f1": 1.0,
+          "matched_pair_accuracy": 1.0,
+          "precision": 1.0
+        },
+        "value_num": {
+          "end_to_end_recall": 1.0,
+          "f1": 1.0,
+          "matched_pair_accuracy": 1.0,
+          "precision": 1.0
+        },
+        "value_num_norm": {
+          "end_to_end_recall": 1.0,
+          "f1": 1.0,
+          "matched_pair_accuracy": 1.0,
+          "precision": 1.0
+        }
+      },
+      "fully_correct_recall": 1.0,
+      "needs_review_rate": 0.3492,
+      "provenance_accuracy": 1.0,
+      "review_reasons": {
+        "ambiguous_date": 22
+      },
+      "silent_error_rate": 0.0
+    },
+    "kind:FM": {
+      "abstention_correctness": 1.0,
+      "abstentions": {
+        "multiple_subjects": 5
+      },
+      "counts": {
+        "documents": 5,
+        "expected_abstentions": 5,
+        "expected_abstentions_seen": 5,
+        "gold_facts": 0,
+        "predicted_facts": 0,
+        "trap_extractions": 0,
+        "wrong_subject_facts": 0
+      },
+      "duplicate_rate": null,
+      "entity_f1": null,
+      "entity_precision": null,
+      "entity_recall": null,
+      "expected_reason_recall": null,
+      "false_extraction_rate": null,
+      "fields": {
+        "comparator": {
+          "end_to_end_recall": null,
+          "f1": null,
+          "matched_pair_accuracy": null,
+          "precision": null
+        },
+        "date_precision": {
+          "end_to_end_recall": null,
+          "f1": null,
+          "matched_pair_accuracy": null,
+          "precision": null
+        },
+        "date_source": {
+          "end_to_end_recall": null,
+          "f1": null,
+          "matched_pair_accuracy": null,
+          "precision": null
+        },
+        "effective_date": {
+          "end_to_end_recall": null,
+          "f1": null,
+          "matched_pair_accuracy": null,
+          "precision": null
+        },
+        "effective_time": {
+          "end_to_end_recall": null,
+          "f1": null,
+          "matched_pair_accuracy": null,
+          "precision": null
+        },
+        "flag_as_printed": {
+          "end_to_end_recall": null,
+          "f1": null,
+          "matched_pair_accuracy": null,
+          "precision": null
+        },
+        "qualitative": {
+          "end_to_end_recall": null,
+          "f1": null,
+          "matched_pair_accuracy": null,
+          "precision": null
+        },
+        "ref_high": {
+          "end_to_end_recall": null,
+          "f1": null,
+          "matched_pair_accuracy": null,
+          "precision": null
+        },
+        "ref_low": {
+          "end_to_end_recall": null,
+          "f1": null,
+          "matched_pair_accuracy": null,
+          "precision": null
+        },
+        "unit_norm": {
+          "end_to_end_recall": null,
+          "f1": null,
+          "matched_pair_accuracy": null,
+          "precision": null
+        },
+        "unit_raw": {
+          "end_to_end_recall": null,
+          "f1": null,
+          "matched_pair_accuracy": null,
+          "precision": null
+        },
+        "value_num": {
+          "end_to_end_recall": null,
+          "f1": null,
+          "matched_pair_accuracy": null,
+          "precision": null
+        },
+        "value_num_norm": {
+          "end_to_end_recall": null,
+          "f1": null,
+          "matched_pair_accuracy": null,
+          "precision": null
+        }
+      },
+      "fully_correct_recall": null,
+      "needs_review_rate": null,
+      "provenance_accuracy": null,
+      "review_reasons": {},
+      "silent_error_rate": null
+    },
+    "kind:HD": {
+      "abstention_correctness": 1.0,
+      "abstentions": {
+        "historical_column": 5,
+        "line_analyte_unmapped": 5,
+        "placeholder_value": 5
+      },
+      "counts": {
+        "documents": 5,
+        "expected_abstentions": 5,
+        "expected_abstentions_seen": 5,
+        "expected_reasons": 23,
+        "expected_reasons_seen": 23,
+        "fully_correct_facts": 45,
+        "gold_facts": 45,
+        "matched_facts": 45,
+        "needs_review": 21,
+        "predicted_facts": 45,
+        "provenance_correct": 45,
+        "trap_extractions": 0,
+        "validated": 24
+      },
+      "duplicate_rate": 0.0,
+      "entity_f1": 1.0,
+      "entity_precision": 1.0,
+      "entity_recall": 1.0,
+      "expected_reason_recall": 1.0,
+      "false_extraction_rate": 0.0,
+      "fields": {
+        "comparator": {
+          "end_to_end_recall": 1.0,
+          "f1": 1.0,
+          "matched_pair_accuracy": 1.0,
+          "precision": 1.0
+        },
+        "date_precision": {
+          "end_to_end_recall": 1.0,
+          "f1": 1.0,
+          "matched_pair_accuracy": 1.0,
+          "precision": 1.0
+        },
+        "date_source": {
+          "end_to_end_recall": 1.0,
+          "f1": 1.0,
+          "matched_pair_accuracy": 1.0,
+          "precision": 1.0
+        },
+        "effective_date": {
+          "end_to_end_recall": 1.0,
+          "f1": 1.0,
+          "matched_pair_accuracy": 1.0,
+          "precision": 1.0
+        },
+        "effective_time": {
+          "end_to_end_recall": 1.0,
+          "f1": 1.0,
+          "matched_pair_accuracy": 1.0,
+          "precision": 1.0
+        },
+        "flag_as_printed": {
+          "end_to_end_recall": 1.0,
+          "f1": 1.0,
+          "matched_pair_accuracy": 1.0,
+          "precision": 1.0
+        },
+        "qualitative": {
+          "end_to_end_recall": 1.0,
+          "f1": 1.0,
+          "matched_pair_accuracy": 1.0,
+          "precision": 1.0
+        },
+        "ref_high": {
+          "end_to_end_recall": 1.0,
+          "f1": 1.0,
+          "matched_pair_accuracy": 1.0,
+          "precision": 1.0
+        },
+        "ref_low": {
+          "end_to_end_recall": 1.0,
+          "f1": 1.0,
+          "matched_pair_accuracy": 1.0,
+          "precision": 1.0
+        },
+        "unit_norm": {
+          "end_to_end_recall": 1.0,
+          "f1": 1.0,
+          "matched_pair_accuracy": 1.0,
+          "precision": 1.0
+        },
+        "unit_raw": {
+          "end_to_end_recall": 1.0,
+          "f1": 1.0,
+          "matched_pair_accuracy": 1.0,
+          "precision": 1.0
+        },
+        "value_num": {
+          "end_to_end_recall": 1.0,
+          "f1": 1.0,
+          "matched_pair_accuracy": 1.0,
+          "precision": 1.0
+        },
+        "value_num_norm": {
+          "end_to_end_recall": 1.0,
+          "f1": 1.0,
+          "matched_pair_accuracy": 1.0,
+          "precision": 1.0
+        }
+      },
+      "fully_correct_recall": 1.0,
+      "needs_review_rate": 0.4667,
+      "provenance_accuracy": 1.0,
+      "review_reasons": {
+        "ambiguous_date": 18,
+        "unmapped_analyte": 5
+      },
+      "silent_error_rate": 0.0
+    },
+    "kind:LN": {
+      "abstention_correctness": null,
+      "abstentions": {
+        "line_analyte_unmapped": 5
+      },
+      "counts": {
+        "documents": 5,
+        "expected_reasons": 0,
+        "expected_reasons_seen": 0,
+        "fully_correct_facts": 20,
+        "gold_facts": 20,
+        "matched_facts": 20,
+        "predicted_facts": 20,
+        "provenance_correct": 20,
+        "trap_extractions": 0,
+        "validated": 20
+      },
+      "duplicate_rate": 0.0,
+      "entity_f1": 1.0,
+      "entity_precision": 1.0,
+      "entity_recall": 1.0,
+      "expected_reason_recall": null,
+      "false_extraction_rate": 0.0,
+      "fields": {
+        "comparator": {
+          "end_to_end_recall": 1.0,
+          "f1": 1.0,
+          "matched_pair_accuracy": 1.0,
+          "precision": 1.0
+        },
+        "date_precision": {
+          "end_to_end_recall": 1.0,
+          "f1": 1.0,
+          "matched_pair_accuracy": 1.0,
+          "precision": 1.0
+        },
+        "date_source": {
+          "end_to_end_recall": 1.0,
+          "f1": 1.0,
+          "matched_pair_accuracy": 1.0,
+          "precision": 1.0
+        },
+        "effective_date": {
+          "end_to_end_recall": 1.0,
+          "f1": 1.0,
+          "matched_pair_accuracy": 1.0,
+          "precision": 1.0
+        },
+        "effective_time": {
+          "end_to_end_recall": 1.0,
+          "f1": 1.0,
+          "matched_pair_accuracy": 1.0,
+          "precision": 1.0
+        },
+        "flag_as_printed": {
+          "end_to_end_recall": 1.0,
+          "f1": 1.0,
+          "matched_pair_accuracy": 1.0,
+          "precision": 1.0
+        },
+        "qualitative": {
+          "end_to_end_recall": 1.0,
+          "f1": 1.0,
+          "matched_pair_accuracy": 1.0,
+          "precision": 1.0
+        },
+        "ref_high": {
+          "end_to_end_recall": 1.0,
+          "f1": 1.0,
+          "matched_pair_accuracy": 1.0,
+          "precision": 1.0
+        },
+        "ref_low": {
+          "end_to_end_recall": 1.0,
+          "f1": 1.0,
+          "matched_pair_accuracy": 1.0,
+          "precision": 1.0
+        },
+        "unit_norm": {
+          "end_to_end_recall": 1.0,
+          "f1": 1.0,
+          "matched_pair_accuracy": 1.0,
+          "precision": 1.0
+        },
+        "unit_raw": {
+          "end_to_end_recall": 1.0,
+          "f1": 1.0,
+          "matched_pair_accuracy": 1.0,
+          "precision": 1.0
+        },
+        "value_num": {
+          "end_to_end_recall": 1.0,
+          "f1": 1.0,
+          "matched_pair_accuracy": 1.0,
+          "precision": 1.0
+        },
+        "value_num_norm": {
+          "end_to_end_recall": 1.0,
+          "f1": 1.0,
+          "matched_pair_accuracy": 1.0,
+          "precision": 1.0
+        }
+      },
+      "fully_correct_recall": 1.0,
+      "needs_review_rate": 0.0,
+      "provenance_accuracy": 1.0,
+      "review_reasons": {},
+      "silent_error_rate": 0.0
+    },
+    "kind:RS": {
+      "abstention_correctness": null,
+      "abstentions": {
+        "line_analyte_unmapped": 8
+      },
+      "counts": {
+        "documents": 5,
+        "expected_reasons": 82,
+        "expected_reasons_seen": 82,
+        "fully_correct_facts": 45,
+        "gold_facts": 63,
+        "matched_facts": 60,
+        "missed_facts": 3,
+        "needs_review": 60,
+        "predicted_facts": 60,
+        "provenance_correct": 58,
+        "trap_extractions": 0
+      },
+      "duplicate_rate": 0.0,
+      "entity_f1": 0.9756,
+      "entity_precision": 1.0,
+      "entity_recall": 0.9524,
+      "expected_reason_recall": 1.0,
+      "false_extraction_rate": 0.0,
+      "fields": {
+        "comparator": {
+          "end_to_end_recall": 0.9524,
+          "f1": 0.9756,
+          "matched_pair_accuracy": 1.0,
+          "precision": 1.0
+        },
+        "date_precision": {
+          "end_to_end_recall": 0.8095,
+          "f1": 0.8293,
+          "matched_pair_accuracy": 0.85,
+          "precision": 0.85
+        },
+        "date_source": {
+          "end_to_end_recall": 0.8095,
+          "f1": 0.8293,
+          "matched_pair_accuracy": 0.85,
+          "precision": 0.85
+        },
+        "effective_date": {
+          "end_to_end_recall": 0.8095,
+          "f1": 0.8293,
+          "matched_pair_accuracy": 0.85,
+          "precision": 0.85
+        },
+        "effective_time": {
+          "end_to_end_recall": 0.9524,
+          "f1": 0.9756,
+          "matched_pair_accuracy": 1.0,
+          "precision": 1.0
+        },
+        "flag_as_printed": {
+          "end_to_end_recall": 0.9206,
+          "f1": 0.9431,
+          "matched_pair_accuracy": 0.9667,
+          "precision": 0.9667
+        },
+        "qualitative": {
+          "end_to_end_recall": 0.9524,
+          "f1": 0.9756,
+          "matched_pair_accuracy": 1.0,
+          "precision": 1.0
+        },
+        "ref_high": {
+          "end_to_end_recall": 0.9524,
+          "f1": 0.9756,
+          "matched_pair_accuracy": 1.0,
+          "precision": 1.0
+        },
+        "ref_low": {
+          "end_to_end_recall": 0.9524,
+          "f1": 0.9756,
+          "matched_pair_accuracy": 1.0,
+          "precision": 1.0
+        },
+        "unit_norm": {
+          "end_to_end_recall": 0.8571,
+          "f1": 0.878,
+          "matched_pair_accuracy": 0.9,
+          "precision": 0.9
+        },
+        "unit_raw": {
+          "end_to_end_recall": 0.8413,
+          "f1": 0.8618,
+          "matched_pair_accuracy": 0.8833,
+          "precision": 0.8833
+        },
+        "value_num": {
+          "end_to_end_recall": 0.9206,
+          "f1": 0.9431,
+          "matched_pair_accuracy": 0.9667,
+          "precision": 0.9667
+        },
+        "value_num_norm": {
+          "end_to_end_recall": 0.8254,
+          "f1": 0.8455,
+          "matched_pair_accuracy": 0.8667,
+          "precision": 0.8667
+        }
+      },
+      "fully_correct_recall": 0.7143,
+      "needs_review_rate": 1.0,
+      "provenance_accuracy": 0.9667,
+      "review_reasons": {
+        "ambiguous_date": 22,
+        "ocr_unverified_source": 60,
+        "unknown_unit": 6,
+        "unparsed_value": 2
+      },
+      "silent_error_rate": null
+    },
+    "native": {
+      "abstention_correctness": 1.0,
+      "abstentions": {
+        "historical_column": 5,
+        "line_analyte_unmapped": 18,
+        "multiple_subjects": 5,
+        "placeholder_value": 5
+      },
+      "counts": {
+        "documents": 20,
+        "expected_abstentions": 10,
+        "expected_abstentions_seen": 10,
+        "expected_reasons": 45,
+        "expected_reasons_seen": 45,
+        "fully_correct_facts": 128,
+        "gold_facts": 128,
+        "matched_facts": 128,
+        "needs_review": 43,
+        "predicted_facts": 128,
+        "provenance_correct": 128,
+        "trap_extractions": 0,
+        "validated": 85,
+        "wrong_subject_facts": 0
+      },
+      "duplicate_rate": 0.0,
+      "entity_f1": 1.0,
+      "entity_precision": 1.0,
+      "entity_recall": 1.0,
+      "expected_reason_recall": 1.0,
+      "false_extraction_rate": 0.0,
+      "fields": {
+        "comparator": {
+          "end_to_end_recall": 1.0,
+          "f1": 1.0,
+          "matched_pair_accuracy": 1.0,
+          "precision": 1.0
+        },
+        "date_precision": {
+          "end_to_end_recall": 1.0,
+          "f1": 1.0,
+          "matched_pair_accuracy": 1.0,
+          "precision": 1.0
+        },
+        "date_source": {
+          "end_to_end_recall": 1.0,
+          "f1": 1.0,
+          "matched_pair_accuracy": 1.0,
+          "precision": 1.0
+        },
+        "effective_date": {
+          "end_to_end_recall": 1.0,
+          "f1": 1.0,
+          "matched_pair_accuracy": 1.0,
+          "precision": 1.0
+        },
+        "effective_time": {
+          "end_to_end_recall": 1.0,
+          "f1": 1.0,
+          "matched_pair_accuracy": 1.0,
+          "precision": 1.0
+        },
+        "flag_as_printed": {
+          "end_to_end_recall": 1.0,
+          "f1": 1.0,
+          "matched_pair_accuracy": 1.0,
+          "precision": 1.0
+        },
+        "qualitative": {
+          "end_to_end_recall": 1.0,
+          "f1": 1.0,
+          "matched_pair_accuracy": 1.0,
+          "precision": 1.0
+        },
+        "ref_high": {
+          "end_to_end_recall": 1.0,
+          "f1": 1.0,
+          "matched_pair_accuracy": 1.0,
+          "precision": 1.0
+        },
+        "ref_low": {
+          "end_to_end_recall": 1.0,
+          "f1": 1.0,
+          "matched_pair_accuracy": 1.0,
+          "precision": 1.0
+        },
+        "unit_norm": {
+          "end_to_end_recall": 1.0,
+          "f1": 1.0,
+          "matched_pair_accuracy": 1.0,
+          "precision": 1.0
+        },
+        "unit_raw": {
+          "end_to_end_recall": 1.0,
+          "f1": 1.0,
+          "matched_pair_accuracy": 1.0,
+          "precision": 1.0
+        },
+        "value_num": {
+          "end_to_end_recall": 1.0,
+          "f1": 1.0,
+          "matched_pair_accuracy": 1.0,
+          "precision": 1.0
+        },
+        "value_num_norm": {
+          "end_to_end_recall": 1.0,
+          "f1": 1.0,
+          "matched_pair_accuracy": 1.0,
+          "precision": 1.0
+        }
+      },
+      "fully_correct_recall": 1.0,
+      "needs_review_rate": 0.3359,
+      "provenance_accuracy": 1.0,
+      "review_reasons": {
+        "ambiguous_date": 40,
+        "unmapped_analyte": 5
+      },
+      "silent_error_rate": 0.0
+    },
+    "raster": {
+      "abstention_correctness": null,
+      "abstentions": {
+        "line_analyte_unmapped": 8
+      },
+      "counts": {
+        "documents": 5,
+        "expected_reasons": 82,
+        "expected_reasons_seen": 82,
+        "fully_correct_facts": 45,
+        "gold_facts": 63,
+        "matched_facts": 60,
+        "missed_facts": 3,
+        "needs_review": 60,
+        "predicted_facts": 60,
+        "provenance_correct": 58,
+        "trap_extractions": 0
+      },
+      "duplicate_rate": 0.0,
+      "entity_f1": 0.9756,
+      "entity_precision": 1.0,
+      "entity_recall": 0.9524,
+      "expected_reason_recall": 1.0,
+      "false_extraction_rate": 0.0,
+      "fields": {
+        "comparator": {
+          "end_to_end_recall": 0.9524,
+          "f1": 0.9756,
+          "matched_pair_accuracy": 1.0,
+          "precision": 1.0
+        },
+        "date_precision": {
+          "end_to_end_recall": 0.8095,
+          "f1": 0.8293,
+          "matched_pair_accuracy": 0.85,
+          "precision": 0.85
+        },
+        "date_source": {
+          "end_to_end_recall": 0.8095,
+          "f1": 0.8293,
+          "matched_pair_accuracy": 0.85,
+          "precision": 0.85
+        },
+        "effective_date": {
+          "end_to_end_recall": 0.8095,
+          "f1": 0.8293,
+          "matched_pair_accuracy": 0.85,
+          "precision": 0.85
+        },
+        "effective_time": {
+          "end_to_end_recall": 0.9524,
+          "f1": 0.9756,
+          "matched_pair_accuracy": 1.0,
+          "precision": 1.0
+        },
+        "flag_as_printed": {
+          "end_to_end_recall": 0.9206,
+          "f1": 0.9431,
+          "matched_pair_accuracy": 0.9667,
+          "precision": 0.9667
+        },
+        "qualitative": {
+          "end_to_end_recall": 0.9524,
+          "f1": 0.9756,
+          "matched_pair_accuracy": 1.0,
+          "precision": 1.0
+        },
+        "ref_high": {
+          "end_to_end_recall": 0.9524,
+          "f1": 0.9756,
+          "matched_pair_accuracy": 1.0,
+          "precision": 1.0
+        },
+        "ref_low": {
+          "end_to_end_recall": 0.9524,
+          "f1": 0.9756,
+          "matched_pair_accuracy": 1.0,
+          "precision": 1.0
+        },
+        "unit_norm": {
+          "end_to_end_recall": 0.8571,
+          "f1": 0.878,
+          "matched_pair_accuracy": 0.9,
+          "precision": 0.9
+        },
+        "unit_raw": {
+          "end_to_end_recall": 0.8413,
+          "f1": 0.8618,
+          "matched_pair_accuracy": 0.8833,
+          "precision": 0.8833
+        },
+        "value_num": {
+          "end_to_end_recall": 0.9206,
+          "f1": 0.9431,
+          "matched_pair_accuracy": 0.9667,
+          "precision": 0.9667
+        },
+        "value_num_norm": {
+          "end_to_end_recall": 0.8254,
+          "f1": 0.8455,
+          "matched_pair_accuracy": 0.8667,
+          "precision": 0.8667
+        }
+      },
+      "fully_correct_recall": 0.7143,
+      "needs_review_rate": 1.0,
+      "provenance_accuracy": 0.9667,
+      "review_reasons": {
+        "ambiguous_date": 22,
+        "ocr_unverified_source": 60,
+        "unknown_unit": 6,
+        "unparsed_value": 2
+      },
+      "silent_error_rate": null
+    }
+  },
+  "note": "Synthetic, fictional data; rules and data share one author; not a blind test; no clinical accuracy is claimed. 'validated' (auto-checked) means only that automated checks passed.",
+  "reference_date": "2026-11-17",
+  "split": "heldout",
+  "system": {
+    "classified:lab_report->lab_report": 25,
+    "classified:other->lab_report": 5,
+    "classified:other->other": 5,
+    "identity:own:match": 24,
+    "identity:own:unknown": 11,
+    "identity:swapped:mismatch": 25,
+    "identity:swapped:unknown": 10,
+    "identity_limit_extractions": 0,
+    "mismatch_blocked": 25,
+    "mismatch_documents": 25,
+    "mismatch_facts": 0,
+    "own_facts_written": 188,
+    "own_gold_facts": 191,
+    "own_unknown_documents": 6,
+    "own_unknown_extracted": 1,
+    "raster_documents": 5,
+    "raster_not_ocr": 0
+  },
+  "targets": {
+    "entity_precision": {
+      "met": true,
+      "target": [
+        ">=",
+        0.97
+      ],
+      "value": 1.0
+    },
+    "native_entity_recall": {
+      "met": true,
+      "target": [
+        ">=",
+        0.95
+      ],
+      "value": 1.0
+    },
+    "native_fully_correct_recall": {
+      "met": true,
+      "target": [
+        ">=",
+        0.9
+      ],
+      "value": 1.0
+    },
+    "silent_error_rate": {
+      "met": true,
+      "target": [
+        "<=",
+        0.01
+      ],
+      "value": 0.0
+    }
+  },
+  "versions": {
+    "classifier_rules_version": "2",
+    "date_policy_version": "dates-1",
+    "extraction_source_sha256": "41278dba719844227af62a03814cd0b530138bdfc0955c08e21d7c1b0dab4a90",
+    "extractor_version": "lab-rules-2",
+    "identity_rules_version": "2",
+    "normalizer_version": "norm-1",
+    "reference_data_version": "ref-535ecf5cbb7dc1ee"
+  }
+}

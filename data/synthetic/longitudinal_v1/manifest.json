@@ -1,0 +1,20 @@
+{
+ "dataset": "longitudinal_v1",
+ "frozen_at_build": true,
+ "generator_version": "longitudinal-gen-1",
+ "reference_date": "2026-11-17",
+ "seed": 20261119,
+ "sha256": {
+  "heldout": "f7305b7346e11f7e9c1faef89ba332cce1b8ed42cc2baee224ccd18303a47675"
+ },
+ "split": {
+  "heldout": [
+   "M01",
+   "M02",
+   "M03",
+   "M04",
+   "M05",
+   "M06"
+  ]
+ }
+}

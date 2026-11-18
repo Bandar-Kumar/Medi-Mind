@@ -1,0 +1,32 @@
+canonical_name,default_unit,unitless,plausible_min,plausible_max,source_note
+Haemoglobin,g/dL,false,1,25,MediMind sanity bound to catch OCR or decimal-point errors; not a reference range
+Total Leucocyte Count,/µL,false,100,200000,MediMind sanity bound to catch OCR or decimal-point errors; not a reference range
+Platelet Count,/µL,false,1000,2000000,MediMind sanity bound to catch OCR or decimal-point errors; not a reference range
+RBC Count,10^6/µL,false,0.5,10,MediMind sanity bound to catch OCR or decimal-point errors; not a reference range
+Packed Cell Volume,%,false,5,80,MediMind sanity bound to catch OCR or decimal-point errors; not a reference range
+MCV,fL,false,40,150,MediMind sanity bound to catch OCR or decimal-point errors; not a reference range
+Fasting Blood Sugar,mg/dL,false,10,1500,MediMind sanity bound to catch OCR or decimal-point errors; not a reference range
+Post Prandial Blood Sugar,mg/dL,false,10,1500,MediMind sanity bound to catch OCR or decimal-point errors; not a reference range
+HbA1c,%,false,2,20,MediMind sanity bound to catch OCR or decimal-point errors; not a reference range
+Total Cholesterol,mg/dL,false,30,1000,MediMind sanity bound to catch OCR or decimal-point errors; not a reference range
+Triglycerides,mg/dL,false,10,5000,MediMind sanity bound to catch OCR or decimal-point errors; not a reference range
+HDL Cholesterol,mg/dL,false,5,200,MediMind sanity bound to catch OCR or decimal-point errors; not a reference range
+LDL Cholesterol,mg/dL,false,5,600,MediMind sanity bound to catch OCR or decimal-point errors; not a reference range
+Serum Creatinine,mg/dL,false,0.05,30,MediMind sanity bound to catch OCR or decimal-point errors; not a reference range
+Blood Urea,mg/dL,false,2,400,MediMind sanity bound to catch OCR or decimal-point errors; not a reference range
+Uric Acid,mg/dL,false,0.5,25,MediMind sanity bound to catch OCR or decimal-point errors; not a reference range
+eGFR,mL/min/1.73m²,false,1,200,MediMind sanity bound to catch OCR or decimal-point errors; not a reference range
+SGOT,U/L,false,1,10000,MediMind sanity bound to catch OCR or decimal-point errors; not a reference range
+SGPT,U/L,false,1,10000,MediMind sanity bound to catch OCR or decimal-point errors; not a reference range
+Total Bilirubin,mg/dL,false,0.01,50,MediMind sanity bound to catch OCR or decimal-point errors; not a reference range
+Direct Bilirubin,mg/dL,false,0,30,MediMind sanity bound to catch OCR or decimal-point errors; not a reference range
+Alkaline Phosphatase,U/L,false,5,5000,MediMind sanity bound to catch OCR or decimal-point errors; not a reference range
+TSH,µIU/mL,false,0.001,500,MediMind sanity bound to catch OCR or decimal-point errors; not a reference range
+Total T3,ng/dL,false,10,1000,MediMind sanity bound to catch OCR or decimal-point errors; not a reference range
+Total T4,µg/dL,false,0.1,40,MediMind sanity bound to catch OCR or decimal-point errors; not a reference range
+Vitamin D (25-OH),ng/mL,false,1,300,MediMind sanity bound to catch OCR or decimal-point errors; not a reference range
+Vitamin B12,pg/mL,false,30,5000,MediMind sanity bound to catch OCR or decimal-point errors; not a reference range
+Urine Glucose,,true,,,Qualitative analyte; no numeric bounds
+Urine Protein,,true,,,Qualitative analyte; no numeric bounds
+Urine Ketones,,true,,,Qualitative analyte; no numeric bounds
+HBsAg,,true,,,Qualitative analyte; no numeric bounds

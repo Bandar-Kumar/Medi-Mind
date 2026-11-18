@@ -32,6 +32,7 @@ import os
 import re
 import stat
 import tempfile
+import time
 import unicodedata
 import uuid
 from dataclasses import dataclass
@@ -42,6 +43,10 @@ from app.core.config import Settings
 from app.core.errors import DocumentStorageError
 
 ORIGINAL_SUFFIX = ".pdf"
+# Removing the temporary link can fail on Windows while a concurrent caller has the same
+# content-addressed file open for verification; it is retried briefly (2026-11-18).
+UNLINK_ATTEMPTS = 50
+UNLINK_PAUSE_SECONDS = 0.01
 MAX_FILENAME_CHARS = 255  # documents.original_filename CHECK: length 1..255
 MAX_KEPT_EXTENSION_CHARS = 16
 FALLBACK_FILENAME = "unnamed.pdf"
@@ -172,7 +177,7 @@ def _publish(data_dir: Path, path: Path, data: bytes, digest: str) -> bool:
         except FileExistsError:
             return False  # never overwritten; the caller verifies the existing file
         _verify_published(path, identity, digest)
-        temp.unlink()
+        _unlink_with_retry(temp)
         temp = None
         os.chmod(path, stat.S_IREAD)  # after verification; a safeguard, not a security boundary
         return True
@@ -230,6 +235,10 @@ def _ensure_read_only(path: Path) -> None:
 def _check_contained(data_dir: Path, target: Path) -> None:
     """``target`` must lie under ``data_dir``, with no symlink or junction redirecting it."""
     outside = _error(StorageErrorKind.OUTSIDE_DATA_DIR, "The path is outside the data directory")
+    # Compare absolute forms: mkstemp returns an absolute path even for a relative data_dir (the
+    # default "data"). absolute() neither normalizes ".." nor follows links, so the checks below
+    # keep their meaning.
+    data_dir, target = data_dir.absolute(), target.absolute()
     if not target.is_relative_to(data_dir):
         raise outside
     relative = target.relative_to(data_dir)
@@ -240,8 +249,58 @@ def _check_contained(data_dir: Path, target: Path) -> None:
         current = current / part
         if current.is_symlink() or current.is_junction():
             raise outside
-    if not target.resolve().is_relative_to(data_dir.resolve()):
+    if not _resolved(target).is_relative_to(_resolved(data_dir)):
         raise outside
+
+
+_EXTENDED_PREFIX = "\\\\?\\"  # the four characters \\?\
+_EXTENDED_UNC_PREFIX = "\\\\?\\UNC\\"  # \\?\UNC\
+
+
+def strip_extended_prefix(text: str) -> str:
+    """Remove Windows' extended-length prefix: ``\\\\?\\C:\\x`` -> ``C:\\x``,
+    ``\\\\?\\UNC\\srv\\share`` -> ``\\\\srv\\share``. Any other text is returned unchanged."""
+    if text.startswith(_EXTENDED_UNC_PREFIX):
+        return "\\\\" + text[len(_EXTENDED_UNC_PREFIX) :]
+    if text.startswith(_EXTENDED_PREFIX):
+        return text[len(_EXTENDED_PREFIX) :]
+    return text
+
+
+def _resolved(path: Path) -> Path:
+    """``path.resolve()`` without Windows' extended-length prefix.
+
+    While another writer holds the file, Windows can return the extended-length form of a path
+    that is otherwise identical, which a plain ``is_relative_to`` comparison would wrongly treat
+    as outside the data directory (found 2026-11-18 by the concurrent-upload test). Only the
+    prefix is removed: links are still followed by ``resolve()`` and checked component by
+    component above.
+    """
+    return Path(strip_extended_prefix(str(path.resolve())))
+
+
+def _unlink_with_retry(path: Path) -> None:
+    """Remove the temporary link of a published, verified file.
+
+    On Windows a hard link cannot be removed (found 2026-11-18 by the concurrent-upload test):
+    - while the file is read-only: the attribute belongs to the file, so a concurrent caller that
+      found the published original and re-applied the read-only safeguard also protects this
+      link. The link is made writable and removed; the caller re-applies read-only right after;
+    - while another handle has the file open without delete sharing (a concurrent caller verifying
+      the same original): retried briefly.
+    A final failure propagates as before.
+    """
+    for attempt in range(UNLINK_ATTEMPTS):
+        try:
+            path.unlink()
+            return
+        except PermissionError:
+            if attempt == UNLINK_ATTEMPTS - 1:
+                raise
+            if not os.access(path, os.W_OK):
+                os.chmod(path, stat.S_IREAD | stat.S_IWRITE)
+                continue
+            time.sleep(UNLINK_PAUSE_SECONDS)
 
 
 def _file_sha256(path: Path) -> str:

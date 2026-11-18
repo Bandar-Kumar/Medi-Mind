@@ -211,8 +211,9 @@ def test_the_gate_is_rechecked_under_the_lock_before_the_insert(
     outcome: list[str] = []
     holder = test_engine.connect()
     try:
-        assert_is_test_database(holder, app_settings.db_name)
+        # Begin first: the guard's SELECT would otherwise autobegin and make begin() fail.
         transaction = holder.begin()
+        assert_is_test_database(holder, app_settings.db_name)
         holder.execute(text("SELECT id FROM documents WHERE id = :d FOR UPDATE"), {"d": document})
 
         def insert() -> None:

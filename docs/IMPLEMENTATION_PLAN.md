@@ -176,6 +176,8 @@ Tasks 2.1–2.5 cover the outline's "Docling spike", "upload validation", "stora
 
 ## Phase 3: Structured clinical extraction (outline)
 
+> **Superseded by [PHASE_3_PLAN.md](PHASE_3_PLAN.md) (approved 2026-11-17).** Status on 2026-11-17: Batches A–F implemented; the rule-based extractor replaced the LLM-first outline (D-1; ADR-037, ADR-038); dev and held-out measured once on `extract_v0`; PostgreSQL integration tests and the live end-to-end run **not run** (Docker unavailable); optional Batch G (LLM comparison) not started. The outline below is kept for history.
+
 - **Objective:** Extract grounded, normalized lab observations first. Medications, allergies and events are scaffolded but broadened in Phase 6.
 - **Subtasks:**
   - **LLM provider evaluation first (ADR-024):** compare free-tier candidates and a local model on about 20 dev-set pages, measuring cost, schema-valid rate, accuracy, latency, rate limits and privacy terms;
@@ -196,6 +198,11 @@ Tasks 2.1–2.5 cover the outline's "Docling spike", "upload validation", "stora
 - **Risks:** Hallucinated values; analyte variety; LLM cost.
 
 ## Phase 4: Database and longitudinal intelligence (outline)
+
+> **Implemented 2026-11-18 under [PHASE_4_PLAN.md](PHASE_4_PLAN.md) (ADR-039).**
+> - **Built:** every subtask below; comparison is between two dates (document comparison stays in Phase 6).
+> - **Acceptance met on `longitudinal_v0`:** trends match the ground truth exactly on dev and on held-out (run once); no LLM calls.
+> - **Status:** awaiting the owner's review. The outline is kept for history.
 
 - **Objective:** Timeline, lab trends and comparisons between dates, all deterministic. **This completes the first vertical slice.**
 - **Subtasks:**
@@ -222,9 +229,18 @@ Tasks 2.1–2.5 cover the outline's "Docling spike", "upload validation", "stora
 | R1.6 | `app/services/index_document.py`, `python -m app index` | ✅ Written, unit-tested with fakes |
 | R1.7 | `fusion.py`, `evidence.py`, `query.py`, `app/services/search_evidence.py`, `python -m app ask` | ✅ Written, unit-tested with fakes (35 + 16 + 4) |
 | R1.8 | `evals/run_retrieval.py`: ingest, dev ablation, calibration, single held-out run | ⏸ Runner written and scoring unit-tested; **no retrieval metric measured yet** (needs the database ~~and the approved models~~; *corrected 2026-11-17:* the models are approved and cached since R1.5, so only the database is missing). Readiness corrections done 2026-11-16 (ADR-035 update): split-local leak probes, separate leak and refusal metrics, calibration on answerable vs ordinary unanswerable only, indexing time per page, resumable ingestion, `freeze` → `dev_selection.json` → `heldout`. **Deferred — Docker unavailable (2026-11-17).**<br>*Planned change (Task 2.8, ADR-036 A3)*, ~~planned~~ *implemented in Task 2.8 (2026-11-17), unit-tested, not run:* ingest becomes upload → parse → classify → identity → index; a blocked document stops ingestion; rule versions recorded and validated by `heldout` |
+| R1.8 (update 2026-11-18) | Run completed | ✅ Docker available: dev ingest (35 reports, 57 pages), ablation, `lexical` frozen, held-out ingest (15 reports) and one held-out run. Results in [PHASE_5_PLAN.md](PHASE_5_PLAN.md) §2 |
 | R1.9 | Documentation | ✅ This update |
 
 ## Phase 5: Advanced hybrid RAG (outline)
+
+> **Implemented 2026-11-18 under [PHASE_5_PLAN.md](PHASE_5_PLAN.md) (ADR-040); awaiting the owner's review.**
+> - **Done:** R1.8 (ablation reported; lexical frozen; held-out once), router, SQL tools, answer generation (extractive default; LLM path offline-tested), citation validator, Copilot UI, `copilot_v0` evaluation (dev + held-out once).
+> - **Acceptance:** ablation results reported; every shown answer passed citation validation (0/304 attacks accepted, 0 unsupported claims on held-out). Pre-registered citation precision ≥ 0.95 **not met** (held-out 0.605).
+> - **Not done:** LLM provider evaluation (blocked), abstention threshold for lexical, portfolio checkpoint (demo seed, video). The outline below is kept for history.
+
+
+> **Remediation pass (2026-11-18, ADR-041):** patient vocabulary, abstention on unrecognised test names, passage relevance gate, lexical threshold evaluated on dev (rejected), new evaluation `copilot_v1` (new held-out patients; run once). Results: PHASE_5_PLAN §12.
 
 - **Objective:** Cited question answering with routing and abstention.
 - **Subtasks:**

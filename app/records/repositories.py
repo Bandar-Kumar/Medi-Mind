@@ -49,7 +49,7 @@ from collections.abc import Mapping, Sequence
 from dataclasses import dataclass, field
 from decimal import Decimal
 from enum import Enum, StrEnum
-from typing import Final
+from typing import Any, Final
 
 from sqlalchemy import Integer, cast, delete, exists, extract, func, select, update
 from sqlalchemy.exc import IntegrityError
@@ -80,6 +80,10 @@ PDF_MIME_TYPE = "application/pdf"
 _NUL = chr(0)
 _UNIQUE_VIOLATION = "23505"
 _FOREIGN_KEY_VIOLATION = "23503"
+# A delete blocked by an ON DELETE RESTRICT key reports restrict_violation, not 23503
+# (verified on PostgreSQL 18, 2026-11-18; see tests/integration/test_schema_constraints.py).
+_RESTRICT_VIOLATION = "23001"
+_FK_SQLSTATES = frozenset({_FOREIGN_KEY_VIOLATION, _RESTRICT_VIOLATION})
 # documents.patient_id -> patients.id (models.NAMING_CONVENTION; migration 0001). Only this
 # constraint means "unknown patient"; any other foreign-key violation propagates unchanged.
 _DOCUMENT_PATIENT_FK = "fk_documents_patient_id_patients"
@@ -444,9 +448,13 @@ def delete_patient(patient_id: uuid.UUID, *, factory: sessionmaker[Session] | No
 
 
 def _fk_violation(exc: IntegrityError, names: frozenset[str]) -> bool:
-    """True only for a foreign-key violation (SQLSTATE 23503) of one of the named constraints."""
+    """True only for a foreign-key violation of one of the named constraints.
+
+    SQLSTATE 23503 (insert or update with a missing parent) or 23001 (delete blocked by an
+    ``ON DELETE RESTRICT`` key); the constraint name decides which key it was.
+    """
     original = exc.orig
-    if getattr(original, "sqlstate", None) != _FOREIGN_KEY_VIOLATION:
+    if getattr(original, "sqlstate", None) not in _FK_SQLSTATES:
         return False
     diag = getattr(original, "diag", None)
     return getattr(diag, "constraint_name", None) in names
@@ -708,6 +716,7 @@ def delete_document(
     document_id: uuid.UUID,
     *,
     stale_after_seconds: int = STALE_CLAIM_SECONDS,
+    conflict_detector: Any = None,
     factory: sessionmaker[Session] | None = None,
 ) -> DeletedDocument:
     """Hard-delete a document row; the database cascades its derived rows (Task 1.8e).
@@ -722,6 +731,11 @@ def delete_document(
     worker can never write afterwards (its Tx B finds no document). A newer document version that
     supersedes this one is ``document_referenced`` (exactly that foreign key; any other integrity
     error propagates). Logs ids and counts only.
+
+    Phase 3 (docs/PHASE_3_PLAN.md §5.6, §6.7): before the cascade, conflicts with a member in this
+    document are closed as ``member_deleted`` and kept as history. With ``conflict_detector``,
+    the patient's conflicts are recomputed without this document's facts, so remaining facts can
+    open a new conflict; without it, the affected conflicts are only closed.
 
     Raises:
         ValueError: ``stale_after_seconds`` is not positive.
@@ -748,6 +762,9 @@ def delete_document(
             .select_from(PipelineRun)
             .where(PipelineRun.patient_id == patient_id, PipelineRun.document_id == document_id)
         )
+        from app.records.facts import close_conflicts_for_deleted_document  # no import cycle
+
+        close_conflicts_for_deleted_document(session, patient_id, document_id, conflict_detector)
         referenced = False
         try:
             session.execute(

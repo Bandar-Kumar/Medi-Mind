@@ -1,0 +1,90 @@
+alias,canonical_name
+haemoglobin,Haemoglobin
+hemoglobin,Haemoglobin
+hb,Haemoglobin
+hgb,Haemoglobin
+total leucocyte count,Total Leucocyte Count
+total leukocyte count,Total Leucocyte Count
+tlc,Total Leucocyte Count
+wbc count,Total Leucocyte Count
+total wbc count,Total Leucocyte Count
+platelet count,Platelet Count
+platelets,Platelet Count
+rbc count,RBC Count
+red blood cell count,RBC Count
+total rbc count,RBC Count
+packed cell volume,Packed Cell Volume
+pcv,Packed Cell Volume
+haematocrit,Packed Cell Volume
+hematocrit,Packed Cell Volume
+mcv,MCV
+mean corpuscular volume,MCV
+fasting blood sugar,Fasting Blood Sugar
+fbs,Fasting Blood Sugar
+fasting glucose,Fasting Blood Sugar
+fasting plasma glucose,Fasting Blood Sugar
+post prandial blood sugar,Post Prandial Blood Sugar
+ppbs,Post Prandial Blood Sugar
+post prandial glucose,Post Prandial Blood Sugar
+hba1c,HbA1c
+glycosylated haemoglobin,HbA1c
+glycated hemoglobin,HbA1c
+glycated haemoglobin,HbA1c
+glycosylated hemoglobin,HbA1c
+total cholesterol,Total Cholesterol
+serum cholesterol,Total Cholesterol
+cholesterol total,Total Cholesterol
+triglycerides,Triglycerides
+tg,Triglycerides
+serum triglycerides,Triglycerides
+hdl cholesterol,HDL Cholesterol
+hdl,HDL Cholesterol
+hdl-c,HDL Cholesterol
+ldl cholesterol,LDL Cholesterol
+ldl,LDL Cholesterol
+ldl-c,LDL Cholesterol
+serum creatinine,Serum Creatinine
+creatinine,Serum Creatinine
+blood urea,Blood Urea
+urea,Blood Urea
+serum urea,Blood Urea
+uric acid,Uric Acid
+serum uric acid,Uric Acid
+egfr,eGFR
+estimated gfr,eGFR
+sgot,SGOT
+ast,SGOT
+aspartate aminotransferase,SGOT
+sgot (ast),SGOT
+sgpt,SGPT
+alt,SGPT
+alanine aminotransferase,SGPT
+sgpt (alt),SGPT
+total bilirubin,Total Bilirubin
+bilirubin total,Total Bilirubin
+serum bilirubin total,Total Bilirubin
+direct bilirubin,Direct Bilirubin
+bilirubin direct,Direct Bilirubin
+conjugated bilirubin,Direct Bilirubin
+alkaline phosphatase,Alkaline Phosphatase
+alp,Alkaline Phosphatase
+tsh,TSH
+thyroid stimulating hormone,TSH
+total t3,Total T3
+t3,Total T3
+total t4,Total T4
+t4,Total T4
+vitamin d (25-oh),Vitamin D (25-OH)
+25-oh vitamin d,Vitamin D (25-OH)
+vitamin d,Vitamin D (25-OH)
+vitamin b12,Vitamin B12
+cobalamin,Vitamin B12
+urine glucose,Urine Glucose
+urine sugar,Urine Glucose
+urine protein,Urine Protein
+urine albumin,Urine Protein
+urine ketones,Urine Ketones
+ketone bodies,Urine Ketones
+urine ketone bodies,Urine Ketones
+hbsag,HBsAg
+hepatitis b surface antigen,HBsAg

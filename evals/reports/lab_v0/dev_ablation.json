@@ -1,0 +1,284 @@
+{
+  "ingestion": {
+    "index_ms_per_page": 2015.0877192982457,
+    "index_ms_per_page_p50": 2132.0,
+    "index_ms_per_page_p95": 2631.0,
+    "pages_timed": 57,
+    "reports_not_timed": 0,
+    "reports_timed": 35
+  },
+  "runs": [
+    {
+      "config": {
+        "abstain_threshold": null,
+        "candidates": 50,
+        "chunker_version": "1",
+        "classifier_rules_version": "2",
+        "dataset_version": "lab_v0@5dcdc7dfa3ff",
+        "embedding_model": "BAAI/bge-small-en-v1.5@5c38ec7c405ec4b44b94cc5a9bb96e735b38267a",
+        "extra": {},
+        "identity_rules_version": "2",
+        "mode": "dense",
+        "rerank_top": 20,
+        "reranker_model": null,
+        "rrf_k": 60,
+        "split": "dev",
+        "top_k": 10
+      },
+      "counts": {
+        "advice": 8,
+        "injection": 8,
+        "lab": 35,
+        "latest": 16,
+        "leak": 16,
+        "questions": 204,
+        "unanswerable": 16,
+        "value": 105
+      },
+      "metrics": {
+        "abstain_f1": 0.0,
+        "abstain_precision": 0.0,
+        "abstain_recall": 0.0,
+        "advice_refusal_rate": 1.0,
+        "hit@1": 0.32051282051282054,
+        "hit@10": 1.0,
+        "hit@3": 0.6730769230769231,
+        "hit@5": 0.8910256410256411,
+        "injection_refusal_rate": 1.0,
+        "latency_p50_ms": 59.0,
+        "latency_p95_ms": 70.0,
+        "leak_probe_abstain_rate": 0.0,
+        "leak_rate": 0.0,
+        "mrr": 0.5332443019943021,
+        "ndcg@10": 0.6301059159342455,
+        "questions_with_foreign_pages": 0,
+        "recall@1": 0.25747863247863245,
+        "recall@10": 1.0,
+        "recall@3": 0.6517094017094017,
+        "recall@5": 0.8842948717948718
+      },
+      "notes": [
+        "no abstention threshold"
+      ]
+    },
+    {
+      "config": {
+        "abstain_threshold": null,
+        "candidates": 50,
+        "chunker_version": "1",
+        "classifier_rules_version": "2",
+        "dataset_version": "lab_v0@5dcdc7dfa3ff",
+        "embedding_model": null,
+        "extra": {},
+        "identity_rules_version": "2",
+        "mode": "lexical",
+        "rerank_top": 20,
+        "reranker_model": null,
+        "rrf_k": 60,
+        "split": "dev",
+        "top_k": 10
+      },
+      "counts": {
+        "advice": 8,
+        "injection": 8,
+        "lab": 35,
+        "latest": 16,
+        "leak": 16,
+        "questions": 204,
+        "unanswerable": 16,
+        "value": 105
+      },
+      "metrics": {
+        "abstain_f1": 0.72,
+        "abstain_precision": 1.0,
+        "abstain_recall": 0.5625,
+        "advice_refusal_rate": 1.0,
+        "hit@1": 0.8076923076923077,
+        "hit@10": 1.0,
+        "hit@3": 0.967948717948718,
+        "hit@5": 1.0,
+        "injection_refusal_rate": 1.0,
+        "latency_p50_ms": 17.0,
+        "latency_p95_ms": 26.0,
+        "leak_probe_abstain_rate": 0.8125,
+        "leak_rate": 0.0,
+        "mrr": 0.8883547008547009,
+        "ndcg@10": 0.890283100098884,
+        "questions_with_foreign_pages": 0,
+        "recall@1": 0.7446581196581197,
+        "recall@10": 0.9895299145299146,
+        "recall@3": 0.9449786324786325,
+        "recall@5": 0.9895299145299146
+      },
+      "notes": [
+        "no abstention threshold"
+      ]
+    },
+    {
+      "config": {
+        "abstain_threshold": null,
+        "candidates": 50,
+        "chunker_version": "1",
+        "classifier_rules_version": "2",
+        "dataset_version": "lab_v0@5dcdc7dfa3ff",
+        "embedding_model": "BAAI/bge-small-en-v1.5@5c38ec7c405ec4b44b94cc5a9bb96e735b38267a",
+        "extra": {},
+        "identity_rules_version": "2",
+        "mode": "hybrid",
+        "rerank_top": 20,
+        "reranker_model": null,
+        "rrf_k": 60,
+        "split": "dev",
+        "top_k": 10
+      },
+      "counts": {
+        "advice": 8,
+        "injection": 8,
+        "lab": 35,
+        "latest": 16,
+        "leak": 16,
+        "questions": 204,
+        "unanswerable": 16,
+        "value": 105
+      },
+      "metrics": {
+        "abstain_f1": 0.0,
+        "abstain_precision": 0.0,
+        "abstain_recall": 0.0,
+        "advice_refusal_rate": 1.0,
+        "hit@1": 0.5448717948717948,
+        "hit@10": 1.0,
+        "hit@3": 0.8717948717948718,
+        "hit@5": 1.0,
+        "injection_refusal_rate": 1.0,
+        "latency_p50_ms": 65.0,
+        "latency_p95_ms": 82.0,
+        "leak_probe_abstain_rate": 0.0,
+        "leak_rate": 0.0,
+        "mrr": 0.7241452991452991,
+        "ndcg@10": 0.7747004553915965,
+        "questions_with_foreign_pages": 0,
+        "recall@1": 0.48183760683760685,
+        "recall@10": 1.0,
+        "recall@3": 0.8504273504273504,
+        "recall@5": 0.9932692307692307
+      },
+      "notes": [
+        "no abstention threshold"
+      ]
+    },
+    {
+      "config": {
+        "abstain_threshold": null,
+        "candidates": 50,
+        "chunker_version": "1",
+        "classifier_rules_version": "2",
+        "dataset_version": "lab_v0@5dcdc7dfa3ff",
+        "embedding_model": "BAAI/bge-small-en-v1.5@5c38ec7c405ec4b44b94cc5a9bb96e735b38267a",
+        "extra": {},
+        "identity_rules_version": "2",
+        "mode": "hybrid_rerank",
+        "rerank_top": 20,
+        "reranker_model": "cross-encoder/ms-marco-MiniLM-L-6-v2@233902d25c440f23af6f7d6e94d2946bac0bee0a",
+        "rrf_k": 60,
+        "split": "dev",
+        "top_k": 10
+      },
+      "counts": {
+        "advice": 8,
+        "injection": 8,
+        "lab": 35,
+        "latest": 16,
+        "leak": 16,
+        "questions": 204,
+        "unanswerable": 16,
+        "value": 105
+      },
+      "metrics": {
+        "abstain_f1": 0.0,
+        "abstain_precision": 0.0,
+        "abstain_recall": 0.0,
+        "advice_refusal_rate": 1.0,
+        "hit@1": 0.7692307692307693,
+        "hit@10": 1.0,
+        "hit@3": 1.0,
+        "hit@5": 1.0,
+        "injection_refusal_rate": 1.0,
+        "latency_p50_ms": 970.0,
+        "latency_p95_ms": 1090.0,
+        "leak_probe_abstain_rate": 0.0,
+        "leak_rate": 0.0,
+        "mrr": 0.8771367521367522,
+        "ndcg@10": 0.8939023964043511,
+        "questions_with_foreign_pages": 0,
+        "recall@1": 0.7061965811965812,
+        "recall@10": 0.9971153846153847,
+        "recall@3": 0.9786324786324786,
+        "recall@5": 0.9932692307692307
+      },
+      "notes": [
+        "no abstention threshold"
+      ]
+    },
+    {
+      "config": {
+        "abstain_threshold": -3.082892417907715,
+        "candidates": 50,
+        "chunker_version": "1",
+        "classifier_rules_version": "2",
+        "dataset_version": "lab_v0@5dcdc7dfa3ff",
+        "embedding_model": "BAAI/bge-small-en-v1.5@5c38ec7c405ec4b44b94cc5a9bb96e735b38267a",
+        "extra": {
+          "calibration_answerable_kinds": "lab,latest,value",
+          "calibration_answerable_scored": "156",
+          "calibration_excluded_kinds": "advice,injection,leak",
+          "calibration_unanswerable_kinds": "unanswerable",
+          "calibration_unanswerable_scored": "16"
+        },
+        "identity_rules_version": "2",
+        "mode": "hybrid_rerank",
+        "rerank_top": 20,
+        "reranker_model": "cross-encoder/ms-marco-MiniLM-L-6-v2@233902d25c440f23af6f7d6e94d2946bac0bee0a",
+        "rrf_k": 60,
+        "split": "dev",
+        "top_k": 10
+      },
+      "counts": {
+        "advice": 8,
+        "injection": 8,
+        "lab": 35,
+        "latest": 16,
+        "leak": 16,
+        "questions": 204,
+        "unanswerable": 16,
+        "value": 105
+      },
+      "metrics": {
+        "abstain_f1": 0.9142857142857143,
+        "abstain_precision": 0.8421052631578947,
+        "abstain_recall": 1.0,
+        "advice_refusal_rate": 1.0,
+        "hit@1": 0.75,
+        "hit@10": 0.9807692307692307,
+        "hit@3": 0.9807692307692307,
+        "hit@5": 0.9807692307692307,
+        "injection_refusal_rate": 1.0,
+        "latency_p50_ms": 975.0,
+        "latency_p95_ms": 1133.0,
+        "leak_probe_abstain_rate": 1.0,
+        "leak_rate": 0.0,
+        "mrr": 0.857905982905983,
+        "ndcg@10": 0.8762717254695715,
+        "questions_with_foreign_pages": 0,
+        "recall@1": 0.6917735042735043,
+        "recall@10": 0.9778846153846155,
+        "recall@3": 0.9610042735042734,
+        "recall@5": 0.9740384615384615
+      },
+      "notes": [
+        "threshold -3.082892417907715 calibrated on dev (in-sample); exact value in config.abstain_threshold",
+        "calibration questions: answerable kinds ('lab', 'latest', 'value') vs ('unanswerable',); excluded kinds ('advice', 'injection', 'leak')"
+      ]
+    }
+  ]
+}

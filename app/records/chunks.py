@@ -520,3 +520,35 @@ def page_contexts(
         )
         for row in rows
     }
+
+
+@dataclass(frozen=True)
+class StoredChunk:
+    """One stored chunk, for citation validation (Phase 5, ADR-040). ``content`` is evidence."""
+
+    chunk_id: uuid.UUID
+    document_id: uuid.UUID
+    page_number: int
+    content: str = field(repr=False)
+
+
+def stored_chunks(
+    patient_id: uuid.UUID,
+    chunk_ids: Sequence[uuid.UUID],
+    *,
+    factory: sessionmaker[Session] | None = None,
+) -> dict[uuid.UUID, StoredChunk]:
+    """The requested chunks **of this patient**, exactly as stored. Read-only.
+
+    Chunks of another patient, or that do not exist, are simply absent from the result, so the
+    citation validator reports them as not found.
+    """
+    wanted = list(dict.fromkeys(chunk_ids))
+    if not wanted:
+        return {}
+    statement = select(Chunk.id, Chunk.document_id, Chunk.page_number, Chunk.content).where(
+        Chunk.patient_id == patient_id, Chunk.id.in_(wanted)
+    )
+    with session_scope(factory) as session:
+        rows = session.execute(statement).all()
+    return {row[0]: StoredChunk(row[0], row[1], row[2], row[3]) for row in rows}

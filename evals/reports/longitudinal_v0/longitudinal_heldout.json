@@ -1,0 +1,223 @@
+{
+ "counts": {
+  "change_correct": 53,
+  "change_system": 53,
+  "change_truth": 53,
+  "conflict_correct": 5,
+  "conflict_found": 5,
+  "conflict_truth": 5,
+  "corrected_correct": 5,
+  "corrected_total": 5,
+  "date_source_correct": 153,
+  "date_source_total": 153,
+  "dup_correct": 30,
+  "dup_found": 30,
+  "dup_kind_correct": 30,
+  "dup_truth": 30,
+  "exact_correct": 20,
+  "exact_found": 20,
+  "gate_refusals_mismatch": 5,
+  "identity_unknown_entries": 10,
+  "identity_unknown_flagged": 10,
+  "mismatch_count_correct": 5,
+  "order_correct": 1970,
+  "order_pairs": 1970,
+  "possible_correct": 10,
+  "possible_found": 10,
+  "provenance_complete": 148,
+  "provenance_total": 148,
+  "timeline_matched": 153,
+  "timeline_system": 153,
+  "timeline_truth": 153,
+  "trend_correct_points": 123,
+  "trend_system_points": 123,
+  "trend_truth_points": 123,
+  "undated_checked": 5,
+  "undated_correct": 5,
+  "undated_documents_correct": 5,
+  "unit_series_correct": 148,
+  "unit_series_total": 148
+ },
+ "dataset": "longitudinal_v0",
+ "load_seconds": 7.65,
+ "metrics": {
+  "conflict_precision": 1.0,
+  "conflict_recall": 1.0,
+  "corrected_value_accuracy": 1.0,
+  "date_source_accuracy": 1.0,
+  "duplicate_kind_accuracy": 1.0,
+  "duplicate_precision": 1.0,
+  "duplicate_recall": 1.0,
+  "exact_duplicate_precision": 1.0,
+  "false_duplicate_rate": 0.0,
+  "identity_uncertainty_shown": 1.0,
+  "mismatch_count_correct": 1.0,
+  "mismatch_gate_refusals": 5,
+  "mismatch_shown": 0,
+  "needs_review_shown": 0,
+  "patient_isolation_leaks": 0,
+  "possible_duplicate_precision": 1.0,
+  "provenance_completeness": 1.0,
+  "rejected_shown": 0,
+  "timeline_entry_precision": 1.0,
+  "timeline_entry_recall": 1.0,
+  "timeline_order_accuracy": 1.0,
+  "trend_change_accuracy": 1.0,
+  "trend_point_accuracy": 1.0,
+  "undated_lists_correct": 1.0,
+  "unit_series_accuracy": 1.0
+ },
+ "note": "Synthetic, fictional data; rules and data by the same author; not a blind test; no clinical accuracy is claimed.",
+ "patients": [
+  "L03",
+  "L07",
+  "L10",
+  "L13",
+  "L16"
+ ],
+ "performance_patient": {},
+ "split": "heldout",
+ "targets": {
+  "conflict_precision": [
+   ">=",
+   1.0
+  ],
+  "conflict_recall": [
+   ">=",
+   1.0
+  ],
+  "corrected_value_accuracy": [
+   ">=",
+   1.0
+  ],
+  "date_source_accuracy": [
+   ">=",
+   1.0
+  ],
+  "duplicate_precision": [
+   ">=",
+   0.95
+  ],
+  "duplicate_recall": [
+   ">=",
+   0.95
+  ],
+  "false_duplicate_rate": [
+   "<=",
+   0.05
+  ],
+  "identity_uncertainty_shown": [
+   ">=",
+   1.0
+  ],
+  "mismatch_shown": [
+   "<=",
+   0
+  ],
+  "needs_review_shown": [
+   "<=",
+   0
+  ],
+  "patient_isolation_leaks": [
+   "<=",
+   0
+  ],
+  "provenance_completeness": [
+   ">=",
+   1.0
+  ],
+  "rejected_shown": [
+   "<=",
+   0
+  ],
+  "timeline_entry_precision": [
+   ">=",
+   1.0
+  ],
+  "timeline_entry_recall": [
+   ">=",
+   1.0
+  ],
+  "timeline_order_accuracy": [
+   ">=",
+   1.0
+  ],
+  "trend_change_accuracy": [
+   ">=",
+   1.0
+  ],
+  "trend_point_accuracy": [
+   ">=",
+   1.0
+  ],
+  "unit_series_accuracy": [
+   ">=",
+   1.0
+  ]
+ },
+ "targets_met": {
+  "conflict_precision": true,
+  "conflict_recall": true,
+  "corrected_value_accuracy": true,
+  "date_source_accuracy": true,
+  "duplicate_precision": true,
+  "duplicate_recall": true,
+  "false_duplicate_rate": true,
+  "identity_uncertainty_shown": true,
+  "mismatch_shown": true,
+  "needs_review_shown": true,
+  "patient_isolation_leaks": true,
+  "provenance_completeness": true,
+  "rejected_shown": true,
+  "timeline_entry_precision": true,
+  "timeline_entry_recall": true,
+  "timeline_order_accuracy": true,
+  "trend_change_accuracy": true,
+  "trend_point_accuracy": true,
+  "unit_series_accuracy": true
+ },
+ "timings": {
+  "analytes": {
+   "max_ms": 40.27,
+   "median_ms": 21.92,
+   "n": 5,
+   "p95_ms": 22.27
+  },
+  "conflicts": {
+   "max_ms": 14.66,
+   "median_ms": 12.68,
+   "n": 5,
+   "p95_ms": 13.75
+  },
+  "duplicates": {
+   "max_ms": 19.07,
+   "median_ms": 15.99,
+   "n": 5,
+   "p95_ms": 16.06
+  },
+  "overview": {
+   "max_ms": 33.71,
+   "median_ms": 28.01,
+   "n": 5,
+   "p95_ms": 28.18
+  },
+  "timeline_page": {
+   "max_ms": 31.73,
+   "median_ms": 25.2,
+   "n": 5,
+   "p95_ms": 26.28
+  },
+  "trend": {
+   "max_ms": 48.01,
+   "median_ms": 35.31,
+   "n": 20,
+   "p95_ms": 44.88
+  }
+ },
+ "versions": {
+  "generator": "longitudinal-gen-1",
+  "loader": "longitudinal-loader-1",
+  "longitudinal": "longitudinal-1",
+  "normalizer": "norm-1"
+ }
+}

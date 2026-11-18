@@ -1,0 +1,1336 @@
+diff --git a/app/ingestion/storage.py b/app/ingestion/storage.py
+index 4d9873e..5567edb 100644
+--- a/app/ingestion/storage.py
++++ b/app/ingestion/storage.py
+@@ -230,6 +230,10 @@ def _ensure_read_only(path: Path) -> None:
+ def _check_contained(data_dir: Path, target: Path) -> None:
+     """``target`` must lie under ``data_dir``, with no symlink or junction redirecting it."""
+     outside = _error(StorageErrorKind.OUTSIDE_DATA_DIR, "The path is outside the data directory")
++    # Compare absolute forms: mkstemp returns an absolute path even for a relative data_dir (the
++    # default "data"). absolute() neither normalizes ".." nor follows links, so the checks below
++    # keep their meaning.
++    data_dir, target = data_dir.absolute(), target.absolute()
+     if not target.is_relative_to(data_dir):
+         raise outside
+     relative = target.relative_to(data_dir)
+diff --git a/app/records/models.py b/app/records/models.py
+index 4f51acc..532a640 100644
+--- a/app/records/models.py
++++ b/app/records/models.py
+@@ -44,6 +44,7 @@ from sqlalchemy import (
+     Numeric,
+     PrimaryKeyConstraint,
+     Text,
++    Time,
+     UniqueConstraint,
+     Uuid,
+     func,
+@@ -180,9 +181,36 @@ class ConflictType(StrEnum):
+     OTHER = "other"
+ 
+ 
++class EffectiveDateSource(StrEnum):
++    COLLECTION = "collection"
++    REPORT = "report"
++
++
++class RangeComparison(StrEnum):
++    """Derived: the value against the document's own printed range (never MediMind's ranges)."""
++
++    BELOW = "below"
++    WITHIN = "within"
++    ABOVE = "above"
++
++
++class AnalyteMatch(StrEnum):
++    ALIAS_EXACT = "alias_exact"
++
++
++class ConflictClosedReason(StrEnum):
++    MEMBER_REJECTED = "member_rejected"
++    MEMBER_CORRECTED = "member_corrected"
++    MEMBER_REVIEWED = "member_reviewed"
++    MEMBER_SUPERSEDED = "member_superseded"
++    MEMBER_DELETED = "member_deleted"
++    MEMBER_ADDED = "member_added"  # a new fact joined the conflict group (a new conflict opens)
++
++
+ class ConflictStatus(StrEnum):
+     OPEN = "open"
+     ACKNOWLEDGED = "acknowledged"
++    CLOSED = "closed"  # migration 0004: closed by the system, with a reason; kept as history
+ 
+ 
+ class ChunkType(StrEnum):
+@@ -365,6 +393,8 @@ class PipelineRun(Base):
+         CheckConstraint("cost_usd IS NULL OR cost_usd >= 0", name="cost_usd_positive"),
+         Index("ix_pipeline_runs_document_id_started_at", "document_id", "started_at"),
+         Index("ix_pipeline_runs_patient_id", "patient_id"),
++        # Migration 0004: target of the facts' composite run foreign keys.
++        UniqueConstraint("id", "document_id", "patient_id"),
+     )
+ 
+     id: Mapped[uuid.UUID] = _uuid_pk()
+@@ -450,6 +480,12 @@ class UnitConversion(Base):
+ # --- Migration 0002_facts: extracted facts (joined-table inheritance, ADR-021) ----------------
+ 
+ 
++REVIEW_STATUS_COMMENT = (
++    "validated = every automated check passed; not human verification and not clinical "
++    "validation. verified/corrected/rejected are set only by a human review decision."
++)
++
++
+ class ExtractedFact(Base):
+     """Base row of every extracted fact: provenance, assertion, review status and versions.
+ 
+@@ -498,6 +534,47 @@ class ExtractedFact(Base):
+             "duplicate_group_id",
+             postgresql_where=sql_text("duplicate_group_id IS NOT NULL"),
+         ),
++        # --- Migration 0004 (docs/PHASE_3_PLAN.md §5.2, §5.2a) ---
++        ForeignKeyConstraint(
++            ["extraction_run_id", "document_id", "patient_id"],
++            ["pipeline_runs.id", "pipeline_runs.document_id", "pipeline_runs.patient_id"],
++            name="fk_extracted_facts_extraction_run",
++            ondelete="CASCADE",
++        ),
++        # A replacement run must belong to the same document and patient.
++        ForeignKeyConstraint(
++            ["superseded_by_run_id", "document_id", "patient_id"],
++            ["pipeline_runs.id", "pipeline_runs.document_id", "pipeline_runs.patient_id"],
++            name="fk_extracted_facts_superseded_by_run",
++            ondelete="CASCADE",
++        ),
++        UniqueConstraint("extraction_run_id", "fact_type", "source_locator"),
++        CheckConstraint(
++            # \: is a literal colon: SQLAlchemy's text() would read :r and :s as bind parameters.
++            r"source_locator ~ '^p[0-9]+:(t[0-9]+\:r[0-9]+|l[0-9]+(\:s[0-9]+)?)$'",
++            name="source_locator_format",
++        ),
++        CheckConstraint("char_start IS NOT NULL", name="char_span_required"),
++        CheckConstraint("length(source_excerpt) <= 1000", name="source_excerpt_length"),
++        CheckConstraint(
++            "(superseded_at IS NULL) = (superseded_by_run_id IS NULL)", name="superseded_pair"
++        ),
++        CheckConstraint(
++            "superseded_by_run_id IS NULL OR superseded_by_run_id <> extraction_run_id",
++            name="not_self_superseding",
++        ),
++        CheckConstraint("review_status <> 'extracted'", name="review_status_not_transient"),
++        CheckConstraint(
++            "review_status <> 'validated' OR cardinality(review_reasons) = 0",
++            name="validated_has_no_reasons",
++        ),
++        Index(
++            "ix_extracted_facts_current",
++            "patient_id",
++            "document_id",
++            postgresql_where=sql_text("superseded_at IS NULL"),
++        ),
++        Index("ix_extracted_facts_extraction_run_id", "extraction_run_id"),
+     )
+ 
+     id: Mapped[uuid.UUID] = _uuid_pk()
+@@ -508,14 +585,13 @@ class ExtractedFact(Base):
+     source_excerpt: Mapped[str] = mapped_column(Text, nullable=False)
+     char_start: Mapped[int | None] = mapped_column(Integer)
+     char_end: Mapped[int | None] = mapped_column(Integer)
+-    bbox: Mapped[dict[str, Any] | None] = mapped_column(JSONB)
++    bbox: Mapped[dict[str, Any] | None] = mapped_column(JSONB(none_as_null=True))
+     # No defaults: the extractor must state these explicitly.
+     assertion_type: Mapped[str] = mapped_column(Text, nullable=False)
+     negated: Mapped[bool] = mapped_column(Boolean, nullable=False)
+     subject: Mapped[str] = mapped_column(Text, nullable=False)
+-    review_status: Mapped[str] = mapped_column(
+-        Text, nullable=False, server_default=sql_text("'extracted'")
+-    )
++    # No default (migration 0004): every insert states validated or needs_review explicitly.
++    review_status: Mapped[str] = mapped_column(Text, nullable=False, comment=REVIEW_STATUS_COMMENT)
+     review_reasons: Mapped[list[str]] = mapped_column(
+         ARRAY(Text), nullable=False, server_default=sql_text("'{}'::text[]")
+     )
+@@ -524,6 +600,16 @@ class ExtractedFact(Base):
+     prompt_version: Mapped[str] = mapped_column(Text, nullable=False)
+     model_id: Mapped[str] = mapped_column(Text, nullable=False)
+     created_at: Mapped[dt.datetime] = _created_at()
++    # --- Migration 0004 ---
++    extraction_run_id: Mapped[uuid.UUID] = mapped_column(Uuid, nullable=False)
++    source_locator: Mapped[str] = mapped_column(Text, nullable=False)
++    normalizer_version: Mapped[str] = mapped_column(Text, nullable=False)
++    reference_data_version: Mapped[str] = mapped_column(Text, nullable=False)
++    quality_notes: Mapped[list[str]] = mapped_column(
++        ARRAY(Text), nullable=False, server_default=sql_text("'{}'::text[]")
++    )
++    superseded_at: Mapped[dt.datetime | None] = mapped_column(DateTime(timezone=True))
++    superseded_by_run_id: Mapped[uuid.UUID | None] = mapped_column(Uuid)
+ 
+     __mapper_args__ = {"polymorphic_on": "fact_type"}
+ 
+@@ -547,6 +633,28 @@ class Observation(ExtractedFact):
+         ),
+         *date_precision_checks("effective_date", "date_precision", "effective_date"),
+         Index("ix_observations_analyte_id", "analyte_id"),
++        # --- Migration 0004 ---
++        enum_check("effective_date_source", EffectiveDateSource),
++        CheckConstraint(
++            "(effective_date IS NULL) = (effective_date_source IS NULL)",
++            name="effective_date_source_pair",
++        ),
++        CheckConstraint(
++            "(date_page_number IS NULL) = (date_char_start IS NULL) "
++            "AND (date_char_start IS NULL) = (date_char_end IS NULL)",
++            name="date_span_all_or_none",
++        ),
++        CheckConstraint(
++            "date_char_start IS NULL OR (date_page_number >= 1 AND date_char_start >= 0 "
++            "AND date_char_start <= date_char_end)",
++            name="date_span_order",
++        ),
++        enum_check("ref_range_comparison", RangeComparison),
++        CheckConstraint(
++            "ref_range_comparison IS NULL OR value_num IS NOT NULL",
++            name="ref_range_comparison_number",
++        ),
++        enum_check("analyte_match", AnalyteMatch),
+     )
+     __mapper_args__ = {"polymorphic_identity": FactType.OBSERVATION.value}
+ 
+@@ -570,6 +678,15 @@ class Observation(ExtractedFact):
+     date_precision: Mapped[str | None] = mapped_column(Text)
+     date_raw: Mapped[str | None] = mapped_column(Text)
+     specimen: Mapped[str | None] = mapped_column(Text)
++    # --- Migration 0004 ---
++    effective_date_source: Mapped[str | None] = mapped_column(Text)
++    effective_time: Mapped[dt.time | None] = mapped_column(Time)
++    time_raw: Mapped[str | None] = mapped_column(Text)
++    date_page_number: Mapped[int | None] = mapped_column(Integer)
++    date_char_start: Mapped[int | None] = mapped_column(Integer)
++    date_char_end: Mapped[int | None] = mapped_column(Integer)
++    ref_range_comparison: Mapped[str | None] = mapped_column(Text)  # derived
++    analyte_match: Mapped[str | None] = mapped_column(Text)
+ 
+ 
+ class MedicationMention(ExtractedFact):
+@@ -661,7 +778,7 @@ class ReviewDecision(Base):
+     patient_id: Mapped[uuid.UUID] = mapped_column(Uuid, nullable=False)
+     fact_id: Mapped[uuid.UUID] = mapped_column(Uuid, nullable=False)
+     decision: Mapped[str] = mapped_column(Text, nullable=False)
+-    corrected_values: Mapped[dict[str, Any] | None] = mapped_column(JSONB)
++    corrected_values: Mapped[dict[str, Any] | None] = mapped_column(JSONB(none_as_null=True))
+     note: Mapped[str | None] = mapped_column(Text)
+     decided_at: Mapped[dt.datetime] = mapped_column(
+         DateTime(timezone=True), nullable=False, server_default=func.now()
+@@ -677,6 +794,25 @@ class Conflict(Base):
+         enum_check("conflict_type", ConflictType),
+         enum_check("status", ConflictStatus),
+         Index("ix_conflicts_patient_id_status", "patient_id", "status"),
++        # --- Migration 0004 (docs/PHASE_3_PLAN.md §5.6) ---
++        UniqueConstraint("patient_id", "detection_key"),
++        CheckConstraint("(status = 'closed') = (closed_at IS NOT NULL)", name="closed_at_matches"),
++        CheckConstraint(
++            "(status = 'closed') = (closed_reason IS NOT NULL)", name="closed_reason_matches"
++        ),
++        enum_check("closed_reason", ConflictClosedReason),
++        CheckConstraint(
++            "(detection_key IS NULL) = (rule_version IS NULL)", name="detection_key_pair"
++        ),
++        CheckConstraint(
++            "member_count_at_detection IS NULL OR member_count_at_detection >= 2",
++            name="member_count_positive",
++        ),
++        Index(
++            "ix_conflicts_patient_id_not_closed",
++            "patient_id",
++            postgresql_where=sql_text("status <> 'closed'"),
++        ),
+     )
+ 
+     id: Mapped[uuid.UUID] = _uuid_pk()
+@@ -688,6 +824,16 @@ class Conflict(Base):
+     status: Mapped[str] = mapped_column(Text, nullable=False, server_default=sql_text("'open'"))
+     detected_by_rule: Mapped[str] = mapped_column(Text, nullable=False)
+     created_at: Mapped[dt.datetime] = _created_at()
++    # --- Migration 0004 ---
++    closed_at: Mapped[dt.datetime | None] = mapped_column(DateTime(timezone=True))
++    closed_reason: Mapped[str | None] = mapped_column(Text)
++    analyte_id: Mapped[int | None] = mapped_column(
++        ForeignKey("analyte_catalog.id", ondelete="RESTRICT")
++    )
++    effective_date: Mapped[dt.date | None] = mapped_column(Date)
++    member_count_at_detection: Mapped[int | None] = mapped_column(Integer)
++    detection_key: Mapped[str | None] = mapped_column(Text)
++    rule_version: Mapped[str | None] = mapped_column(Text)
+ 
+ 
+ class ConflictMember(Base):
+diff --git a/app/records/repositories.py b/app/records/repositories.py
+index 9149d93..6d638ac 100644
+--- a/app/records/repositories.py
++++ b/app/records/repositories.py
+@@ -49,7 +49,7 @@ from collections.abc import Mapping, Sequence
+ from dataclasses import dataclass, field
+ from decimal import Decimal
+ from enum import Enum, StrEnum
+-from typing import Final
++from typing import Any, Final
+ 
+ from sqlalchemy import Integer, cast, delete, exists, extract, func, select, update
+ from sqlalchemy.exc import IntegrityError
+@@ -80,6 +80,10 @@ PDF_MIME_TYPE = "application/pdf"
+ _NUL = chr(0)
+ _UNIQUE_VIOLATION = "23505"
+ _FOREIGN_KEY_VIOLATION = "23503"
++# A delete blocked by an ON DELETE RESTRICT key reports restrict_violation, not 23503
++# (verified on PostgreSQL 18, 2026-11-18; see tests/integration/test_schema_constraints.py).
++_RESTRICT_VIOLATION = "23001"
++_FK_SQLSTATES = frozenset({_FOREIGN_KEY_VIOLATION, _RESTRICT_VIOLATION})
+ # documents.patient_id -> patients.id (models.NAMING_CONVENTION; migration 0001). Only this
+ # constraint means "unknown patient"; any other foreign-key violation propagates unchanged.
+ _DOCUMENT_PATIENT_FK = "fk_documents_patient_id_patients"
+@@ -444,9 +448,13 @@ def delete_patient(patient_id: uuid.UUID, *, factory: sessionmaker[Session] | No
+ 
+ 
+ def _fk_violation(exc: IntegrityError, names: frozenset[str]) -> bool:
+-    """True only for a foreign-key violation (SQLSTATE 23503) of one of the named constraints."""
++    """True only for a foreign-key violation of one of the named constraints.
++
++    SQLSTATE 23503 (insert or update with a missing parent) or 23001 (delete blocked by an
++    ``ON DELETE RESTRICT`` key); the constraint name decides which key it was.
++    """
+     original = exc.orig
+-    if getattr(original, "sqlstate", None) != _FOREIGN_KEY_VIOLATION:
++    if getattr(original, "sqlstate", None) not in _FK_SQLSTATES:
+         return False
+     diag = getattr(original, "diag", None)
+     return getattr(diag, "constraint_name", None) in names
+@@ -708,6 +716,7 @@ def delete_document(
+     document_id: uuid.UUID,
+     *,
+     stale_after_seconds: int = STALE_CLAIM_SECONDS,
++    conflict_detector: Any = None,
+     factory: sessionmaker[Session] | None = None,
+ ) -> DeletedDocument:
+     """Hard-delete a document row; the database cascades its derived rows (Task 1.8e).
+@@ -723,6 +732,11 @@ def delete_document(
+     supersedes this one is ``document_referenced`` (exactly that foreign key; any other integrity
+     error propagates). Logs ids and counts only.
+ 
++    Phase 3 (docs/PHASE_3_PLAN.md §5.6, §6.7): before the cascade, conflicts with a member in this
++    document are closed as ``member_deleted`` and kept as history. With ``conflict_detector``,
++    the patient's conflicts are recomputed without this document's facts, so remaining facts can
++    open a new conflict; without it, the affected conflicts are only closed.
++
+     Raises:
+         ValueError: ``stale_after_seconds`` is not positive.
+         DocumentProcessingError: ``document_not_found``, ``already_running``,
+@@ -748,6 +762,9 @@ def delete_document(
+             .select_from(PipelineRun)
+             .where(PipelineRun.patient_id == patient_id, PipelineRun.document_id == document_id)
+         )
++        from app.records.facts import close_conflicts_for_deleted_document  # no import cycle
++
++        close_conflicts_for_deleted_document(session, patient_id, document_id, conflict_detector)
+         referenced = False
+         try:
+             session.execute(
+diff --git a/tests/integration/test_identity_integration.py b/tests/integration/test_identity_integration.py
+index ec479af..e757038 100644
+--- a/tests/integration/test_identity_integration.py
++++ b/tests/integration/test_identity_integration.py
+@@ -211,8 +211,9 @@ def test_the_gate_is_rechecked_under_the_lock_before_the_insert(
+     outcome: list[str] = []
+     holder = test_engine.connect()
+     try:
+-        assert_is_test_database(holder, app_settings.db_name)
++        # Begin first: the guard's SELECT would otherwise autobegin and make begin() fail.
+         transaction = holder.begin()
++        assert_is_test_database(holder, app_settings.db_name)
+         holder.execute(text("SELECT id FROM documents WHERE id = :d FOR UPDATE"), {"d": document})
+ 
+         def insert() -> None:
+diff --git a/tests/integration/test_migrations_integration.py b/tests/integration/test_migrations_integration.py
+index 35f5f56..fba50df 100644
+--- a/tests/integration/test_migrations_integration.py
++++ b/tests/integration/test_migrations_integration.py
+@@ -100,7 +100,7 @@ def test_fresh_initialization_from_base(test_engine: Engine, app_settings: Setti
+     assert tables == MEDIMIND_TABLES
+     assert len(tables) == 16
+     assert vector == "0.8.7"
+-    assert version == "0003"
++    assert version == "0004"
+ 
+ 
+ def test_stepwise_downgrade_and_upgrade_round_trip(
+@@ -109,14 +109,14 @@ def test_stepwise_downgrade_and_upgrade_round_trip(
+     with test_engine.connect() as connection:
+         before = _catalog(connection, "public")
+ 
+-    expected_counts = {"0002": 15, "0001": 4, "base": 0}
++    expected_counts = {"0003": 16, "0002": 15, "0001": 4, "base": 0}
+     for target, count in expected_counts.items():
+         run_alembic(test_engine, app_settings.db_name, "downgrade", "-1")
+         tables, _, version = _state(test_engine)
+         assert len(tables) == count, target
+         assert version == (None if target == "base" else target)
+ 
+-    for target in ("0001", "0002", "0003"):
++    for target in ("0001", "0002", "0003", "0004"):
+         run_alembic(test_engine, app_settings.db_name, "upgrade", "+1")
+         assert _state(test_engine)[2] == target
+ 
+@@ -185,7 +185,7 @@ def test_unconfirmed_downgrade_is_refused_and_schema_stays_at_head(
+     with pytest.raises(DowngradeNotConfirmed, match="Refusing to downgrade"):
+         run_alembic(test_engine, app_settings.db_name, "downgrade", target, confirm=False)
+     tables, vector, version = _state(test_engine)
+-    assert version == "0003"
++    assert version == "0004"
+     assert tables == MEDIMIND_TABLES
+     assert vector == "0.8.7"
+ 
+@@ -195,4 +195,4 @@ def test_unconfirmed_backward_stamp_is_refused_and_revision_is_unchanged(
+ ) -> None:
+     with pytest.raises(DowngradeNotConfirmed, match="Refusing to stamp backwards"):
+         run_alembic(test_engine, app_settings.db_name, "stamp", "0001", confirm=False)
+-    assert _state(test_engine)[2] == "0003"
++    assert _state(test_engine)[2] == "0004"
+diff --git a/tests/integration/test_repositories_integration.py b/tests/integration/test_repositories_integration.py
+index 3ffedca..497fff7 100644
+--- a/tests/integration/test_repositories_integration.py
++++ b/tests/integration/test_repositories_integration.py
+@@ -1000,13 +1000,22 @@ def test_conflicts_survive_document_deletion_without_members_and_block_patient_d
+     test_patient, sql
+ ) -> None:
+     document, _ = _parsed(test_patient)
+-    fact = sql(
++    run = sql(
++        "INSERT INTO pipeline_runs (patient_id, document_id, stage, status, finished_at)"
++        " VALUES (:p, :d, 'extract', 'succeeded', now()) RETURNING id",
++        p=test_patient,
++        d=document,
++    )[0][0]
++    fact = sql(  # the migration 0004 fact shape (ADR-038)
+         "INSERT INTO extracted_facts (patient_id, document_id, fact_type, page_number,"
+         " source_excerpt, assertion_type, negated, subject, extractor_version, prompt_version,"
+-        " model_id) VALUES (:p, :d, 'observation', 1, 'Haemoglobin 13.5 g/dL', 'direct_fact',"
+-        " false, 'patient', 'x1', 'p1', 'm1') RETURNING id",
++        " model_id, extraction_run_id, source_locator, char_start, char_end, normalizer_version,"
++        " reference_data_version, review_status) VALUES (:p, :d, 'observation', 1,"
++        " 'Haemoglobin 13.5 g/dL', 'direct_fact', false, 'patient', 'x1', 'p1', 'm1', :r,"
++        " 'p1:l1', 0, 21, 'norm-test', 'ref-test', 'validated') RETURNING id",
+         p=test_patient,
+         d=document,
++        r=run,
+     )[0][0]
+     conflict = _insert_conflict(sql, test_patient)
+     try:
+@@ -1017,7 +1026,9 @@ def test_conflicts_survive_document_deletion_without_members_and_block_patient_d
+             p=test_patient,
+         )
+         repo.delete_document(test_patient, document)
+-        assert sql("SELECT status FROM conflicts WHERE id = :c", c=conflict) == [("open",)]
++        # Phase 3 (ADR-038): the conflict is closed as member_deleted and kept as history.
++        status = "SELECT status, closed_reason FROM conflicts WHERE id = :c"
++        assert sql(status, c=conflict) == [("closed", "member_deleted")]
+         members = "SELECT count(*) FROM conflict_members WHERE conflict_id = :c"
+         assert sql(members, c=conflict) == [(0,)]
+         _expect_patient_error("patient_not_empty", lambda: repo.delete_patient(test_patient))
+diff --git a/tests/integration/test_schema_constraints.py b/tests/integration/test_schema_constraints.py
+index 4d66140..cd71d12 100644
+--- a/tests/integration/test_schema_constraints.py
++++ b/tests/integration/test_schema_constraints.py
+@@ -83,14 +83,28 @@ def page(conn: Connection, patient_id: uuid.UUID, document_id: uuid.UUID, number
+     )
+ 
+ 
++# Migration 0004 (ADR-038): a fact names its extract run, an exact span and locator, its
++# normalizer and reference versions, and a review status (no default).
+ FACT_SQL = (
+     "INSERT INTO extracted_facts (patient_id, document_id, fact_type, page_number,"
+     " source_excerpt, assertion_type, negated, subject, extractor_version, prompt_version,"
+-    " model_id{extra_cols}) VALUES (:p, :d, :t, :n, 'Haemoglobin 13.5 g/dL', 'direct_fact',"
+-    " false, 'patient', 'x1', 'p1', 'm1'{extra_vals}) RETURNING id"
++    " model_id, extraction_run_id, source_locator, char_start, char_end, normalizer_version,"
++    " reference_data_version, review_status{extra_cols})"
++    " VALUES (:p, :d, :t, :n, 'Haemoglobin 13.5 g/dL', 'direct_fact',"
++    " false, 'patient', 'x1', 'p1', 'm1', :r, 'p1:l1', 0, 21, 'norm-test', 'ref-test',"
++    " 'validated'{extra_vals}) RETURNING id"
+ )
+ 
+ 
++def extract_run(conn: Connection, patient_id: uuid.UUID, document_id: uuid.UUID) -> uuid.UUID:
++    return _one(
++        conn,
++        "INSERT INTO pipeline_runs (patient_id, document_id, stage, status, finished_at)"
++        " VALUES (:p, :d, 'extract', 'succeeded', now()) RETURNING id",
++        {"p": patient_id, "d": document_id},
++    )
++
++
+ def fact(
+     conn: Connection,
+     patient_id: uuid.UUID,
+@@ -98,10 +112,11 @@ def fact(
+     fact_type: str = "observation",
+     page_number: int = 1,
+ ) -> uuid.UUID:
++    run = extract_run(conn, patient_id, document_id)
+     return _one(
+         conn,
+         FACT_SQL.format(extra_cols="", extra_vals=""),
+-        {"p": patient_id, "d": document_id, "t": fact_type, "n": page_number},
++        {"p": patient_id, "d": document_id, "t": fact_type, "n": page_number, "r": run},
+     )
+ 
+ 
+@@ -141,13 +156,15 @@ def test_page_cannot_claim_another_patients_document(conn: Connection, setup) ->
+ 
+ def test_fact_must_cite_an_existing_page(conn: Connection, setup) -> None:
+     sql = FACT_SQL.format(extra_cols="", extra_vals="")
+-    params = {"p": setup["a"], "d": setup["doc_a"], "t": "observation", "n": 99}
++    run = extract_run(conn, setup["a"], setup["doc_a"])
++    params = {"p": setup["a"], "d": setup["doc_a"], "t": "observation", "n": 99, "r": run}
+     assert _sqlstate(conn, sql, params) == "23503"
+ 
+ 
+ def test_fact_cannot_claim_another_patients_document(conn: Connection, setup) -> None:
+     sql = FACT_SQL.format(extra_cols="", extra_vals="")
+-    params = {"p": setup["b"], "d": setup["doc_a"], "t": "observation", "n": 1}
++    run = extract_run(conn, setup["a"], setup["doc_a"])
++    params = {"p": setup["b"], "d": setup["doc_a"], "t": "observation", "n": 1, "r": run}
+     assert _sqlstate(conn, sql, params) == "23503"
+ 
+ 
+@@ -339,9 +356,12 @@ def test_date_precision_rules(
+ ) -> None:
+     sql = (
+         "INSERT INTO observations (fact_id, analyte_raw, value_raw, effective_date,"
+-        " date_precision, date_raw) VALUES (:f, 'Hb', '13.5', CAST(:dt AS date), :pr, 'as printed')"
++        " date_precision, date_raw, effective_date_source)"
++        " VALUES (:f, 'Hb', '13.5', CAST(:dt AS date), :pr, 'as printed', :src)"
+     )
+-    assert _sqlstate(conn, sql, {"f": setup["fact_a"], "dt": date, "pr": precision}) == expected
++    # 0004: a dated observation also states where its date came from (source pair rule).
++    params = {"f": setup["fact_a"], "dt": date, "pr": precision, "src": date and "report"}
++    assert _sqlstate(conn, sql, params) == expected
+ 
+ 
+ @pytest.mark.parametrize(
+@@ -465,6 +485,13 @@ def test_orm_joined_inheritance_writes_base_and_subtype_rows(conn: Connection, s
+         "extractor_version": "x1",
+         "prompt_version": "p1",
+         "model_id": "m1",
++        "extraction_run_id": extract_run(conn, setup["a"], setup["doc_a"]),
++        "source_locator": "p1:l1",
++        "char_start": 0,
++        "char_end": 21,
++        "normalizer_version": "norm-test",
++        "reference_data_version": "ref-test",
++        "review_status": "validated",
+     }
+     obs = Observation(**common, analyte_raw="Haemoglobin", value_raw="13.5")
+     med = MedicationMention(**common, name_raw="Drug X (fictional)", mention_context="prescribed")
+diff --git a/tests/test_architecture.py b/tests/test_architecture.py
+index 1f37a57..67277c5 100644
+--- a/tests/test_architecture.py
++++ b/tests/test_architecture.py
+@@ -67,6 +67,37 @@ ALLOWED_RECORDS_NAMES: dict[str, set[str]] = {
+         "rename_document",
+         "update_patient",
+     },
++    "app.records.facts": {  # Phase 3 services (docs/PHASE_3_PLAN.md); the pure gate rule too
++        "ALREADY_EXTRACTED",
++        "AnalyteSeed",
++        "ConflictDetector",
++        "ConflictRecord",
++        "DetectedConflict",
++        "EXTRACT_GATE_REFUSALS",
++        "ExtractionRunRecord",
++        "FactRecord",
++        "GroupFact",
++        "NOT_PARSED",
++        "ObservationRecord",
++        "ReportDate",
++        "ReviewRecord",
++        "SeedResult",
++        "acknowledge_conflict",
++        "complete_document_if_ready",
++        "extraction_applies",
++        "get_extraction_target",
++        "get_fact",
++        "list_conflicts",
++        "list_document_facts",
++        "list_extraction_runs",
++        "record_extraction",
++        "record_extraction_failure",
++        "record_extraction_skipped",
++        "record_review_decision",
++        "reextract_and_supersede",
++        "reference_analyte_ids",
++        "seed_reference_data",
++    },
+     "app.records.chunks": {
+         "ALREADY_INDEXED",  # app/services/index_document.py (Milestone R1.6)
+         "GATE_REFUSALS",  # the indexing gate's refusal kinds (Task 2.8)
+@@ -397,3 +428,78 @@ def test_classification_and_identity_do_not_depend_on_each_other() -> None:
+         (APP_DIR / "services" / "check_identity.py", "app.services.classify_document"),
+     ):
+         assert other not in _imports(path), path.name
++
++
++# --- Phase 3: extraction (docs/PHASE_3_PLAN.md §2.4, §2.6) ----------------------------------
++
++EXTRACTION_FORBIDDEN = (
++    "sqlalchemy",
++    "psycopg",
++    "app.records",
++    "app.services",
++    "app.ui",
++    "app.retrieval",
++    "docling",
++    "torch",
++    "transformers",
++    "app.ingestion.identity",
++    "app.ingestion.classification",
++    "app.ingestion.docling_mapping",
++    "app.ingestion.parsing",
++)
++
++
++def test_extraction_is_pure_domain_logic() -> None:
++    """app/extraction/: no database, services, UI, models, Docling, or the frozen Phase 2 rules."""
++    for path in (APP_DIR / "extraction").rglob("*.py"):
++        for module in _imports(path):
++            assert not module.startswith(EXTRACTION_FORBIDDEN), f"{path.name} imports {module}"
++
++
++def test_frozen_phase2_rule_files_are_untouched_by_extraction() -> None:
++    """The extraction subject guard is its own; it never imports the frozen identity rules."""
++    for path in (APP_DIR / "extraction").rglob("*.py"):
++        assert "app.ingestion.identity" not in _imports(path)
++
++
++# --- patient scoping of the extraction repository (Phase 3; ADR-016) -------------------------
++
++UNSCOPED_FACT_FUNCTIONS = frozenset(
++    {
++        "extraction_gate_refusal",  # pure rule, no database access
++        "extraction_applies",  # pure rule, no database access
++        "seed_reference_data",  # reference tables only, no patient data
++        "reference_analyte_ids",  # reference tables only, read-only
++        "close_conflicts_for_deleted_document",  # runs inside delete_document's transaction
++    }
++)
++
++
++def test_every_fact_repository_function_takes_patient_id_first() -> None:
++    from app.records import facts
++
++    functions = {
++        name: function
++        for name, function in inspect.getmembers(facts, inspect.isfunction)
++        if not name.startswith("_") and function.__module__ == facts.__name__
++    }
++    assert UNSCOPED_FACT_FUNCTIONS <= functions.keys()
++    for name, function in functions.items():
++        parameters = list(inspect.signature(function).parameters)
++        if name in UNSCOPED_FACT_FUNCTIONS:
++            assert (
++                "patient_id" not in parameters[:1] or name == "close_conflicts_for_deleted_document"
++            )
++            continue
++        assert parameters[0] == "patient_id", name
++        if "document_id" in parameters:
++            assert parameters[1] == "document_id", name
++
++
++def test_records_layer_never_imports_domain_rules() -> None:
++    """Conflict comparison is injected as a detector; records stays free of domain logic."""
++    for path in RECORDS_DIR.glob("*.py"):
++        for module in _imports(path):
++            assert not module.startswith(("app.extraction", "app.services", "app.ingestion")), (
++                f"{path.name} imports {module}"
++            )
+diff --git a/tests/test_document_pipeline.py b/tests/test_document_pipeline.py
+index 3b38a2e..3626409 100644
+--- a/tests/test_document_pipeline.py
++++ b/tests/test_document_pipeline.py
+@@ -1,7 +1,8 @@
+ """Unit tests for the document pipeline and the library wrappers (Task 2.9a, ADR-036 A4).
+ 
+-The four stage services are replaced by stand-ins over an in-memory model of each document; the
+-stand-in index stage applies the real indexing-gate rule (``app.records.chunks._gate_refusal``).
++The five stage services are replaced by stand-ins over an in-memory model of each document; the
++stand-in index stage applies the real indexing-gate rule (``app.records.chunks._gate_refusal``)
++and the stand-in extract stage the real extraction gate (``extraction_gate_refusal``, Phase 3).
+ No database, parser or model is used. All data is fictional.
+ """
+ 
+@@ -20,11 +21,13 @@ from app.core.errors import (
+     PatientError,
+ )
+ from app.records.chunks import _gate_refusal
++from app.records.facts import extraction_applies, extraction_gate_refusal
+ from app.records.repositories import DocumentSummary
+ from app.services import document_pipeline as pipe
+ from app.services import library
+ from app.services.check_identity import IdentityCheckResult
+ from app.services.classify_document import ClassifyResult
++from app.services.extract_document import ExtractResult
+ from app.services.index_document import IndexResult
+ from app.services.process_document import ProcessResult
+ 
+@@ -50,11 +53,13 @@ class Doc:
+     identity_check: str = "unknown"  # the column (default "unknown")
+     doc_type: str = "unknown"
+     indexed: bool = False
++    extracted: bool = False
+     # what the next attempt of each stage does
+     parse_error: BaseException | None = None
+     classify_error: BaseException | None = None
+     identity_error: BaseException | None = None
+     index_error: BaseException | None = None
++    extract_error: BaseException | None = None
+     next_type: str = "lab_report"
+     next_identity: str = "match"
+ 
+@@ -123,6 +128,28 @@ class World:
+         doc.indexed = True
+         return IndexResult(document_id, 5, 4, 1, 6)
+ 
++    def extract(self, _settings, patient_id, document_id) -> ExtractResult:
++        self.calls.append((pipe.EXTRACT, document_id))
++        doc = self._doc(patient_id, document_id)
++        refusal = extraction_gate_refusal(
++            has_pages=doc.pages,
++            classified=doc.classified,
++            identity_checked=doc.identity_checked,
++            identity_check=doc.identity_check,
++        )
++        if refusal is not None:
++            raise _err(refusal)
++        if doc.extracted:
++            raise _err("already_extracted")
++        if doc.extract_error is not None:
++            raise doc.extract_error
++        doc.extracted = True
++        outcome = "extracted" if extraction_applies(doc.doc_type) else "not_applicable"
++        facts = 3 if outcome == "extracted" else 0
++        return ExtractResult(
++            document_id, outcome, uuid.uuid4(), facts, 0, {}, 0, 0, 0, doc.indexed, 7
++        )
++
+     # library ----------------------------------------------------------------------------------
+     def get_document(self, patient_id, document_id) -> DocumentSummary:
+         return _summary(self._doc(patient_id, document_id))
+@@ -150,6 +177,7 @@ def world(monkeypatch):
+         monkeypatch.setattr(pipe, "classify_document", w.classify)
+         monkeypatch.setattr(pipe, "check_document_identity", w.identity)
+         monkeypatch.setattr(pipe, "index_document", w.index)
++        monkeypatch.setattr(pipe, "extract_document", w.extract)
+         monkeypatch.setattr(pipe, "get_document", w.get_document)
+         monkeypatch.setattr(pipe, "list_documents", w.list_documents)
+         return w
+@@ -177,12 +205,14 @@ def test_a_new_document_goes_through_every_stage_in_order(world) -> None:
+         ("classify", "succeeded", None),
+         ("identity", "succeeded", None),
+         ("index", "succeeded", None),
++        ("extract", "succeeded", None),
+     ]
+     assert [stage for stage, _ in w.calls] == list(pipe.STAGES)
+     assert isinstance(result.stage("classify").detail, ClassifyResult)
+     assert result.stage("identity").detail.outcome == "match"  # type: ignore[union-attr]
+     assert result.stage("index").detail.chunks == 5  # type: ignore[union-attr]
+     assert result.indexed and result.document_id == doc.id
++    assert result.extracted and result.stage("extract").detail.outcome == "extracted"  # type: ignore[union-attr]
+ 
+ 
+ def test_completed_stages_are_reported_already_done_and_not_repeated(world) -> None:
+@@ -195,6 +225,7 @@ def test_completed_stages_are_reported_already_done_and_not_repeated(world) -> N
+         ("classify", "already_done", "already_classified"),
+         ("identity", "already_done", "already_checked"),
+         ("index", "already_done", "already_indexed"),
++        ("extract", "already_done", "already_extracted"),
+     ]
+     assert again.indexed and all(s.detail is None for s in again.stages)
+ 
+@@ -211,6 +242,7 @@ def test_a_classification_failure_does_not_stop_identity_and_blocks_indexing(wor
+         ("classify", "failed", "unexpected"),
+         ("identity", "succeeded", None),
+         ("index", "blocked", "not_classified"),
++        ("extract", "blocked", "not_classified"),
+     ]
+     assert result.stage("classify").error_class == "RuntimeError"
+     assert (pipe.IDENTITY, doc.id) in w.calls and not result.indexed
+@@ -225,6 +257,7 @@ def test_an_identity_failure_does_not_stop_classification_and_blocks_indexing(wo
+         ("classify", "succeeded", None),
+         ("identity", "failed", "database_error"),
+         ("index", "blocked", "identity_not_checked"),
++        ("extract", "blocked", "identity_not_checked"),
+     ]
+ 
+ 
+@@ -321,7 +354,7 @@ def test_without_pages_every_later_stage_is_blocked_not_skipped(
+     w = world(doc)
+     result = _run(doc)
+     assert (result.stage("parse").status, result.stage("parse").reason) == (status, reason)
+-    for stage in (pipe.CLASSIFY, pipe.IDENTITY, pipe.INDEX):
++    for stage in (pipe.CLASSIFY, pipe.IDENTITY, pipe.INDEX, pipe.EXTRACT):
+         assert (result.stage(stage).status, result.stage(stage).reason) == ("blocked", "not_parsed")
+     assert [stage for stage, _ in w.calls] == list(pipe.STAGES)  # every service was asked
+ 
+@@ -348,10 +381,11 @@ def test_a_patient_run_reports_every_document_in_order_and_continues(world) -> N
+     w = world(first, broken, last, other)
+     results = pipe.run_patient_pipeline(None, None, None, PATIENT)  # type: ignore[arg-type]
+     assert [r.document_id for r in results] == [first.id, broken.id, last.id]  # oldest first
+-    assert all(len(r.stages) == 4 for r in results)
++    assert all(len(r.stages) == 5 for r in results)
+     assert results[0].indexed
+     assert results[1].stage("parse").status == "failed" and not results[1].indexed
+     assert results[2].stage("index").reason == "identity_mismatch"
++    assert results[2].stage("extract").reason == "identity_mismatch"  # no facts for a mismatch
+     assert all(document_id != other.id for _, document_id in w.calls)  # never another patient
+ 
+ 
+@@ -427,7 +461,9 @@ def test_library_wrappers_pass_the_patient_scope_through_unchanged(
+     calls = []
+     monkeypatch.setattr(library, target, lambda *a, **kw: calls.append((a, kw)) or "result")
+     returned = getattr(library, wrapper)(*args)
+-    assert calls == [(args, {})]
++    assert [c[0] for c in calls] == [args]
++    # delete_document also hands the conflict detector to the repository (Phase 3, §6.7)
++    assert set(calls[0][1]) == ({"conflict_detector"} if wrapper == "delete_document" else set())
+     assert returned == ("result" if wrapper != "delete_patient" else None)
+ 
+ 
+@@ -455,3 +491,49 @@ def test_library_errors_propagate_unchanged(monkeypatch) -> None:
+     with pytest.raises(DocumentProcessingError) as caught:
+         library.get_document(PATIENT, uuid.uuid4())
+     assert caught.value is error
++
++
++# --- extraction stage (Phase 3, docs/PHASE_3_PLAN.md §9) ---------------------------------------
++
++
++def test_extraction_is_independent_of_an_index_failure(world) -> None:
++    doc = Doc(index_error=DocumentProcessingError("x", kind="integrity_mismatch"))
++    world(doc)
++    result = _run(doc)
++    assert result.stage("index").status == "failed"
++    assert result.stage("extract").status == "succeeded" and result.extracted
++
++
++def test_identity_mismatch_blocks_extraction(world) -> None:
++    doc = Doc(next_identity="mismatch")
++    world(doc)
++    extract = _run(doc).stage("extract")
++    assert (extract.status, extract.reason) == ("blocked", "identity_mismatch")
++
++
++def test_unknown_identity_is_extracted(world) -> None:
++    doc = Doc(next_identity="unknown")
++    world(doc)
++    assert _run(doc).stage("extract").status == "succeeded"
++
++
++@pytest.mark.parametrize("doc_type", ["other", "unknown"])
++def test_other_document_types_are_not_applicable_but_complete(world, doc_type) -> None:
++    doc = Doc(next_type=doc_type)
++    world(doc)
++    first = _run(doc).stage("extract")
++    assert first.status == "succeeded" and first.reason is None
++    assert first.detail.outcome == "not_applicable" and first.detail.facts == 0  # type: ignore[union-attr]
++    again = _run(doc).stage("extract")
++    assert (again.status, again.reason) == ("already_done", "already_extracted")
++
++
++def test_an_extraction_failure_is_reported_and_retried_only_on_rerun(world) -> None:
++    doc = Doc(extract_error=DocumentProcessingError(SECRET, kind="reference_data_not_seeded"))
++    w = world(doc)
++    extract = _run(doc).stage("extract")
++    assert (extract.status, extract.reason) == ("failed", "reference_data_not_seeded")
++    assert SECRET not in repr(extract)
++    doc.extract_error = None
++    assert _run(doc).extracted
++    assert [s for s, _ in w.calls].count(pipe.EXTRACT) == 2
+diff --git a/tests/test_document_repository.py b/tests/test_document_repository.py
+index d04e570..8973171 100644
+--- a/tests/test_document_repository.py
++++ b/tests/test_document_repository.py
+@@ -220,6 +220,9 @@ def _integrity_error(sqlstate: str | None, constraint: str | None) -> IntegrityE
+         ("23503", "fk_documents_patient_id_patients", False),
+         ("23503", "fk_pages_document_id_patient_id_documents", False),
+         ("23503", None, False),
++        # PostgreSQL reports a delete blocked by ON DELETE RESTRICT as 23001.
++        ("23001", "fk_documents_supersedes_document_id_patient_id_documents", True),
++        ("23001", "fk_pages_document_id_patient_id_documents", False),
+         ("23505", "fk_documents_supersedes_document_id_patient_id_documents", False),
+         (None, None, False),
+     ],
+diff --git a/tests/test_health.py b/tests/test_health.py
+index 666112d..ab4b3ea 100644
+--- a/tests/test_health.py
++++ b/tests/test_health.py
+@@ -214,7 +214,7 @@ def test_database_schema_is_skipped_without_password() -> None:
+     [
+         ("at_head", "HEAD", "ok", "(latest)"),
+         ("not_migrated", None, "warn", "no migrations applied; run `uv run python -m app migrate`"),
+-        ("behind", "0001", "warn", "at revision 0001, latest is 0003"),
++        ("behind", "0001", "warn", "at revision 0001, latest is 0004"),
+         ("unknown_revision", "9999", "fail", "revision 9999 is not known to this code"),
+     ],
+ )
+diff --git a/tests/test_ingestion_storage.py b/tests/test_ingestion_storage.py
+index cfaefb9..bc3e674 100644
+--- a/tests/test_ingestion_storage.py
++++ b/tests/test_ingestion_storage.py
+@@ -244,6 +244,32 @@ def _redirect(link: Path, target: Path) -> None:
+         pytest.skip("cannot create a junction or symlink here")
+ 
+ 
++def test_a_relative_data_dir_stores_normally(
++    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
++) -> None:
++    # The default setting is the relative "data"; mkstemp returns an absolute path, which the
++    # containment check once refused as outside_data_dir (found on the 2026-11-18 UI run).
++    monkeypatch.chdir(tmp_path)
++    relative = Settings(data_dir=Path("data"))
++    stored = store_original(relative, PATIENT_A, pdfs.native_pdf())
++    assert stored.created
++    assert stored.storage_path == f"uploads/{PATIENT_A}/{stored.sha256}.pdf"
++    assert _part_files(relative) == []
++
++
++def test_a_relative_data_dir_still_refuses_a_redirect(
++    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
++) -> None:
++    monkeypatch.chdir(tmp_path)
++    relative = Settings(data_dir=Path("data"))
++    relative.data_dir.mkdir()
++    _redirect(relative.data_dir / "uploads", tmp_path / "outside")
++    with pytest.raises(DocumentStorageError) as caught:
++        store_original(relative, PATIENT_A, pdfs.native_pdf())
++    _storage_error(caught, StorageErrorKind.OUTSIDE_DATA_DIR)
++    assert list((tmp_path / "outside").rglob("*")) == []
++
++
+ def test_redirect_outside_data_dir_is_refused(settings: Settings, tmp_path: Path) -> None:
+     outside = tmp_path / "outside"
+     settings.data_dir.mkdir()
+diff --git a/tests/test_migrations.py b/tests/test_migrations.py
+index caa87c6..375a26e 100644
+--- a/tests/test_migrations.py
++++ b/tests/test_migrations.py
+@@ -38,6 +38,7 @@ EXPECTED_ORDER = {
+         "conflict_members",
+     ],
+     "0003": ["chunks"],
++    "0004": [],  # Phase 3: columns, constraints and indexes on existing tables only
+ }
+ 
+ 
+@@ -67,17 +68,22 @@ def downgrade_sql() -> str:
+ 
+ def test_linear_chain_with_a_single_head() -> None:
+     script = ScriptDirectory.from_config(migrations.alembic_config())
+-    assert script.get_heads() == ["0003"]
++    assert script.get_heads() == ["0004"]
+     chain = {rev.revision: rev.down_revision for rev in script.walk_revisions()}
+-    assert chain == {"0001": None, "0002": "0001", "0003": "0002"}
+-    assert migrations.head_revision() == "0003"
+-    assert migrations.known_revisions() == {"0001", "0002", "0003"}
++    assert chain == {"0001": None, "0002": "0001", "0003": "0002", "0004": "0003"}
++    assert migrations.head_revision() == "0004"
++    assert migrations.known_revisions() == {"0001", "0002", "0003", "0004"}
+ 
+ 
+ def test_migrations_are_frozen_and_import_no_application_code() -> None:
+     allowed = {"collections", "sqlalchemy", "alembic", "pgvector"}
+     files = sorted(VERSIONS.glob("*.py"))
+-    assert [f.name for f in files] == ["0001_core.py", "0002_facts.py", "0003_retrieval.py"]
++    assert [f.name for f in files] == [
++        "0001_core.py",
++        "0002_facts.py",
++        "0003_retrieval.py",
++        "0004_extraction.py",
++    ]
+     for path in files:
+         tree = ast.parse(path.read_text(encoding="utf-8"))
+         for node in ast.walk(tree):
+@@ -124,6 +130,40 @@ def test_every_model_constraint_and_index_name_is_in_the_migrations(upgrade_sql:
+     assert sql_names == model_names
+ 
+ 
++def test_every_dropped_constraint_was_created_under_that_exact_name(
++    upgrade_sql: str, downgrade_sql: str
++) -> None:
++    # A plain-string name passed to drop_constraint goes through the "ck" naming convention
++    # again (ck_conflicts_ck_conflicts_...), so PostgreSQL rejects the drop. Found on the first
++    # real upgrade to 0004 (2026-11-18); names must be wrapped in op.f().
++    created = set(re.findall(r"CONSTRAINT (\w+) ", upgrade_sql))
++    for sql in (upgrade_sql, downgrade_sql):
++        dropped = set(re.findall(r"DROP CONSTRAINT (\w+);", sql))
++        assert dropped <= created, sorted(dropped - created)
++
++
++LOCATOR_REGEX = "'^p[0-9]+:(t[0-9]+:r[0-9]+|l[0-9]+(:s[0-9]+)?)$'"
++
++
++def test_source_locator_check_keeps_its_literal_colons(upgrade_sql: str) -> None:
++    # text() reads ":r" and ":s" as bind parameters unless escaped; unescaped, PostgreSQL stored
++    # NULL in their place and rejected every valid locator (found 2026-11-18 on PostgreSQL).
++    from sqlalchemy.dialects import postgresql
++    from sqlalchemy.schema import CheckConstraint
++
++    assert LOCATOR_REGEX in upgrade_sql
++    table = Base.metadata.tables["extracted_facts"]
++    (check,) = [
++        c
++        for c in table.constraints
++        if isinstance(c, CheckConstraint) and "source_locator ~" in str(c.sqltext)
++    ]
++    rendered = str(
++        check.sqltext.compile(dialect=postgresql.dialect(), compile_kwargs={"literal_binds": True})
++    )
++    assert LOCATOR_REGEX in rendered
++
++
+ def test_upgrade_contains_the_key_postgres_features(upgrade_sql: str) -> None:
+     assert "DEFAULT uuidv7()" in upgrade_sql
+     assert "embedding VECTOR(384)" in upgrade_sql
+@@ -155,7 +195,9 @@ def test_alembic_ini_has_no_database_url() -> None:
+ 
+ def test_downgrade_drops_everything_in_reverse_order(downgrade_sql: str) -> None:
+     dropped = re.findall(r"^DROP TABLE (\w+);", downgrade_sql, flags=re.M)
+-    expected = [t for rev in ("0003", "0002", "0001") for t in reversed(EXPECTED_ORDER[rev])]
++    expected = [
++        t for rev in ("0004", "0003", "0002", "0001") for t in reversed(EXPECTED_ORDER[rev])
++    ]
+     assert dropped == expected
+     # Alembic keeps its own version table and only removes the version row.
+     assert "DELETE FROM alembic_version WHERE alembic_version.version_num = '0001'" in (
+diff --git a/tests/test_models.py b/tests/test_models.py
+index 5d49863..2bc2ddc 100644
+--- a/tests/test_models.py
++++ b/tests/test_models.py
+@@ -45,7 +45,11 @@ OWNERSHIP_FKS: dict[str, set[tuple[str, tuple[str, ...]]]] = {
+     "documents": {("patients", ("id",)), ("documents", ("id", "patient_id"))},
+     "pages": {("documents", ("id", "patient_id"))},
+     "chunks": {("documents", ("id", "patient_id"))},
+-    "extracted_facts": {("documents", ("id", "patient_id"))},
++    # Migration 0004: the producing run and the replacing run are the same patient's too.
++    "extracted_facts": {
++        ("documents", ("id", "patient_id")),
++        ("pipeline_runs", ("id", "document_id", "patient_id")),
++    },
+     "review_decisions": {("extracted_facts", ("id", "patient_id"))},
+     "conflicts": {("patients", ("id",))},
+     "conflict_members": {
+@@ -73,6 +77,9 @@ DELETE_RULES: dict[tuple[str, tuple[str, ...]], str] = {
+     ("clinical_events", ("fact_id",)): "CASCADE",
+     ("review_decisions", ("fact_id", "patient_id")): "CASCADE",
+     ("conflicts", ("patient_id",)): "RESTRICT",
++    ("conflicts", ("analyte_id",)): "RESTRICT",
++    ("extracted_facts", ("extraction_run_id", "document_id", "patient_id")): "CASCADE",
++    ("extracted_facts", ("superseded_by_run_id", "document_id", "patient_id")): "CASCADE",
+     ("conflict_members", ("conflict_id", "patient_id")): "CASCADE",
+     ("conflict_members", ("fact_id", "patient_id")): "CASCADE",
+     ("chunks", ("document_id", "patient_id")): "CASCADE",
+@@ -103,6 +110,10 @@ ENUM_COLUMNS: dict[tuple[str, str], type[StrEnum]] = {
+     ("review_decisions", "decision"): models.Decision,
+     ("conflicts", "conflict_type"): models.ConflictType,
+     ("conflicts", "status"): models.ConflictStatus,
++    ("conflicts", "closed_reason"): models.ConflictClosedReason,
++    ("observations", "effective_date_source"): models.EffectiveDateSource,
++    ("observations", "ref_range_comparison"): models.RangeComparison,
++    ("observations", "analyte_match"): models.AnalyteMatch,
+     ("chunks", "chunk_type"): models.ChunkType,
+ }
+ 
+@@ -111,6 +122,7 @@ NO_DEFAULT_COLUMNS = {
+     ("extracted_facts", "assertion_type"),
+     ("extracted_facts", "negated"),
+     ("extracted_facts", "subject"),
++    ("extracted_facts", "review_status"),  # migration 0004: stated explicitly on every insert
+ }
+ 
+ 
+@@ -317,3 +329,12 @@ def test_postgres_ddl_compiles_with_the_planned_types() -> None:
+ def test_no_vector_index_yet() -> None:
+     # Exact search filtered by patient at personal scale; HNSW only if Phase 5 measures a need.
+     assert all("embedding" not in [c.name for c in i.columns] for i in TABLES["chunks"].indexes)
++
++
++def test_nullable_jsonb_columns_store_python_none_as_sql_null() -> None:
++    # Without none_as_null, SQLAlchemy writes None as the JSON value 'null', which is NOT NULL to
++    # PostgreSQL: every reject/verify decision then violated corrected_values_match (2026-11-18).
++    for table in Base.metadata.tables.values():
++        for column in table.columns:
++            if isinstance(column.type, postgresql.JSONB) and column.nullable:
++                assert column.type.none_as_null, f"{table.name}.{column.name}"
+diff --git a/tests/test_retrieval_services.py b/tests/test_retrieval_services.py
+index fc4e2cd..8d89940 100644
+--- a/tests/test_retrieval_services.py
++++ b/tests/test_retrieval_services.py
+@@ -266,6 +266,10 @@ def index_stubs(monkeypatch):
+         return len(records)
+ 
+     monkeypatch.setattr(index_svc, "insert_document_chunks", insert)
++    state.completed = []  # Phase 3: the shared completion rule runs after a successful insert
++    monkeypatch.setattr(
++        index_svc, "complete_document_if_ready", lambda p, d: state.completed.append((p, d))
++    )
+     return state
+ 
+ 
+@@ -276,6 +280,7 @@ def test_index_chunks_embeds_and_inserts_with_versions(index_stubs) -> None:
+     assert records[0].content == "Haemoglobin 13.5 gm/dL" and len(records[0].embedding) == 384
+     assert kw["embedding_model"] == "fake-embedder@0"
+     assert kw["component_versions"]["chunker_version"] == "1"
++    assert index_stubs.completed == [(PATIENT, DOC)]
+ 
+ 
+ @pytest.mark.parametrize(
+diff --git a/tests/test_ui.py b/tests/test_ui.py
+index 3f43311..fa74411 100644
+--- a/tests/test_ui.py
++++ b/tests/test_ui.py
+@@ -17,10 +17,11 @@ import streamlit as st
+ from streamlit.testing.v1 import AppTest
+ 
+ from app.core.errors import DocumentProcessingError, DocumentValidationError, PatientError
++from app.records.facts import ConflictRecord, DecisionRecord, FactRecord
+ from app.records.repositories import DeletedDocument, DocumentSummary, PatientSummary
+ from app.retrieval.evidence import AnswerStatus, Evidence, EvidenceAnswer, RetrievalMode
+ from app.services import document_pipeline as pipe
+-from app.services import library, ui_runtime, upload_document
++from app.services import facts, library, review_fact, ui_runtime, upload_document
+ from app.services.check_identity import IdentityCheckResult
+ from app.services.classify_document import ClassifyResult
+ from app.services.library import DocumentState
+@@ -47,6 +48,9 @@ class Backend:
+         self.fail: dict[str, BaseException] = {}
+         self.pipeline_result: pipe.DocumentPipelineResult | None = None
+         self.answer: EvidenceAnswer | None = None
++        self.facts: dict[uuid.UUID, list] = {}  # document id -> FactViews
++        self.conflict_views: list = []
++        self.closed_views: list = []
+ 
+     def add_document(self, patient, *, identity="match", doc_type="lab_report", **state):
+         doc_id = uuid.uuid4()
+@@ -59,7 +63,8 @@ class Backend:
+         self.states[doc_id] = DocumentState(
+             doc_id, summary.processing_status, state.get("pages", 2), state.get("chunks", 3),
+             state.get("classified", True), state.get("checked", True), identity,
+-            state.get("blocked"),
++            state.get("blocked"), state.get("extracted", False), state.get("extract_blocked"),
++            state.get("facts", 0), state.get("needs_review", 0),
+         )  # fmt: skip
+         return summary
+ 
+@@ -131,6 +136,29 @@ class Backend:
+         self.calls.append(("run_patient_pipeline", patient_id))
+         return tuple(_result(d.id) for d in self.documents.get(patient_id, ()))
+ 
++    # extracted facts, review, conflicts (Phase 3)
++    def document_facts(self, patient_id, document_id, *, include_superseded=False):
++        self.calls.append(("document_facts", patient_id, document_id))
++        return tuple(self.facts.get(document_id, ()))
++
++    def extraction_runs(self, patient_id, document_id):
++        self.calls.append(("extraction_runs", patient_id, document_id))
++        return ()
++
++    def conflicts(self, patient_id, *, current=True):
++        self.calls.append(("conflicts", patient_id, current))
++        return tuple(self.conflict_views if current else self.closed_views)
++
++    def acknowledge(self, patient_id, conflict_id):
++        self.calls.append(("acknowledge", patient_id, conflict_id))
++        return "acknowledged"
++
++    def review(self, patient_id, fact_id, decision, *, correction=None, note=None):
++        self.calls.append(("review", patient_id, fact_id, decision, correction, note))
++        self._maybe_fail("review")
++        status = {"verify": "verified", "correct": "corrected", "reject": "rejected"}[decision]
++        return SimpleNamespace(review_status=status)
++
+     def search(self, settings, patient_id, question, mode, *, embedder, reranker):
+         self.calls.append(("search", patient_id, question, mode))
+         self._maybe_fail("search")
+@@ -174,6 +202,9 @@ def backend(monkeypatch):
+         monkeypatch.setattr(upload_document, "upload_document", b.upload)
+         monkeypatch.setattr(pipe, "run_document_pipeline", b.run_document_pipeline)
+         monkeypatch.setattr(pipe, "run_patient_pipeline", b.run_patient_pipeline)
++        for name in ("document_facts", "extraction_runs", "conflicts", "acknowledge"):
++            monkeypatch.setattr(facts, name, getattr(b, name))
++        monkeypatch.setattr(review_fact, "review_fact", b.review)
+         st.cache_resource.clear()
+         return b
+ 
+@@ -604,8 +635,18 @@ def test_document_state_comes_from_the_gate(monkeypatch) -> None:
+     calls = []
+     monkeypatch.setattr(library, "_get_document", lambda p, d: calls.append((p, d)) or summary)
+     monkeypatch.setattr(library, "get_index_target", lambda p, d: calls.append((p, d)) or target)
++    extraction = SimpleNamespace(extracted=False, blocked_reason="not_parsed")
++    monkeypatch.setattr(
++        library, "get_extraction_target", lambda p, d: calls.append((p, d)) or extraction
++    )
++    monkeypatch.setattr(library, "list_document_facts", lambda p, d: calls.append((p, d)) or ())
+     state = library.get_document_state(pid, did)
+-    assert calls == [(pid, did), (pid, did)]
++    assert calls == [(pid, did)] * 4
++    assert (state.extracted, state.extract_blocked_reason, state.facts_current) == (
++        False,
++        "not_parsed",
++        0,
++    )
+     assert state.parse_unfinished and not state.parsed and not state.indexed
+     assert state.index_blocked_reason == "identity_not_checked"
+ 
+@@ -657,3 +698,145 @@ def test_search_builds_the_cli_configuration_and_passes_only_needed_models(monke
+     ui_runtime.search(settings, uuid.uuid4(), "q", "lexical", embedder="E", reranker="R")
+     assert seen["config"].mode is RetrievalMode.LEXICAL and seen["config"].top_k == 5
+     assert seen["embedder"] is None and seen["reranker"] is None
++
++
++# --- extracted results, review and conflicts (Phase 3) -------------------------------------------
++
++
++def _fact(document_id, *, status="validated", reasons=(), value="14.2", decisions=()):
++    record = FactRecord(
++        id=uuid.uuid4(), document_id=document_id, extraction_run_id=uuid.uuid4(), page_number=1,
++        source_locator="p1:t0:r1", source_excerpt=f"Haemoglobin\t{value}\tgm/dL\t13.0 - 17.0",
++        char_start=10, char_end=40, review_status=status, review_reasons=tuple(reasons),
++        quality_notes=("effective_date_from_report",), extractor_version="lab-rules-1",
++        normalizer_version="norm-1", reference_data_version="ref-x", superseded=False,
++        analyte_raw="Haemoglobin", analyte_id=1, analyte_name="Haemoglobin", value_raw=value,
++        value_num=Decimal(value), comparator=None, value_qualitative=None, unit_raw="gm/dL",
++        unit_norm="g/dL", value_num_norm=Decimal(value), ref_range_raw="13.0 - 17.0",
++        ref_low=Decimal("13.0"), ref_high=Decimal("17.0"), flag_as_printed=None,
++        ref_range_comparison="within", specimen=None, effective_date=dt.date(2024, 3, 25),
++        date_precision="day", date_raw="25/03/2024", effective_date_source="report",
++        date_page_number=1, date_char_start=0, date_char_end=10, effective_time=None,
++        time_raw=None, decisions=tuple(decisions),
++    )  # fmt: skip
++    return facts.fact_view(record)
++
++
++def _extracted_document(b, **kw):
++    doc = b.add_document(b.synthetic, extracted=True, facts=1, **kw)
++    return doc
++
++
++def test_extracted_results_show_printed_normalized_derived_and_status(backend) -> None:
++    b = backend()
++    doc = _extracted_document(b)
++    b.facts[doc.id] = [_fact(doc.id)]
++    at = _app("Documents")
++    text = _texts(at)
++    assert texts.EXTRACTION_NOTE in text and texts.DERIVED_NOTE in text
++    rows = repr(at.dataframe[1].value.to_dict("records"))
++    assert "Auto-checked, not verified" in rows  # never shown as 'validated' or 'verified'
++    assert "within this report's printed range" in rows
++    assert "gm/dL" in rows and "g/dL" in rows  # printed and normalized side by side
++    assert "Haemoglobin\t14.2" in text  # the exact source text, as plain text
++    assert ("document_facts", b.synthetic.id, doc.id) in b.calls
++    _no_secret(at)
++
++
++def test_review_status_labels_never_claim_validation() -> None:
++    for label in texts.REVIEW_STATUS_LABELS.values():
++        lowered = label.lower()
++        for word in ("validated", "clinical", "accurate", "normal", "correct result"):
++            assert word not in lowered, label
++    assert texts.review_status_label("validated") == "Auto-checked, not verified"
++
++
++def test_a_review_is_one_service_call_for_one_fact(backend) -> None:
++    b = backend()
++    doc = _extracted_document(b)
++    view = _fact(doc.id, status="needs_review", reasons=("ambiguous_date",))
++    b.facts[doc.id] = [view]
++    at = _app("Documents")
++    assert "Ambiguous date (read as day/month)" in repr(at.dataframe[1].value.to_dict("records"))
++    (choice,) = [r for r in at.radio if r.label == "Your review"]
++    choice.set_value("correct")
++    (value,) = [t for t in at.text_input if t.label == "Corrected value (for Correct)"]
++    value.set_value("13.9")
++    _button(at, "Save review").click().run()
++    calls = [c for c in b.calls if c[0] == "review"]
++    assert len(calls) == 1
++    _, patient_id, fact_id, decision, correction, _note = calls[0]
++    assert (patient_id, fact_id, decision) == (b.synthetic.id, view.fact.id, "correct")
++    assert correction.value == "13.9"
++    assert "Saved: Corrected by you." in _texts(at)
++
++
++def test_a_review_error_shows_its_fixed_reason(backend) -> None:
++    b = backend()
++    doc = _extracted_document(b)
++    b.facts[doc.id] = [_fact(doc.id)]
++    b.fail["review"] = DocumentProcessingError(SECRET, kind="invalid_correction")
++    at = _app("Documents")
++    _button(at, "Save review").click().run()
++    assert texts.reason_text("invalid_correction") in _texts(at)
++    _no_secret(at)
++
++
++def test_corrected_values_are_labelled_and_the_original_is_kept(backend) -> None:
++    b = backend()
++    doc = _extracted_document(b)
++    correction = {"schema": "observation-correction-1", "entered": {"value": "13.9"},
++                  "normalized": {"value_num_norm": "13.9", "unit_norm": "g/dL",
++                                 "analyte_id": 1, "analyte_name": "Haemoglobin"}}  # fmt: skip
++    decision = DecisionRecord(uuid.uuid4(), "correct", correction, None, NOW)
++    b.facts[doc.id] = [_fact(doc.id, status="corrected", decisions=[decision])]
++    at = _app("Documents")
++    rows = repr(at.dataframe[1].value.to_dict("records"))
++    assert "13.9 g/dL (corrected by you)" in rows
++    assert "'Value (printed)': '14.2'" in rows  # the original stays visible
++    assert "Corrected by you" in rows
++
++
++def test_identity_mismatch_shows_extraction_blocked(backend) -> None:
++    b = backend()
++    b.add_document(
++        b.synthetic, identity="mismatch", status="needs_review", extract_blocked="identity_mismatch"
++    )
++    at = _app("Documents")
++    assert "Not extracted: " + texts.reason_text("identity_mismatch") in _texts(at)
++
++
++def test_conflicts_show_direct_pairs_only_and_can_be_acknowledged(backend) -> None:
++    b = backend()
++    doc = _extracted_document(b)
++    a, m, c = _fact(doc.id, value="4.0"), _fact(doc.id, value="7.0"), _fact(doc.id, value="3.0")
++    record = ConflictRecord(
++        id=uuid.uuid4(), status="open", conflict_type="value_mismatch_same_date",
++        description="value_mismatch_same_date", analyte_id=1, analyte_name="Haemoglobin",
++        effective_date=dt.date(2024, 3, 25), member_count_at_detection=3, closed_reason=None,
++        closed_at=None, created_at=NOW, member_fact_ids=(a.fact.id, m.fact.id, c.fact.id),
++    )  # fmt: skip
++    pairs = ((a.fact.id, m.fact.id), (m.fact.id, c.fact.id))
++    b.conflict_views = [facts.ConflictView(record, (a, m, c), pairs)]
++    at = _app("Documents")
++    text = _texts(at)
++    assert texts.CONFLICT_NOTE in text
++    assert "Directly disagreeing: p1 4.0 vs p1 7.0; p1 7.0 vs p1 3.0" in text
++    assert "4.0 vs p1 3.0" not in text  # never implies that every pair disagrees
++    _button(at, "Acknowledge").click().run()
++    assert ("acknowledge", b.synthetic.id, record.id) in b.calls
++
++
++def test_closed_conflicts_are_history_with_their_reason(backend) -> None:
++    b = backend()
++    _extracted_document(b)
++    record = ConflictRecord(
++        id=uuid.uuid4(), status="closed", conflict_type="value_mismatch_same_date",
++        description="value_mismatch_same_date", analyte_id=1, analyte_name="Haemoglobin",
++        effective_date=dt.date(2024, 3, 25), member_count_at_detection=2,
++        closed_reason="member_rejected", closed_at=NOW, created_at=NOW, member_fact_ids=(),
++    )  # fmt: skip
++    b.closed_views = [facts.ConflictView(record, (), ())]
++    at = _app("Documents")
++    assert "closed because a result was rejected" in _texts(at)
++    assert "Conflicting results (0)" in [h.value for h in at.subheader]

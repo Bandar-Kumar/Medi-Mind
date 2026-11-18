@@ -20,15 +20,31 @@ from typing import Any
 
 import streamlit as st
 
-from app.services import document_pipeline, library, ui_runtime, upload_document
+from app.services import (
+    document_pipeline,
+    facts,
+    library,
+    review_fact,
+    ui_runtime,
+    upload_document,
+)
 from app.ui import texts
 
 logger = logging.getLogger(__name__)
 
 
-PAGES = ("Patients", "Documents", "Evidence search")
+PAGES = (
+    "Patients", "Overview", "Documents", "Timeline", "Lab trends", "Copilot", "Evidence search",
+)  # fmt: skip
+# Phase 4 pages (app/ui/longitudinal_views.py)
+LONGITUDINAL_PAGES = {
+    "Overview": "overview_page",
+    "Timeline": "timeline_page",
+    "Lab trends": "trends_page",
+}
 PATIENT_KEY = "patient_id"  # str(UUID) of the selected patient
 DOCUMENT_KEY = "document_id"  # str(UUID) of the selected document
+FACT_KEY = "fact_id"  # str(UUID) of the selected extracted fact
 RESULTS_KEY = "pipeline_results"  # list[DocumentPipelineResult] of the last run
 
 
@@ -112,6 +128,7 @@ def main() -> None:
         st.info(texts.DEMO_BANNER, icon="🧪")
 
     patient = _patient_selector(settings)
+    _apply_requested_selection("page")  # e.g. "Open this document" on the Copilot page
     page = st.sidebar.radio("Page", PAGES, key="page")
     if page == "Patients":
         patients_page(settings, patient)
@@ -119,6 +136,14 @@ def main() -> None:
         st.info("Select or create a patient on the Patients page first.")
     elif page == "Documents":
         documents_page(settings, patient)
+    elif page in LONGITUDINAL_PAGES:
+        from app.ui import longitudinal_views  # imports this module: loaded on first use
+
+        getattr(longitudinal_views, LONGITUDINAL_PAGES[page])(patient)
+    elif page == "Copilot":
+        from app.ui import copilot_views  # imports this module: loaded on first use
+
+        copilot_views.copilot_page(settings, patient)
     else:
         search_page(settings, patient)
 
@@ -259,6 +284,7 @@ def documents_page(settings: Any, patient: Any) -> None:
     if document is not None:
         _document_detail(settings, patient, document, states.get(document.id))
     _show_results(documents)
+    _conflicts_panel(patient, documents)
 
 
 def _row(document: Any, state: Any) -> dict[str, Any]:
@@ -274,7 +300,10 @@ def _row(document: Any, state: Any) -> dict[str, Any]:
             document.processing_status,
             parsed=bool(state and state.parsed),
             indexed=bool(state and state.indexed),
+            extracted=bool(state and state.extracted),
         ),
+        "Results": state.facts_current if state else None,
+        "Need review": state.facts_needs_review if state else None,
         "Pages": document.page_count,
         "Uploaded": _when(document.created_at),
         "Updated": _when(document.updated_at),
@@ -316,7 +345,7 @@ def _document_detail(settings: Any, patient: Any, document: Any, state: Any) -> 
     if state is None:
         return
     st.text(
-        f"Status: {texts.processing_label(document.processing_status, parsed=state.parsed, indexed=state.indexed)}"  # noqa: E501
+        f"Status: {texts.processing_label(document.processing_status, parsed=state.parsed, indexed=state.indexed, extracted=state.extracted)}"  # noqa: E501
     )
     st.text(f"Pages stored: {state.page_rows}   Search chunks: {state.chunk_count}")
 
@@ -344,6 +373,8 @@ def _document_detail(settings: Any, patient: Any, document: Any, state: Any) -> 
 
     if st.button("Process this document"):
         _run_pipeline(settings, patient.id, document_id=document.id)
+
+    _facts_section(patient, document, state)
 
     with st.form("rename"):
         new_name = st.text_input("Rename (file name shown in the library)")
@@ -443,6 +474,202 @@ def _show_results(documents: Any) -> None:
                     f"Identity rules v{identity.rules_version}; reasons: "
                     f"{', '.join(identity.reason_codes)}"
                 )
+
+
+# --- extracted results (Phase 3; docs/PHASE_3_PLAN.md §10) -------------------------------------
+
+
+def _number(value: Any) -> str:
+    return "" if value is None else format(value, "f")
+
+
+def _shown(view: Any) -> str:
+    """The value a result shows now, labelled by its source (never merged with the original)."""
+    shown = view.display
+    if shown.get("qualitative"):
+        text = str(shown["qualitative"])
+    else:
+        comparator = shown.get("comparator") or ""
+        text = f"{comparator}{_number(shown.get('value'))} {shown.get('unit') or ''}"
+    label = "corrected by you" if view.source == facts.HUMAN_CORRECTION else "as extracted"
+    return f"{text.strip()} ({label})"
+
+
+def _fact_row(view: Any) -> dict[str, Any]:
+    fact = view.fact
+    normalized = view.machine_normalized
+    comparison = normalized["derived_range_comparison"] or ""
+    return {
+        "Page": fact.page_number,
+        "Test (printed)": fact.analyte_raw,
+        "Value (printed)": fact.value_raw,
+        "Unit (printed)": fact.unit_raw or "",
+        "Range (printed)": fact.ref_range_raw or "",
+        "Flag (printed)": fact.flag_as_printed or "",
+        "Normalized": f"{_number(normalized['value_in_unit'])} {normalized['unit'] or ''}".strip(),
+        "Range comparison (derived)": texts.DERIVED_COMPARISON.get(comparison, ""),
+        "Shown value": _shown(view),
+        "Date": str(fact.effective_date or ""),
+        "Status": texts.review_status_label(fact.review_status),
+        "Reasons": texts.review_reasons_text(fact.review_reasons),
+    }
+
+
+def _facts_section(patient: Any, document: Any, state: Any) -> None:
+    st.subheader("Extracted lab results")
+    if not state.extracted:
+        if state.extract_blocked_reason:
+            st.info(f"Not extracted: {texts.reason_text(state.extract_blocked_reason)}")
+        else:
+            st.caption("Not extracted yet. Select 'Process this document'.")
+        return
+    views = attempt(lambda: facts.document_facts(patient.id, document.id))
+    if views is None:
+        return
+    st.caption(texts.EXTRACTION_NOTE)
+    current = [v for v in views if v.fact.review_status != "rejected"]
+    rejected = [v for v in views if v.fact.review_status == "rejected"]
+    if not views:
+        st.write("No lab results were extracted from this document.")
+    else:
+        st.dataframe([_fact_row(v) for v in current], hide_index=True)
+        st.caption(texts.DERIVED_NOTE)
+        _fact_detail(patient, views)
+    if rejected:
+        with st.expander(f"Rejected results ({len(rejected)}, audit only)"):
+            st.dataframe([_fact_row(v) for v in rejected], hide_index=True)
+    runs = attempt(lambda: facts.extraction_runs(patient.id, document.id))
+    if runs:
+        with st.expander("Extraction history"):
+            st.dataframe([_run_row(r) for r in runs], hide_index=True)
+
+
+def _run_row(run: Any) -> dict[str, Any]:
+    versions = run.component_versions
+    abstentions = versions.get("abstentions", {})
+    return {
+        "Started": _when(run.started_at),
+        "Status": run.status,
+        "Extractor": versions.get("extractor_version", ""),
+        "Results": versions.get("facts_written", 0),
+        "Need review": versions.get("facts_needs_review", 0),
+        "Not extracted (counts)": ", ".join(f"{k}: {v}" for k, v in abstentions.items()),
+        "Error": texts.reason_text(run.error_kind) if run.error_kind else "",
+    }
+
+
+def _fact_detail(patient: Any, views: Any) -> None:
+    labels = {str(v.fact.id): f"Page {v.fact.page_number}: {v.fact.analyte_raw}" for v in views}
+    if st.session_state.get(FACT_KEY) not in labels:
+        st.session_state[FACT_KEY] = next(iter(labels))
+    st.selectbox("Result", list(labels), format_func=lambda i: labels.get(i, i), key=FACT_KEY)
+    view = next(v for v in views if str(v.fact.id) == st.session_state[FACT_KEY])
+    fact = view.fact
+    st.text(f"Source (page {fact.page_number}, exact text):")
+    st.text(fact.source_excerpt)  # plain text: never interpreted as Markdown or HTML
+    if fact.date_raw:
+        st.text(f"Date as printed: {fact.date_raw} (page {fact.date_page_number})")
+    notes = [texts.QUALITY_NOTES.get(n, n) for n in fact.quality_notes]
+    if notes:
+        st.caption("Notes: " + "; ".join(notes))
+    st.caption(
+        f"Extractor {fact.extractor_version}, normalizer {fact.normalizer_version}, "
+        f"reference {fact.reference_data_version}"
+    )
+    for decision in fact.decisions:
+        st.text(f"{_when(decision.decided_at)}: {decision.decision}")
+        if decision.note:
+            st.text(f"  note: {decision.note}")
+    _review_form(patient, fact)
+
+
+REVIEW_CHOICES = {
+    "verify": "Verify (confirm the original extracted values)",
+    "correct": "Correct (enter values; the original is kept)",
+    "reject": "Reject (keep for audit only)",
+}
+
+
+def _review_form(patient: Any, fact: Any) -> None:
+    with st.form(f"review_{fact.id}"):
+        decision = st.radio("Your review", list(REVIEW_CHOICES), format_func=REVIEW_CHOICES.get)
+        value = st.text_input("Corrected value (for Correct)")
+        unit = st.text_input("Corrected unit (for Correct)")
+        ref_range = st.text_input("Corrected reference range (for Correct)")
+        date = st.text_input("Corrected date, DD/MM/YYYY (for Correct)")
+        note = st.text_input("Note (optional)")
+        if st.form_submit_button("Save review"):
+            submit_review(patient.id, fact.id, decision, value, unit, ref_range, date, note)
+
+
+def submit_review(
+    patient_id: uuid.UUID,
+    fact_id: uuid.UUID,
+    decision: str,
+    value: str,
+    unit: str,
+    ref_range: str,
+    date: str,
+    note: str,
+) -> None:
+    """One review decision on one result (no bulk action, ADR-023)."""
+    correction = (
+        review_fact.Correction(value, unit, ref_range, date) if decision == "correct" else None
+    )
+    done = attempt(
+        lambda: review_fact.review_fact(
+            patient_id, fact_id, decision, correction=correction, note=note
+        )
+    )
+    if done is not None:
+        st.success(f"Saved: {texts.review_status_label(done.review_status)}.")
+
+
+def _conflicts_panel(patient: Any, documents: Any) -> None:
+    current = attempt(lambda: facts.conflicts(patient.id))
+    if current is None:
+        return
+    names = {d.id: d.original_filename for d in documents}  # display only
+    st.subheader(f"Conflicting results ({len(current)})")
+    if not current:
+        st.caption("No open conflicts.")
+    for conflict in current:
+        record = conflict.conflict
+        with st.expander(f"{record.analyte_name or 'Test'} on {record.effective_date}"):
+            st.caption(texts.CONFLICT_NOTE)
+            st.dataframe([_member_row(m, names) for m in conflict.members], hide_index=True)
+            pages = {
+                m.fact.id: f"p{m.fact.page_number} {m.fact.value_raw}" for m in conflict.members
+            }
+            st.text(
+                "Directly disagreeing: "
+                + "; ".join(f"{pages[a]} vs {pages[b]}" for a, b in conflict.direct_pairs)
+            )
+            if record.status == "open" and st.button("Acknowledge", key=f"ack_{record.id}"):
+                if attempt(lambda r=record: facts.acknowledge(patient.id, r.id)):
+                    st.success("Acknowledged. MediMind does not resolve it.")
+    history = attempt(lambda: facts.conflicts(patient.id, current=False))
+    if history:
+        with st.expander(f"Closed conflicts ({len(history)}, history)"):
+            for conflict in history:
+                record = conflict.conflict
+                reason = texts.CLOSED_REASONS.get(record.closed_reason or "", record.closed_reason)
+                st.text(
+                    f"{record.analyte_name or 'Test'} on {record.effective_date}: "
+                    f"closed because {reason}"
+                )
+
+
+def _member_row(member: Any, names: dict) -> dict[str, Any]:
+    fact = member.fact
+    return {
+        "Document": names.get(fact.document_id, str(fact.document_id)[:8]),
+        "Page": fact.page_number,
+        "Value (printed)": fact.value_raw,
+        "Unit (printed)": fact.unit_raw or "",
+        "Shown value": _shown(member),
+        "Status": texts.review_status_label(fact.review_status),
+    }
 
 
 # --- evidence search -----------------------------------------------------------------------------

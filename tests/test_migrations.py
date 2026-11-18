@@ -38,6 +38,7 @@ EXPECTED_ORDER = {
         "conflict_members",
     ],
     "0003": ["chunks"],
+    "0004": [],  # Phase 3: columns, constraints and indexes on existing tables only
 }
 
 
@@ -67,17 +68,22 @@ def downgrade_sql() -> str:
 
 def test_linear_chain_with_a_single_head() -> None:
     script = ScriptDirectory.from_config(migrations.alembic_config())
-    assert script.get_heads() == ["0003"]
+    assert script.get_heads() == ["0004"]
     chain = {rev.revision: rev.down_revision for rev in script.walk_revisions()}
-    assert chain == {"0001": None, "0002": "0001", "0003": "0002"}
-    assert migrations.head_revision() == "0003"
-    assert migrations.known_revisions() == {"0001", "0002", "0003"}
+    assert chain == {"0001": None, "0002": "0001", "0003": "0002", "0004": "0003"}
+    assert migrations.head_revision() == "0004"
+    assert migrations.known_revisions() == {"0001", "0002", "0003", "0004"}
 
 
 def test_migrations_are_frozen_and_import_no_application_code() -> None:
     allowed = {"collections", "sqlalchemy", "alembic", "pgvector"}
     files = sorted(VERSIONS.glob("*.py"))
-    assert [f.name for f in files] == ["0001_core.py", "0002_facts.py", "0003_retrieval.py"]
+    assert [f.name for f in files] == [
+        "0001_core.py",
+        "0002_facts.py",
+        "0003_retrieval.py",
+        "0004_extraction.py",
+    ]
     for path in files:
         tree = ast.parse(path.read_text(encoding="utf-8"))
         for node in ast.walk(tree):
@@ -124,6 +130,40 @@ def test_every_model_constraint_and_index_name_is_in_the_migrations(upgrade_sql:
     assert sql_names == model_names
 
 
+def test_every_dropped_constraint_was_created_under_that_exact_name(
+    upgrade_sql: str, downgrade_sql: str
+) -> None:
+    # A plain-string name passed to drop_constraint goes through the "ck" naming convention
+    # again (ck_conflicts_ck_conflicts_...), so PostgreSQL rejects the drop. Found on the first
+    # real upgrade to 0004 (2026-11-18); names must be wrapped in op.f().
+    created = set(re.findall(r"CONSTRAINT (\w+) ", upgrade_sql))
+    for sql in (upgrade_sql, downgrade_sql):
+        dropped = set(re.findall(r"DROP CONSTRAINT (\w+);", sql))
+        assert dropped <= created, sorted(dropped - created)
+
+
+LOCATOR_REGEX = "'^p[0-9]+:(t[0-9]+:r[0-9]+|l[0-9]+(:s[0-9]+)?)$'"
+
+
+def test_source_locator_check_keeps_its_literal_colons(upgrade_sql: str) -> None:
+    # text() reads ":r" and ":s" as bind parameters unless escaped; unescaped, PostgreSQL stored
+    # NULL in their place and rejected every valid locator (found 2026-11-18 on PostgreSQL).
+    from sqlalchemy.dialects import postgresql
+    from sqlalchemy.schema import CheckConstraint
+
+    assert LOCATOR_REGEX in upgrade_sql
+    table = Base.metadata.tables["extracted_facts"]
+    (check,) = [
+        c
+        for c in table.constraints
+        if isinstance(c, CheckConstraint) and "source_locator ~" in str(c.sqltext)
+    ]
+    rendered = str(
+        check.sqltext.compile(dialect=postgresql.dialect(), compile_kwargs={"literal_binds": True})
+    )
+    assert LOCATOR_REGEX in rendered
+
+
 def test_upgrade_contains_the_key_postgres_features(upgrade_sql: str) -> None:
     assert "DEFAULT uuidv7()" in upgrade_sql
     assert "embedding VECTOR(384)" in upgrade_sql
@@ -155,7 +195,9 @@ def test_alembic_ini_has_no_database_url() -> None:
 
 def test_downgrade_drops_everything_in_reverse_order(downgrade_sql: str) -> None:
     dropped = re.findall(r"^DROP TABLE (\w+);", downgrade_sql, flags=re.M)
-    expected = [t for rev in ("0003", "0002", "0001") for t in reversed(EXPECTED_ORDER[rev])]
+    expected = [
+        t for rev in ("0004", "0003", "0002", "0001") for t in reversed(EXPECTED_ORDER[rev])
+    ]
     assert dropped == expected
     # Alembic keeps its own version table and only removes the version row.
     assert "DELETE FROM alembic_version WHERE alembic_version.version_num = '0001'" in (

@@ -17,7 +17,7 @@ All demo data is **fictional and synthetic**.
 
 ## Status
 
-**Phase 2: Medical document intelligence, plus Milestone R1 (evidence retrieval, pulled forward; ADR-035).** The foundation is in place: configuration, logging, error handling, a health check and tests, plus a local PostgreSQL + pgvector database, an authenticated connection and migrations. Phase 2 adds PDF validation, read-only storage of original files, Docling parsing (layout, tables, OCR) into a versioned intermediate representation, persisted pages, an upload service and patient-scoped patient and document repositories. Milestone R1 adds chunking, local embeddings, hybrid search and page-cited evidence from the command line; its retrieval metrics are **not measured yet**. Rule-based classification and patient identity checks gate indexing (ADR-036), and a minimal local Streamlit UI drives the whole flow (see [Local UI](#local-ui-streamlit)). There are no LLM features. See [docs/PROGRESS.md](docs/PROGRESS.md).
+**Phase 2: Medical document intelligence, plus Milestone R1 (evidence retrieval, pulled forward; ADR-035).** The foundation is in place: configuration, logging, error handling, a health check and tests, plus a local PostgreSQL + pgvector database, an authenticated connection and migrations. Phase 2 adds PDF validation, read-only storage of original files, Docling parsing (layout, tables, OCR) into a versioned intermediate representation, persisted pages, an upload service and patient-scoped patient and document repositories. Milestone R1 adds chunking, local embeddings, hybrid search and page-cited evidence from the command line; its retrieval metrics are **not measured yet**. Rule-based classification and patient identity checks gate indexing (ADR-036), and a minimal local Streamlit UI drives the whole flow (see [Local UI](#local-ui-streamlit)). **Phase 3 (structured clinical extraction) is implemented:** rule-based extraction of lab results with exact source spans, normalization, human review and conflict detection ([Lab result extraction](#lab-result-extraction-phase-3)); its PostgreSQL acceptance passed on 2026-11-18. **Phase 4 (longitudinal intelligence) is implemented:** a clinical timeline, lab trends, date comparisons, cross-document duplicate detection and conflict presentation, all deterministic ([Timeline and lab trends](#timeline-and-lab-trends-phase-4)). **Phase 5 (evidence-grounded copilot) is implemented, awaiting review:** a deterministic router, allowlisted SQL tools, cited answers (extractive by default; no LLM provider has been evaluated yet) checked by a deterministic citation validator, and a Copilot page ([Copilot](#copilot-phase-5)). The R1.8 retrieval evaluation is complete. See [docs/PROGRESS.md](docs/PROGRESS.md).
 
 ### Roadmap
 | Phase | Focus |
@@ -312,7 +312,58 @@ uv run python -m app ask --patient <patient-id> --mode lexical "eGFR"   # dense 
 
 Each passage is printed as `[filename, p. N]` with its section, date and score; OCR pages are marked "OCR text - unverified". The question and the excerpts are never logged.
 
-**Evaluation:** the synthetic dataset `data/synthetic/lab_v0` (fictional; build with `uv run python -m evals.synthetic.build --out <dir>`) and `evals/run_retrieval.py` (stages `ingest`, `ablate` (dev ablation and calibration), `freeze` (writes `dev_selection.json` with the exact threshold), and `heldout` (one run of the frozen selection)). Results are written to `evals/reports/`; ingest state goes to the git-ignored `evals/work/`. **No retrieval metric has been measured yet:** R1.8 is deferred until Docker is available. Real-model tests are opt-in: `uv run pytest -m models`.
+**Evaluation:** the synthetic dataset `data/synthetic/lab_v0` (fictional; build with `uv run python -m evals.synthetic.build --out <dir>`) and `evals/run_retrieval.py` (stages `ingest`, `ablate` (dev ablation and calibration), `freeze` (writes `dev_selection.json` with the exact threshold), and `heldout` (one run of the frozen selection)). Results are written to `evals/reports/`; ingest state goes to the git-ignored `evals/work/`. **Measured (R1.8, 2026-11-18):** on dev, lexical retrieval was best (MRR 0.888, Hit@1 0.808, 17 ms p50) and reranking gave no meaningful gain at ~57× latency, so `lexical` was frozen; held-out (run once): MRR 0.891, Recall@5 0.971, 0 cross-patient pages. Details: [docs/PHASE_5_PLAN.md](docs/PHASE_5_PLAN.md) §2. Real-model tests are opt-in: `uv run pytest -m models`.
+
+## Copilot (Phase 5)
+
+Ask questions about the selected patient on the **Copilot** page. Every shown statement cites stored evidence (lab results `F1…`, document pages `D1…`) and has passed a deterministic citation validator; the exact source text is shown under it. Advice, diagnosis, injection and general-knowledge questions get fixed responses. No conversation is stored.
+
+- **Generator:** extractive (default, no model). An OpenAI-compatible LLM adapter exists (`MEDIMIND_LLM_PROVIDER=openai_compatible`, local endpoints only unless `MEDIMIND_LLM_ALLOW_EXTERNAL=true`, external only for synthetic patients) but **no provider has been evaluated** (ADR-024).
+- **Evaluation:** `uv run python -m evals.run_copilot build|prepare|dev|freeze|heldout` on the frozen `copilot_v0` set (231 dev / 103 held-out questions). Held-out (run once): routing 0.990, answer correctness 0.913, citation recall 0.944, **citation precision 0.605 (target 0.95 missed: unrecognised phrasings such as "A1c")**, 0 unsupported claims, 0 leaks, 0 of 304 adversarial answers accepted, refusals 1.0. Synthetic, same-author data; not a clinical evaluation. Details: [docs/PHASE_5_PLAN.md](docs/PHASE_5_PLAN.md).
+- **Remediation (ADR-041):** everyday test names (patient vocabulary), abstention when a test name is not recognised (never "all tests"), and a relevance gate on document pages. New evaluation `copilot_v1` with **new held-out patients** (167 questions, run once): citation precision **1.000**, recall 1.000, routing 1.000, correctness 1.000, abstention F1 1.000, 0 unsupported claims, 0 leaks, 0 of 320 attacks accepted. Caveat: the held-out phrasings and the vocabulary were written by the same author in the same session, so this does not measure real-world vocabulary coverage (PHASE_5_PLAN §12.4).
+
+## Lab result extraction (Phase 3)
+
+Lab results are extracted from parsed lab reports by versioned rules (`lab-rules-2`; ADR-037, ADR-038; [docs/PHASE_3_PLAN.md](docs/PHASE_3_PLAN.md)). No LLM is used, and nothing is diagnosed or advised.
+
+- **Exact provenance:** every stored result points to its document, page and the exact span of the stored page text. Text that cannot be located exactly is never stored.
+- **Original and normalized values side by side:** the printed value, unit, range and flag are kept as printed; normalized values (units, lakh notation, dates) are separate; the comparison with the report's own printed range is labelled as derived.
+- **Review:** "Auto-checked, not verified" means only that automated checks passed. Results that fail a check are "Needs review". A person can verify, correct (the original is kept) or reject each result.
+- **Safety:** a document whose identity check is a mismatch gets no results; a page naming two patients gets none; a "previous result" column is never read.
+
+```powershell
+uv run python -m app migrate                  # applies migration 0004 (needs empty fact tables)
+uv run python -m app seed-reference           # once: analyte names, units and conversions
+uv run python -m app extract --patient <patient-id>             # every document of the patient
+uv run python -m app facts --patient <patient-id> --document <id>
+```
+
+**Measured on the synthetic `extract_v0` dataset** (fictional data; rules and data by the same author; not a blind test; no clinical accuracy is claimed). Held-out was run once, after the rules were frozen:
+
+| Split | Documents | Entity precision | Entity recall | Fully correct | Silent errors |
+|---|---|---|---|---|---|
+| Dev, native PDFs | 44 | 1.0 | 1.0 | 1.0 | 0 |
+| Dev, scanned (OCR) | 11 | 1.0 | 0.90 | 0.70 | 0 (all flagged for review) |
+| Held-out, native PDFs | 20 | 1.0 | 1.0 | 1.0 | 0 |
+| Held-out, scanned (OCR) | 5 | 1.0 | 0.95 | 0.71 | 0 (all flagged for review) |
+
+Unsupported facts, trap extractions, wrong-subject facts and facts for identity-mismatch documents were 0 on both splits. Reports: `evals/reports/extract_v0/`. Rebuild the dataset with `uv run python -m evals.synthetic.extraction --out <dir>`; evaluate with `uv run python -m evals.run_extraction dev`.
+
+## Timeline and lab trends (Phase 4)
+
+Overview, Timeline and Lab trends pages over the reviewed results (ADR-039; [docs/PHASE_4_PLAN.md](docs/PHASE_4_PLAN.md)). Everything is computed in Python and SQL; no LLM or model is used, and nothing is interpreted.
+
+- **What appears:** auto-checked (labelled "not verified"), verified and corrected results. Results awaiting review are counted, never shown; rejected results and documents whose identity does not match never appear. A document with an unconfirmed identity is labelled.
+- **Dates:** entries are placed by the printed collection date, otherwise the report date. Upload and processing dates never place an entry. "March 2024" is never shown as a day; undated results are listed separately.
+- **Trends:** one series per test and unit. Units are combined only through an exact defined conversion, otherwise shown as separate series. Each value carries its own report's printed range; differences are exact decimals.
+- **Repeated results:** the same printed result in several documents is shown once with every source (exact); equal values printed differently are linked, with the reasons (possible). Nothing is merged or deleted.
+- **Conflicts:** the stored Phase 3 conflicts are shown with each member's source and whether it disagrees directly. MediMind never picks a value.
+
+**Measured on the synthetic `longitudinal_v0` dataset** (16 fictional scenario patients plus one 1,050-result patient; scenarios and rules by the same author; not a blind test; no clinical accuracy is claimed). Held-out was frozen at build and run once. Every pre-registered target was met on both splits: timeline, ordering, date source, trend values and differences, unit series, conflicts, provenance and corrected values at 1.0; duplicates 1.0 precision and recall; 0 isolation leaks and 0 rejected, needs-review or mismatch items shown. On the 1,050-result patient a timeline page took about 0.3 s. Reports: `evals/reports/longitudinal_v0/`.
+
+```powershell
+uv run python -m evals.run_longitudinal dev   # loads the fictional dev patients once, then evaluates
+```
 
 ## Local UI (Streamlit)
 
@@ -372,6 +423,7 @@ Nothing is loaded or created automatically, in either mode. Seeding a demo datab
 | `app/` | Application code. `app/main.py` is the entry point, and `app/core/` holds configuration, logging, errors and health checks |
 | `app/records/` | Database access (SQLAlchemy + psycopg). The **only** code allowed to talk to the database (ADR-016) |
 | `app/ingestion/` | PDF validation, read-only storage of originals, Docling parsing and the versioned parse IR (ADR-029). No database access |
+| `app/longitudinal/` | Timeline, trends, duplicates and date comparisons (pure logic, no database; Phase 4) |
 | `app/retrieval/` | Chunking, query terms and guardrail, RRF, abstention, lazy model adapters (pure logic, no database) |
 | `app/services/` | Orchestration: upload, parse, classify, identity, index, the document pipeline, library wrappers, evidence search |
 | `app/ui/` | Local Streamlit UI (Task 2.9b); imports `app.services` only. Server settings in `.streamlit/config.toml` |

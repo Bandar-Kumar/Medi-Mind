@@ -142,6 +142,8 @@ flowchart TD
 
 ## 6. Extraction design
 
+> **As built (2026-11-17; ADR-037, ADR-038):** extraction is rule-based (`lab-rules-2`), not an LLM call; exact spans are computed from the IR table rendering, and unlocatable text is never stored (ADR-008 refinement). It is a fifth pipeline stage, independent of indexing, with the indexing gate's precedence; identity `mismatch` blocks it; non-lab documents get a `skipped` run. `processed` is set by the shared completion rule once parse, classify, identity, index and extract are complete. The UI label of `validated` is "Auto-checked, not verified". The points below are the original design; where they differ, the ADRs and [PHASE_3_PLAN.md](PHASE_3_PLAN.md) apply.
+
 - **Schemas:** Pydantic models for `LabObservation`, `MedicationMention`, `AllergyMention` and `ClinicalEvent` (which includes follow-up instructions). Every model carries:
   - `page_number`, `source_excerpt`, `assertion_type` (`direct_fact | inference | unknown`);
   - `negated` and `subject` (`patient | family | other`), where relevant;
@@ -172,6 +174,13 @@ PostgreSQL holds the structured records, the vectors (pgvector) and full-text in
 - **Comparisons:** Changed, missing and new observations between two documents or two dates.
 - **Conflicts:** Detected by rules. Examples: the same medication with different doses in documents of the same date, or an allergy documented and later documented as absent. Conflicts are stored and shown, and never resolved automatically.
 - **Status labels:** MediMind never applies its own "normal" ranges. It shows the document's printed flag, or a comparison against *that document's* reference range, labelled as such.
+
+> **As built (2026-11-18, Phase 4; ADR-039, [PHASE_4_PLAN.md](PHASE_4_PLAN.md)):**
+> - **Layers:** `app/longitudinal/` (pure: dates, duplicates, timeline, trends) ← `app/services/longitudinal.py` ← `app/records/longitudinal.py` (read-only, patient-scoped, a fixed number of queries per call).
+> - **Data shown:** usable facts only (ADR-023), with display values = latest correction, else machine-normalized.
+> - **Duplicates:** derived at read time (exact or possible, with reasons), never stored.
+> - **Comparisons:** two *dates* (document comparison stays in Phase 6).
+> - **Conflicts:** the Phase 3 records are presented with direct and linked members; nothing is re-detected.
 
 ## 9. Question answering
 
@@ -205,8 +214,19 @@ The LLM chooses a tool and its arguments, which are validated by Pydantic. The S
 - `app/retrieval/` is pure logic; `app/records/chunks.py` holds the SQL; `app/services/index_document.py` and `search_evidence.py` orchestrate. Indexing records a `pipeline_runs` row (`stage = 'index'`) and never changes `processing_status`.
 - The answer is ranked page-cited evidence, an abstention (nothing found, or below the dev-calibrated threshold), or a fixed out-of-scope response for advice-seeking and injection-style questions. The LLM answer and the citation validator come in R2.
 
+
+**As built in Phase 5 (2026-11-18; ADR-040; [PHASE_5_PLAN.md](PHASE_5_PLAN.md)):**
+- *Router (amends §9.1, owner review pending):* deterministic; a safety gate (advice, diagnosis, injection, invalid, general knowledge) runs before anything else; routes `document_search`, `structured_facts`, `longitudinal`, `combined`, `unsupported`, `refusal`.
+- *SQL tools (§9.2):* six allowlisted typed tools in `app/services/copilot_tools.py` over the Phase 4 services; arguments validated (`extra="forbid"`), patient from the session only. The tools are chosen by the router, not by an LLM.
+- *Generation:* `app/answering/` — extractive composer by default (no provider selected, ADR-024); `LlmGenerator` with delimited, escaped, untrusted-source prompts and Pydantic-validated JSON output (offline-tested only).
+- *Citation validation:* every supplied source is checked against patient-scoped reads before generation (fail closed), and every claim after it; invalid answers are withheld. See PHASE_5_PLAN §5.
+- *Filters:* passages restricted to reports of an exact asked date.
+**Remediation (2026-11-18; ADR-041):** routing stays **rules-based** (decision, not a stopgap). Test names come from the printed aliases plus a reviewed patient vocabulary (`app/answering/vocabulary.py`); ambiguous names keep every candidate. Words left over after test names, dates and framing words are *unrecognised phrases*: without a known test the copilot abstains (no tool, no search, never "all tests"). Document passages pass a relevance gate (the asked test's names, the asked subject phrase, or, for questions about the document itself, the written or stored report date). No lexical score threshold: dev scores overlap (PHASE_5_PLAN §12).
+
 ### 9.4 Ablation
 This compares dense only, +lexical, +RRF and +rerank on the dev set, then reports results on the held-out set. Hybrid retrieval and reranking stay only if they show a measured improvement.
+
+**Result (R1.8, 2026-11-18):** dense, lexical, hybrid and hybrid + rerank were compared on dev; **lexical** was selected (best MRR and Hit@1, 57× faster than reranking, which gave no meaningful ranking gain), then run once on held-out. Numbers: PHASE_5_PLAN §2.
 
 ## 10. Workflows (LangGraph)
 
@@ -280,5 +300,5 @@ The prototype is **single-user and local** (ADR-013). Multi-user authentication 
 | Analyte name and unit variety | High | Medium | Curated alias table; keep and flag unmapped values |
 | LangChain or LangGraph API churn | Medium | Medium | Thin wrappers; pinned versions |
 | Free-tier rate limits or terms change | High | Medium | Provider interface, response cache, backoff, provider re-evaluation (ADR-024) |
-| Many ambiguous Indian dates cause review fatigue | Medium | Medium | Measure the flag rate in Phase 3; decide Q12 with that data |
+| Many ambiguous Indian dates cause review fatigue | Medium | Medium | Measured in Phase 3: 129 of 394 dev facts (32.7%, synthetic); Q12 closed 2026-11-18 with flagging retained |
 | Docker Desktop memory use | Medium | Low | One database container only; set WSL2 memory limits |

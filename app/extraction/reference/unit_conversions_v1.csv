@@ -1,0 +1,10 @@
+canonical_name,from_unit,to_unit,factor,addend,source_note
+Haemoglobin,g/L,g/dL,0.1,0,"1 g/L = 0.1 g/dL (exact, SI prefix)"
+Fasting Blood Sugar,mmol/L,mg/dL,18.0156,0,glucose molar mass 180.156 g/mol
+Post Prandial Blood Sugar,mmol/L,mg/dL,18.0156,0,glucose molar mass 180.156 g/mol
+Total Cholesterol,mmol/L,mg/dL,38.665,0,cholesterol molar mass 386.65 g/mol
+HDL Cholesterol,mmol/L,mg/dL,38.665,0,cholesterol molar mass 386.65 g/mol
+LDL Cholesterol,mmol/L,mg/dL,38.665,0,cholesterol molar mass 386.65 g/mol
+Triglycerides,mmol/L,mg/dL,88.57,0,conventional triglyceride (triolein) molar mass 885.7 g/mol
+Serum Creatinine,µmol/L,mg/dL,0.011312,0,creatinine molar mass 113.12 g/mol
+Blood Urea,mmol/L,mg/dL,6.006,0,urea molar mass 60.06 g/mol

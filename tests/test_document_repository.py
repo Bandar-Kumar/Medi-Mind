@@ -220,6 +220,9 @@ def _integrity_error(sqlstate: str | None, constraint: str | None) -> IntegrityE
         ("23503", "fk_documents_patient_id_patients", False),
         ("23503", "fk_pages_document_id_patient_id_documents", False),
         ("23503", None, False),
+        # PostgreSQL reports a delete blocked by ON DELETE RESTRICT as 23001.
+        ("23001", "fk_documents_supersedes_document_id_patient_id_documents", True),
+        ("23001", "fk_pages_document_id_patient_id_documents", False),
         ("23505", "fk_documents_supersedes_document_id_patient_id_documents", False),
         (None, None, False),
     ],

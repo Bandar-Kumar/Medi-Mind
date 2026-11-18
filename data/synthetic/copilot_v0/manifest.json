@@ -1,0 +1,53 @@
+{
+ "dataset": "copilot_v0",
+ "frozen_at_build": true,
+ "generator_version": "copilot-gen-1",
+ "seed": 20261118,
+ "sha256": {
+  "dev": "9519e69d7d77b034cf8800b31860ce72365d9a20687a4ea8a6c1aa5e7b7eeb29",
+  "heldout": "21e7b74d4825e0980cfddd533deadaa54ee7fd540a245f75733cbe3fc3b47025"
+ },
+ "sources": {
+  "lab_v0": {
+   "heldout_sha256": "5dcdc7dfa3ff4c082585281ad3716e6c79164d90382e5fbb8e04a39156c8a56a"
+  },
+  "longitudinal_v0": {
+   "dev": "08fe4a68590e5b799400178b78906b1afba0c1ad8bdefca5af9b801c0f8835ba",
+   "heldout": "30fb83def86f6de5fdd7da33ad3cb6518a91d63f29cb303b4c270827ccb27196"
+  }
+ },
+ "split": {
+  "dev": [
+   "lab_v0:P01",
+   "lab_v0:P04",
+   "lab_v0:P05",
+   "lab_v0:P06",
+   "lab_v0:P07",
+   "lab_v0:P09",
+   "lab_v0:P10",
+   "lab_v0:P12",
+   "longitudinal_v0:L01",
+   "longitudinal_v0:L02",
+   "longitudinal_v0:L04",
+   "longitudinal_v0:L05",
+   "longitudinal_v0:L06",
+   "longitudinal_v0:L08",
+   "longitudinal_v0:L09",
+   "longitudinal_v0:L11",
+   "longitudinal_v0:L12",
+   "longitudinal_v0:L14",
+   "longitudinal_v0:L15"
+  ],
+  "heldout": [
+   "lab_v0:P02",
+   "lab_v0:P03",
+   "lab_v0:P08",
+   "lab_v0:P11",
+   "longitudinal_v0:L03",
+   "longitudinal_v0:L07",
+   "longitudinal_v0:L10",
+   "longitudinal_v0:L13",
+   "longitudinal_v0:L16"
+  ]
+ }
+}

@@ -83,12 +83,26 @@ def page(conn: Connection, patient_id: uuid.UUID, document_id: uuid.UUID, number
     )
 
 
+# Migration 0004 (ADR-038): a fact names its extract run, an exact span and locator, its
+# normalizer and reference versions, and a review status (no default).
 FACT_SQL = (
     "INSERT INTO extracted_facts (patient_id, document_id, fact_type, page_number,"
     " source_excerpt, assertion_type, negated, subject, extractor_version, prompt_version,"
-    " model_id{extra_cols}) VALUES (:p, :d, :t, :n, 'Haemoglobin 13.5 g/dL', 'direct_fact',"
-    " false, 'patient', 'x1', 'p1', 'm1'{extra_vals}) RETURNING id"
+    " model_id, extraction_run_id, source_locator, char_start, char_end, normalizer_version,"
+    " reference_data_version, review_status{extra_cols})"
+    " VALUES (:p, :d, :t, :n, 'Haemoglobin 13.5 g/dL', 'direct_fact',"
+    " false, 'patient', 'x1', 'p1', 'm1', :r, 'p1:l1', 0, 21, 'norm-test', 'ref-test',"
+    " 'validated'{extra_vals}) RETURNING id"
 )
+
+
+def extract_run(conn: Connection, patient_id: uuid.UUID, document_id: uuid.UUID) -> uuid.UUID:
+    return _one(
+        conn,
+        "INSERT INTO pipeline_runs (patient_id, document_id, stage, status, finished_at)"
+        " VALUES (:p, :d, 'extract', 'succeeded', now()) RETURNING id",
+        {"p": patient_id, "d": document_id},
+    )
 
 
 def fact(
@@ -98,10 +112,11 @@ def fact(
     fact_type: str = "observation",
     page_number: int = 1,
 ) -> uuid.UUID:
+    run = extract_run(conn, patient_id, document_id)
     return _one(
         conn,
         FACT_SQL.format(extra_cols="", extra_vals=""),
-        {"p": patient_id, "d": document_id, "t": fact_type, "n": page_number},
+        {"p": patient_id, "d": document_id, "t": fact_type, "n": page_number, "r": run},
     )
 
 
@@ -141,13 +156,15 @@ def test_page_cannot_claim_another_patients_document(conn: Connection, setup) ->
 
 def test_fact_must_cite_an_existing_page(conn: Connection, setup) -> None:
     sql = FACT_SQL.format(extra_cols="", extra_vals="")
-    params = {"p": setup["a"], "d": setup["doc_a"], "t": "observation", "n": 99}
+    run = extract_run(conn, setup["a"], setup["doc_a"])
+    params = {"p": setup["a"], "d": setup["doc_a"], "t": "observation", "n": 99, "r": run}
     assert _sqlstate(conn, sql, params) == "23503"
 
 
 def test_fact_cannot_claim_another_patients_document(conn: Connection, setup) -> None:
     sql = FACT_SQL.format(extra_cols="", extra_vals="")
-    params = {"p": setup["b"], "d": setup["doc_a"], "t": "observation", "n": 1}
+    run = extract_run(conn, setup["a"], setup["doc_a"])
+    params = {"p": setup["b"], "d": setup["doc_a"], "t": "observation", "n": 1, "r": run}
     assert _sqlstate(conn, sql, params) == "23503"
 
 
@@ -339,9 +356,12 @@ def test_date_precision_rules(
 ) -> None:
     sql = (
         "INSERT INTO observations (fact_id, analyte_raw, value_raw, effective_date,"
-        " date_precision, date_raw) VALUES (:f, 'Hb', '13.5', CAST(:dt AS date), :pr, 'as printed')"
+        " date_precision, date_raw, effective_date_source)"
+        " VALUES (:f, 'Hb', '13.5', CAST(:dt AS date), :pr, 'as printed', :src)"
     )
-    assert _sqlstate(conn, sql, {"f": setup["fact_a"], "dt": date, "pr": precision}) == expected
+    # 0004: a dated observation also states where its date came from (source pair rule).
+    params = {"f": setup["fact_a"], "dt": date, "pr": precision, "src": date and "report"}
+    assert _sqlstate(conn, sql, params) == expected
 
 
 @pytest.mark.parametrize(
@@ -465,6 +485,13 @@ def test_orm_joined_inheritance_writes_base_and_subtype_rows(conn: Connection, s
         "extractor_version": "x1",
         "prompt_version": "p1",
         "model_id": "m1",
+        "extraction_run_id": extract_run(conn, setup["a"], setup["doc_a"]),
+        "source_locator": "p1:l1",
+        "char_start": 0,
+        "char_end": 21,
+        "normalizer_version": "norm-test",
+        "reference_data_version": "ref-test",
+        "review_status": "validated",
     }
     obs = Observation(**common, analyte_raw="Haemoglobin", value_raw="13.5")
     med = MedicationMention(**common, name_raw="Drug X (fictional)", mention_context="prescribed")

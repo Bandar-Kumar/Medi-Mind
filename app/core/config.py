@@ -40,6 +40,12 @@ SAFE_TO_DISPLAY: tuple[str, ...] = (
     "retrieval_top_k",
     "retrieval_abstain_threshold",
     "demo_mode",
+    "copilot_retrieval_mode",
+    "llm_provider",
+    "llm_base_url",
+    "llm_model",
+    "llm_allow_external",
+    "llm_timeout_seconds",
 )
 
 # Ingestion limits (Phase 2). Starting values from the Task 2.1 Docling spike: about 10 s per page
@@ -99,10 +105,31 @@ class Settings(BaseSettings):
     # automatically, in either mode.
     demo_mode: bool = False
 
+    # Copilot (Phase 5, ADR-040). The retrieval mode used for document passages. Default: the mode
+    # frozen by the R1.8 evaluation (lexical; evals/reports/lab_v0/dev_selection.json). Empty = the
+    # best mode whose models are configured.
+    copilot_retrieval_mode: Literal["dense", "lexical", "hybrid", "hybrid_rerank"] | None = (
+        "lexical"
+    )
+    # Answer generation. "none" (default): the deterministic extractive composer, no model.
+    # "openai_compatible": an OpenAI-compatible Chat Completions endpoint (e.g. a local Ollama).
+    # No provider is selected yet (ADR-024 is open); external endpoints are refused unless
+    # llm_allow_external is true, and then only for synthetic patients (ADR-005).
+    llm_provider: Literal["none", "openai_compatible"] = "none"
+    llm_base_url: str | None = None
+    llm_model: str | None = None
+    llm_api_key: SecretStr | None = None  # secret: never displayed or logged
+    llm_allow_external: bool = False
+    llm_timeout_seconds: int = Field(default=60, ge=1, le=600)
+
     @field_validator(
         "embedding_model_revision",
         "reranker_model_revision",
         "retrieval_abstain_threshold",
+        "copilot_retrieval_mode",
+        "llm_base_url",
+        "llm_model",
+        "llm_api_key",
         mode="before",
     )
     @classmethod

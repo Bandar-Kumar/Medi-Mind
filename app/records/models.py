@@ -44,6 +44,7 @@ from sqlalchemy import (
     Numeric,
     PrimaryKeyConstraint,
     Text,
+    Time,
     UniqueConstraint,
     Uuid,
     func,
@@ -180,9 +181,36 @@ class ConflictType(StrEnum):
     OTHER = "other"
 
 
+class EffectiveDateSource(StrEnum):
+    COLLECTION = "collection"
+    REPORT = "report"
+
+
+class RangeComparison(StrEnum):
+    """Derived: the value against the document's own printed range (never MediMind's ranges)."""
+
+    BELOW = "below"
+    WITHIN = "within"
+    ABOVE = "above"
+
+
+class AnalyteMatch(StrEnum):
+    ALIAS_EXACT = "alias_exact"
+
+
+class ConflictClosedReason(StrEnum):
+    MEMBER_REJECTED = "member_rejected"
+    MEMBER_CORRECTED = "member_corrected"
+    MEMBER_REVIEWED = "member_reviewed"
+    MEMBER_SUPERSEDED = "member_superseded"
+    MEMBER_DELETED = "member_deleted"
+    MEMBER_ADDED = "member_added"  # a new fact joined the conflict group (a new conflict opens)
+
+
 class ConflictStatus(StrEnum):
     OPEN = "open"
     ACKNOWLEDGED = "acknowledged"
+    CLOSED = "closed"  # migration 0004: closed by the system, with a reason; kept as history
 
 
 class ChunkType(StrEnum):
@@ -365,6 +393,8 @@ class PipelineRun(Base):
         CheckConstraint("cost_usd IS NULL OR cost_usd >= 0", name="cost_usd_positive"),
         Index("ix_pipeline_runs_document_id_started_at", "document_id", "started_at"),
         Index("ix_pipeline_runs_patient_id", "patient_id"),
+        # Migration 0004: target of the facts' composite run foreign keys.
+        UniqueConstraint("id", "document_id", "patient_id"),
     )
 
     id: Mapped[uuid.UUID] = _uuid_pk()
@@ -450,6 +480,12 @@ class UnitConversion(Base):
 # --- Migration 0002_facts: extracted facts (joined-table inheritance, ADR-021) ----------------
 
 
+REVIEW_STATUS_COMMENT = (
+    "validated = every automated check passed; not human verification and not clinical "
+    "validation. verified/corrected/rejected are set only by a human review decision."
+)
+
+
 class ExtractedFact(Base):
     """Base row of every extracted fact: provenance, assertion, review status and versions.
 
@@ -498,6 +534,47 @@ class ExtractedFact(Base):
             "duplicate_group_id",
             postgresql_where=sql_text("duplicate_group_id IS NOT NULL"),
         ),
+        # --- Migration 0004 (docs/PHASE_3_PLAN.md §5.2, §5.2a) ---
+        ForeignKeyConstraint(
+            ["extraction_run_id", "document_id", "patient_id"],
+            ["pipeline_runs.id", "pipeline_runs.document_id", "pipeline_runs.patient_id"],
+            name="fk_extracted_facts_extraction_run",
+            ondelete="CASCADE",
+        ),
+        # A replacement run must belong to the same document and patient.
+        ForeignKeyConstraint(
+            ["superseded_by_run_id", "document_id", "patient_id"],
+            ["pipeline_runs.id", "pipeline_runs.document_id", "pipeline_runs.patient_id"],
+            name="fk_extracted_facts_superseded_by_run",
+            ondelete="CASCADE",
+        ),
+        UniqueConstraint("extraction_run_id", "fact_type", "source_locator"),
+        CheckConstraint(
+            # \: is a literal colon: SQLAlchemy's text() would read :r and :s as bind parameters.
+            r"source_locator ~ '^p[0-9]+:(t[0-9]+\:r[0-9]+|l[0-9]+(\:s[0-9]+)?)$'",
+            name="source_locator_format",
+        ),
+        CheckConstraint("char_start IS NOT NULL", name="char_span_required"),
+        CheckConstraint("length(source_excerpt) <= 1000", name="source_excerpt_length"),
+        CheckConstraint(
+            "(superseded_at IS NULL) = (superseded_by_run_id IS NULL)", name="superseded_pair"
+        ),
+        CheckConstraint(
+            "superseded_by_run_id IS NULL OR superseded_by_run_id <> extraction_run_id",
+            name="not_self_superseding",
+        ),
+        CheckConstraint("review_status <> 'extracted'", name="review_status_not_transient"),
+        CheckConstraint(
+            "review_status <> 'validated' OR cardinality(review_reasons) = 0",
+            name="validated_has_no_reasons",
+        ),
+        Index(
+            "ix_extracted_facts_current",
+            "patient_id",
+            "document_id",
+            postgresql_where=sql_text("superseded_at IS NULL"),
+        ),
+        Index("ix_extracted_facts_extraction_run_id", "extraction_run_id"),
     )
 
     id: Mapped[uuid.UUID] = _uuid_pk()
@@ -508,14 +585,13 @@ class ExtractedFact(Base):
     source_excerpt: Mapped[str] = mapped_column(Text, nullable=False)
     char_start: Mapped[int | None] = mapped_column(Integer)
     char_end: Mapped[int | None] = mapped_column(Integer)
-    bbox: Mapped[dict[str, Any] | None] = mapped_column(JSONB)
+    bbox: Mapped[dict[str, Any] | None] = mapped_column(JSONB(none_as_null=True))
     # No defaults: the extractor must state these explicitly.
     assertion_type: Mapped[str] = mapped_column(Text, nullable=False)
     negated: Mapped[bool] = mapped_column(Boolean, nullable=False)
     subject: Mapped[str] = mapped_column(Text, nullable=False)
-    review_status: Mapped[str] = mapped_column(
-        Text, nullable=False, server_default=sql_text("'extracted'")
-    )
+    # No default (migration 0004): every insert states validated or needs_review explicitly.
+    review_status: Mapped[str] = mapped_column(Text, nullable=False, comment=REVIEW_STATUS_COMMENT)
     review_reasons: Mapped[list[str]] = mapped_column(
         ARRAY(Text), nullable=False, server_default=sql_text("'{}'::text[]")
     )
@@ -524,6 +600,16 @@ class ExtractedFact(Base):
     prompt_version: Mapped[str] = mapped_column(Text, nullable=False)
     model_id: Mapped[str] = mapped_column(Text, nullable=False)
     created_at: Mapped[dt.datetime] = _created_at()
+    # --- Migration 0004 ---
+    extraction_run_id: Mapped[uuid.UUID] = mapped_column(Uuid, nullable=False)
+    source_locator: Mapped[str] = mapped_column(Text, nullable=False)
+    normalizer_version: Mapped[str] = mapped_column(Text, nullable=False)
+    reference_data_version: Mapped[str] = mapped_column(Text, nullable=False)
+    quality_notes: Mapped[list[str]] = mapped_column(
+        ARRAY(Text), nullable=False, server_default=sql_text("'{}'::text[]")
+    )
+    superseded_at: Mapped[dt.datetime | None] = mapped_column(DateTime(timezone=True))
+    superseded_by_run_id: Mapped[uuid.UUID | None] = mapped_column(Uuid)
 
     __mapper_args__ = {"polymorphic_on": "fact_type"}
 
@@ -547,6 +633,28 @@ class Observation(ExtractedFact):
         ),
         *date_precision_checks("effective_date", "date_precision", "effective_date"),
         Index("ix_observations_analyte_id", "analyte_id"),
+        # --- Migration 0004 ---
+        enum_check("effective_date_source", EffectiveDateSource),
+        CheckConstraint(
+            "(effective_date IS NULL) = (effective_date_source IS NULL)",
+            name="effective_date_source_pair",
+        ),
+        CheckConstraint(
+            "(date_page_number IS NULL) = (date_char_start IS NULL) "
+            "AND (date_char_start IS NULL) = (date_char_end IS NULL)",
+            name="date_span_all_or_none",
+        ),
+        CheckConstraint(
+            "date_char_start IS NULL OR (date_page_number >= 1 AND date_char_start >= 0 "
+            "AND date_char_start <= date_char_end)",
+            name="date_span_order",
+        ),
+        enum_check("ref_range_comparison", RangeComparison),
+        CheckConstraint(
+            "ref_range_comparison IS NULL OR value_num IS NOT NULL",
+            name="ref_range_comparison_number",
+        ),
+        enum_check("analyte_match", AnalyteMatch),
     )
     __mapper_args__ = {"polymorphic_identity": FactType.OBSERVATION.value}
 
@@ -570,6 +678,15 @@ class Observation(ExtractedFact):
     date_precision: Mapped[str | None] = mapped_column(Text)
     date_raw: Mapped[str | None] = mapped_column(Text)
     specimen: Mapped[str | None] = mapped_column(Text)
+    # --- Migration 0004 ---
+    effective_date_source: Mapped[str | None] = mapped_column(Text)
+    effective_time: Mapped[dt.time | None] = mapped_column(Time)
+    time_raw: Mapped[str | None] = mapped_column(Text)
+    date_page_number: Mapped[int | None] = mapped_column(Integer)
+    date_char_start: Mapped[int | None] = mapped_column(Integer)
+    date_char_end: Mapped[int | None] = mapped_column(Integer)
+    ref_range_comparison: Mapped[str | None] = mapped_column(Text)  # derived
+    analyte_match: Mapped[str | None] = mapped_column(Text)
 
 
 class MedicationMention(ExtractedFact):
@@ -661,7 +778,7 @@ class ReviewDecision(Base):
     patient_id: Mapped[uuid.UUID] = mapped_column(Uuid, nullable=False)
     fact_id: Mapped[uuid.UUID] = mapped_column(Uuid, nullable=False)
     decision: Mapped[str] = mapped_column(Text, nullable=False)
-    corrected_values: Mapped[dict[str, Any] | None] = mapped_column(JSONB)
+    corrected_values: Mapped[dict[str, Any] | None] = mapped_column(JSONB(none_as_null=True))
     note: Mapped[str | None] = mapped_column(Text)
     decided_at: Mapped[dt.datetime] = mapped_column(
         DateTime(timezone=True), nullable=False, server_default=func.now()
@@ -677,6 +794,25 @@ class Conflict(Base):
         enum_check("conflict_type", ConflictType),
         enum_check("status", ConflictStatus),
         Index("ix_conflicts_patient_id_status", "patient_id", "status"),
+        # --- Migration 0004 (docs/PHASE_3_PLAN.md §5.6) ---
+        UniqueConstraint("patient_id", "detection_key"),
+        CheckConstraint("(status = 'closed') = (closed_at IS NOT NULL)", name="closed_at_matches"),
+        CheckConstraint(
+            "(status = 'closed') = (closed_reason IS NOT NULL)", name="closed_reason_matches"
+        ),
+        enum_check("closed_reason", ConflictClosedReason),
+        CheckConstraint(
+            "(detection_key IS NULL) = (rule_version IS NULL)", name="detection_key_pair"
+        ),
+        CheckConstraint(
+            "member_count_at_detection IS NULL OR member_count_at_detection >= 2",
+            name="member_count_positive",
+        ),
+        Index(
+            "ix_conflicts_patient_id_not_closed",
+            "patient_id",
+            postgresql_where=sql_text("status <> 'closed'"),
+        ),
     )
 
     id: Mapped[uuid.UUID] = _uuid_pk()
@@ -688,6 +824,16 @@ class Conflict(Base):
     status: Mapped[str] = mapped_column(Text, nullable=False, server_default=sql_text("'open'"))
     detected_by_rule: Mapped[str] = mapped_column(Text, nullable=False)
     created_at: Mapped[dt.datetime] = _created_at()
+    # --- Migration 0004 ---
+    closed_at: Mapped[dt.datetime | None] = mapped_column(DateTime(timezone=True))
+    closed_reason: Mapped[str | None] = mapped_column(Text)
+    analyte_id: Mapped[int | None] = mapped_column(
+        ForeignKey("analyte_catalog.id", ondelete="RESTRICT")
+    )
+    effective_date: Mapped[dt.date | None] = mapped_column(Date)
+    member_count_at_detection: Mapped[int | None] = mapped_column(Integer)
+    detection_key: Mapped[str | None] = mapped_column(Text)
+    rule_version: Mapped[str | None] = mapped_column(Text)
 
 
 class ConflictMember(Base):

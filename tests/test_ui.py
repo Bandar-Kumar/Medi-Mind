@@ -17,10 +17,11 @@ import streamlit as st
 from streamlit.testing.v1 import AppTest
 
 from app.core.errors import DocumentProcessingError, DocumentValidationError, PatientError
+from app.records.facts import ConflictRecord, DecisionRecord, FactRecord
 from app.records.repositories import DeletedDocument, DocumentSummary, PatientSummary
 from app.retrieval.evidence import AnswerStatus, Evidence, EvidenceAnswer, RetrievalMode
 from app.services import document_pipeline as pipe
-from app.services import library, ui_runtime, upload_document
+from app.services import facts, library, review_fact, ui_runtime, upload_document
 from app.services.check_identity import IdentityCheckResult
 from app.services.classify_document import ClassifyResult
 from app.services.library import DocumentState
@@ -47,6 +48,9 @@ class Backend:
         self.fail: dict[str, BaseException] = {}
         self.pipeline_result: pipe.DocumentPipelineResult | None = None
         self.answer: EvidenceAnswer | None = None
+        self.facts: dict[uuid.UUID, list] = {}  # document id -> FactViews
+        self.conflict_views: list = []
+        self.closed_views: list = []
 
     def add_document(self, patient, *, identity="match", doc_type="lab_report", **state):
         doc_id = uuid.uuid4()
@@ -59,7 +63,8 @@ class Backend:
         self.states[doc_id] = DocumentState(
             doc_id, summary.processing_status, state.get("pages", 2), state.get("chunks", 3),
             state.get("classified", True), state.get("checked", True), identity,
-            state.get("blocked"),
+            state.get("blocked"), state.get("extracted", False), state.get("extract_blocked"),
+            state.get("facts", 0), state.get("needs_review", 0),
         )  # fmt: skip
         return summary
 
@@ -131,6 +136,29 @@ class Backend:
         self.calls.append(("run_patient_pipeline", patient_id))
         return tuple(_result(d.id) for d in self.documents.get(patient_id, ()))
 
+    # extracted facts, review, conflicts (Phase 3)
+    def document_facts(self, patient_id, document_id, *, include_superseded=False):
+        self.calls.append(("document_facts", patient_id, document_id))
+        return tuple(self.facts.get(document_id, ()))
+
+    def extraction_runs(self, patient_id, document_id):
+        self.calls.append(("extraction_runs", patient_id, document_id))
+        return ()
+
+    def conflicts(self, patient_id, *, current=True):
+        self.calls.append(("conflicts", patient_id, current))
+        return tuple(self.conflict_views if current else self.closed_views)
+
+    def acknowledge(self, patient_id, conflict_id):
+        self.calls.append(("acknowledge", patient_id, conflict_id))
+        return "acknowledged"
+
+    def review(self, patient_id, fact_id, decision, *, correction=None, note=None):
+        self.calls.append(("review", patient_id, fact_id, decision, correction, note))
+        self._maybe_fail("review")
+        status = {"verify": "verified", "correct": "corrected", "reject": "rejected"}[decision]
+        return SimpleNamespace(review_status=status)
+
     def search(self, settings, patient_id, question, mode, *, embedder, reranker):
         self.calls.append(("search", patient_id, question, mode))
         self._maybe_fail("search")
@@ -174,6 +202,9 @@ def backend(monkeypatch):
         monkeypatch.setattr(upload_document, "upload_document", b.upload)
         monkeypatch.setattr(pipe, "run_document_pipeline", b.run_document_pipeline)
         monkeypatch.setattr(pipe, "run_patient_pipeline", b.run_patient_pipeline)
+        for name in ("document_facts", "extraction_runs", "conflicts", "acknowledge"):
+            monkeypatch.setattr(facts, name, getattr(b, name))
+        monkeypatch.setattr(review_fact, "review_fact", b.review)
         st.cache_resource.clear()
         return b
 
@@ -604,8 +635,18 @@ def test_document_state_comes_from_the_gate(monkeypatch) -> None:
     calls = []
     monkeypatch.setattr(library, "_get_document", lambda p, d: calls.append((p, d)) or summary)
     monkeypatch.setattr(library, "get_index_target", lambda p, d: calls.append((p, d)) or target)
+    extraction = SimpleNamespace(extracted=False, blocked_reason="not_parsed")
+    monkeypatch.setattr(
+        library, "get_extraction_target", lambda p, d: calls.append((p, d)) or extraction
+    )
+    monkeypatch.setattr(library, "list_document_facts", lambda p, d: calls.append((p, d)) or ())
     state = library.get_document_state(pid, did)
-    assert calls == [(pid, did), (pid, did)]
+    assert calls == [(pid, did)] * 4
+    assert (state.extracted, state.extract_blocked_reason, state.facts_current) == (
+        False,
+        "not_parsed",
+        0,
+    )
     assert state.parse_unfinished and not state.parsed and not state.indexed
     assert state.index_blocked_reason == "identity_not_checked"
 
@@ -657,3 +698,145 @@ def test_search_builds_the_cli_configuration_and_passes_only_needed_models(monke
     ui_runtime.search(settings, uuid.uuid4(), "q", "lexical", embedder="E", reranker="R")
     assert seen["config"].mode is RetrievalMode.LEXICAL and seen["config"].top_k == 5
     assert seen["embedder"] is None and seen["reranker"] is None
+
+
+# --- extracted results, review and conflicts (Phase 3) -------------------------------------------
+
+
+def _fact(document_id, *, status="validated", reasons=(), value="14.2", decisions=()):
+    record = FactRecord(
+        id=uuid.uuid4(), document_id=document_id, extraction_run_id=uuid.uuid4(), page_number=1,
+        source_locator="p1:t0:r1", source_excerpt=f"Haemoglobin\t{value}\tgm/dL\t13.0 - 17.0",
+        char_start=10, char_end=40, review_status=status, review_reasons=tuple(reasons),
+        quality_notes=("effective_date_from_report",), extractor_version="lab-rules-1",
+        normalizer_version="norm-1", reference_data_version="ref-x", superseded=False,
+        analyte_raw="Haemoglobin", analyte_id=1, analyte_name="Haemoglobin", value_raw=value,
+        value_num=Decimal(value), comparator=None, value_qualitative=None, unit_raw="gm/dL",
+        unit_norm="g/dL", value_num_norm=Decimal(value), ref_range_raw="13.0 - 17.0",
+        ref_low=Decimal("13.0"), ref_high=Decimal("17.0"), flag_as_printed=None,
+        ref_range_comparison="within", specimen=None, effective_date=dt.date(2024, 3, 25),
+        date_precision="day", date_raw="25/03/2024", effective_date_source="report",
+        date_page_number=1, date_char_start=0, date_char_end=10, effective_time=None,
+        time_raw=None, decisions=tuple(decisions),
+    )  # fmt: skip
+    return facts.fact_view(record)
+
+
+def _extracted_document(b, **kw):
+    doc = b.add_document(b.synthetic, extracted=True, facts=1, **kw)
+    return doc
+
+
+def test_extracted_results_show_printed_normalized_derived_and_status(backend) -> None:
+    b = backend()
+    doc = _extracted_document(b)
+    b.facts[doc.id] = [_fact(doc.id)]
+    at = _app("Documents")
+    text = _texts(at)
+    assert texts.EXTRACTION_NOTE in text and texts.DERIVED_NOTE in text
+    rows = repr(at.dataframe[1].value.to_dict("records"))
+    assert "Auto-checked, not verified" in rows  # never shown as 'validated' or 'verified'
+    assert "within this report's printed range" in rows
+    assert "gm/dL" in rows and "g/dL" in rows  # printed and normalized side by side
+    assert "Haemoglobin\t14.2" in text  # the exact source text, as plain text
+    assert ("document_facts", b.synthetic.id, doc.id) in b.calls
+    _no_secret(at)
+
+
+def test_review_status_labels_never_claim_validation() -> None:
+    for label in texts.REVIEW_STATUS_LABELS.values():
+        lowered = label.lower()
+        for word in ("validated", "clinical", "accurate", "normal", "correct result"):
+            assert word not in lowered, label
+    assert texts.review_status_label("validated") == "Auto-checked, not verified"
+
+
+def test_a_review_is_one_service_call_for_one_fact(backend) -> None:
+    b = backend()
+    doc = _extracted_document(b)
+    view = _fact(doc.id, status="needs_review", reasons=("ambiguous_date",))
+    b.facts[doc.id] = [view]
+    at = _app("Documents")
+    assert "Ambiguous date (read as day/month)" in repr(at.dataframe[1].value.to_dict("records"))
+    (choice,) = [r for r in at.radio if r.label == "Your review"]
+    choice.set_value("correct")
+    (value,) = [t for t in at.text_input if t.label == "Corrected value (for Correct)"]
+    value.set_value("13.9")
+    _button(at, "Save review").click().run()
+    calls = [c for c in b.calls if c[0] == "review"]
+    assert len(calls) == 1
+    _, patient_id, fact_id, decision, correction, _note = calls[0]
+    assert (patient_id, fact_id, decision) == (b.synthetic.id, view.fact.id, "correct")
+    assert correction.value == "13.9"
+    assert "Saved: Corrected by you." in _texts(at)
+
+
+def test_a_review_error_shows_its_fixed_reason(backend) -> None:
+    b = backend()
+    doc = _extracted_document(b)
+    b.facts[doc.id] = [_fact(doc.id)]
+    b.fail["review"] = DocumentProcessingError(SECRET, kind="invalid_correction")
+    at = _app("Documents")
+    _button(at, "Save review").click().run()
+    assert texts.reason_text("invalid_correction") in _texts(at)
+    _no_secret(at)
+
+
+def test_corrected_values_are_labelled_and_the_original_is_kept(backend) -> None:
+    b = backend()
+    doc = _extracted_document(b)
+    correction = {"schema": "observation-correction-1", "entered": {"value": "13.9"},
+                  "normalized": {"value_num_norm": "13.9", "unit_norm": "g/dL",
+                                 "analyte_id": 1, "analyte_name": "Haemoglobin"}}  # fmt: skip
+    decision = DecisionRecord(uuid.uuid4(), "correct", correction, None, NOW)
+    b.facts[doc.id] = [_fact(doc.id, status="corrected", decisions=[decision])]
+    at = _app("Documents")
+    rows = repr(at.dataframe[1].value.to_dict("records"))
+    assert "13.9 g/dL (corrected by you)" in rows
+    assert "'Value (printed)': '14.2'" in rows  # the original stays visible
+    assert "Corrected by you" in rows
+
+
+def test_identity_mismatch_shows_extraction_blocked(backend) -> None:
+    b = backend()
+    b.add_document(
+        b.synthetic, identity="mismatch", status="needs_review", extract_blocked="identity_mismatch"
+    )
+    at = _app("Documents")
+    assert "Not extracted: " + texts.reason_text("identity_mismatch") in _texts(at)
+
+
+def test_conflicts_show_direct_pairs_only_and_can_be_acknowledged(backend) -> None:
+    b = backend()
+    doc = _extracted_document(b)
+    a, m, c = _fact(doc.id, value="4.0"), _fact(doc.id, value="7.0"), _fact(doc.id, value="3.0")
+    record = ConflictRecord(
+        id=uuid.uuid4(), status="open", conflict_type="value_mismatch_same_date",
+        description="value_mismatch_same_date", analyte_id=1, analyte_name="Haemoglobin",
+        effective_date=dt.date(2024, 3, 25), member_count_at_detection=3, closed_reason=None,
+        closed_at=None, created_at=NOW, member_fact_ids=(a.fact.id, m.fact.id, c.fact.id),
+    )  # fmt: skip
+    pairs = ((a.fact.id, m.fact.id), (m.fact.id, c.fact.id))
+    b.conflict_views = [facts.ConflictView(record, (a, m, c), pairs)]
+    at = _app("Documents")
+    text = _texts(at)
+    assert texts.CONFLICT_NOTE in text
+    assert "Directly disagreeing: p1 4.0 vs p1 7.0; p1 7.0 vs p1 3.0" in text
+    assert "4.0 vs p1 3.0" not in text  # never implies that every pair disagrees
+    _button(at, "Acknowledge").click().run()
+    assert ("acknowledge", b.synthetic.id, record.id) in b.calls
+
+
+def test_closed_conflicts_are_history_with_their_reason(backend) -> None:
+    b = backend()
+    _extracted_document(b)
+    record = ConflictRecord(
+        id=uuid.uuid4(), status="closed", conflict_type="value_mismatch_same_date",
+        description="value_mismatch_same_date", analyte_id=1, analyte_name="Haemoglobin",
+        effective_date=dt.date(2024, 3, 25), member_count_at_detection=2,
+        closed_reason="member_rejected", closed_at=NOW, created_at=NOW, member_fact_ids=(),
+    )  # fmt: skip
+    b.closed_views = [facts.ConflictView(record, (), ())]
+    at = _app("Documents")
+    assert "closed because a result was rejected" in _texts(at)
+    assert "Conflicting results (0)" in [h.value for h in at.subheader]

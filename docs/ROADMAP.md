@@ -40,6 +40,14 @@ These estimates will be revised with actual progress after Phase 1.
 | 8 | Evaluation, security and reliability | Final held-out evaluation, security tests, hardening | 7 | Evaluation report published | M | — |
 | 9 | Frontend integration, deployment and portfolio documentation | Polish, demo mode, hosting, write-up | 8 | Public synthetic-only demo | M | — |
 
+> **Phase 3 status (2026-11-17):** implemented under [PHASE_3_PLAN.md](PHASE_3_PLAN.md) with rule-based extraction instead of the LLM-first outline (ADR-037); extraction metrics measured on dev and held-out; database acceptance pending (Docker unavailable). The phase gate needs the owner's approval.
+>
+> **Update (2026-11-18):** Phase 3's PostgreSQL acceptance passed. **Phase 4** was implemented on the owner's instruction under [PHASE_4_PLAN.md](PHASE_4_PLAN.md) (ADR-039): timeline, trends, date comparison, derived duplicates, conflict presentation. Its pre-registered targets were met on dev and held-out (`longitudinal_v0`; synthetic, not blind). Both phase gates still need the owner's approval.
+
+> **Phase 5 (2026-11-18):** implemented on the owner's instruction under [PHASE_5_PLAN.md](PHASE_5_PLAN.md) (ADR-040): R1.8 completed (lexical selected; held-out run once), deterministic router, allowlisted SQL tools, extractive answers with deterministic citation validation, Copilot page, `copilot_v0` evaluation (held-out run once; citation-precision target missed). LLM provider evaluation (ADR-024) **blocked**: no credentials or local model server. Awaiting the owner's review; the portfolio checkpoint items (demo seed, video) are not done.
+
+> **Phase 5 remediation (2026-11-18, ADR-041):** rules-based routing confirmed; unrecognised test names abstain; `copilot_v1` held-out (new patients) run once. LLM provider evaluation still deferred. See PHASE_5_PLAN §12.
+
 ## Phase gates
 
 A phase is complete only when:

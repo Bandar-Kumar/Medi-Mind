@@ -244,6 +244,32 @@ def _redirect(link: Path, target: Path) -> None:
         pytest.skip("cannot create a junction or symlink here")
 
 
+def test_a_relative_data_dir_stores_normally(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    # The default setting is the relative "data"; mkstemp returns an absolute path, which the
+    # containment check once refused as outside_data_dir (found on the 2026-11-18 UI run).
+    monkeypatch.chdir(tmp_path)
+    relative = Settings(data_dir=Path("data"))
+    stored = store_original(relative, PATIENT_A, pdfs.native_pdf())
+    assert stored.created
+    assert stored.storage_path == f"uploads/{PATIENT_A}/{stored.sha256}.pdf"
+    assert _part_files(relative) == []
+
+
+def test_a_relative_data_dir_still_refuses_a_redirect(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    monkeypatch.chdir(tmp_path)
+    relative = Settings(data_dir=Path("data"))
+    relative.data_dir.mkdir()
+    _redirect(relative.data_dir / "uploads", tmp_path / "outside")
+    with pytest.raises(DocumentStorageError) as caught:
+        store_original(relative, PATIENT_A, pdfs.native_pdf())
+    _storage_error(caught, StorageErrorKind.OUTSIDE_DATA_DIR)
+    assert list((tmp_path / "outside").rglob("*")) == []
+
+
 def test_redirect_outside_data_dir_is_refused(settings: Settings, tmp_path: Path) -> None:
     outside = tmp_path / "outside"
     settings.data_dir.mkdir()
@@ -342,3 +368,53 @@ def test_filenames_always_fit_the_database_column(name: str) -> None:
     result = safe_display_filename(name)
     assert 1 <= len(result) <= 255
     assert "/" not in result and "\\" not in result
+
+
+# --- concurrency on Windows (found 2026-11-18 by the concurrent-upload integration test) -------
+
+
+@pytest.mark.parametrize(
+    ("text", "expected"),
+    [
+        (r"\\?\C:\data\x.pdf", r"C:\data\x.pdf"),
+        (r"\\?\UNC\server\share\x.pdf", r"\\server\share\x.pdf"),
+        (r"C:\data\x.pdf", r"C:\data\x.pdf"),
+        ("/home/user/data/x.pdf", "/home/user/data/x.pdf"),
+    ],
+)
+def test_the_extended_length_prefix_is_stripped(text: str, expected: str) -> None:
+    assert storage.strip_extended_prefix(text) == expected
+
+
+def test_an_extended_length_resolve_is_still_contained(
+    settings: Settings, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    # Windows returns the extended form while another writer holds the file; not "outside".
+    real = Path.resolve
+
+    def extended(self: Path, strict: bool = False) -> Path:
+        resolved = real(self, strict)
+        if sys.platform != "win32" or self.suffix != ".pdf":
+            return resolved  # only the busy file gets the prefix; the data directory does not
+        return Path(r"\\?" + "\\" + str(resolved))
+
+    monkeypatch.setattr(Path, "resolve", extended)
+    stored = store_original(settings, PATIENT_A, pdfs.native_pdf())
+    assert stored.created and _part_files(settings) == []
+
+
+def test_a_concurrent_read_only_mark_does_not_fail_a_published_upload(
+    settings: Settings, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    # Another caller found the published original and re-applied read-only before this caller
+    # removed its temporary link (the read-only attribute belongs to the file, not the link).
+    real = storage._verify_published
+
+    def verify_then_mark_read_only(path: Path, identity, digest) -> None:
+        real(path, identity, digest)
+        os.chmod(path, stat.S_IREAD)
+
+    monkeypatch.setattr(storage, "_verify_published", verify_then_mark_read_only)
+    stored = store_original(settings, PATIENT_A, pdfs.native_pdf())
+    assert stored.created and _part_files(settings) == []
+    assert not stored.path.stat().st_mode & stat.S_IWRITE  # the safeguard is re-applied

@@ -189,12 +189,89 @@ def format_evidence(answer: object) -> str:
     return "\n".join(lines)
 
 
+def run_extract(settings: Settings, args: argparse.Namespace) -> int:
+    """Extract lab observations from one document, or from every document of the patient.
+
+    Prints identifiers, outcomes, counts and fixed kinds only; never values or page text. A
+    blocked or already extracted document is reported and the next one still runs (``--all``).
+    """
+    from app.core.errors import DocumentProcessingError
+    from app.services.extract_document import extract_document
+    from app.services.library import list_documents
+
+    documents = (
+        [args.document]
+        if args.document is not None
+        else [d.id for d in reversed(list_documents(args.patient))]
+    )
+    done = 0
+    for document_id in documents:
+        try:
+            result = extract_document(settings, args.patient, document_id, reextract=args.reextract)
+        except DocumentProcessingError as exc:
+            if args.document is not None:
+                raise
+            print(f"Not extracted: document {document_id}: {exc.kind}", flush=True)
+            continue
+        done += 1
+        print(
+            f"Document {result.document_id}: {result.outcome}, {result.facts} fact(s), "
+            f"{result.needs_review} need review, {result.superseded} superseded, "
+            f"conflicts +{result.conflicts_opened}/-{result.conflicts_closed}"
+            f"{', now processed' if result.completed else ''}",
+            flush=True,
+        )
+    print(f"{done} of {len(documents)} document(s) extracted.", flush=True)
+    return EXIT_OK
+
+
+def run_facts(settings: Settings, args: argparse.Namespace) -> int:
+    """List a document's current facts: ids, page, status and reason codes.
+
+    Values and source text are printed only with ``--show-values`` (local terminal; never logged).
+    'validated' means auto-checked only: not verified by a person, not clinically validated.
+    """
+    from app.services.facts import document_facts
+
+    views = document_facts(args.patient, args.document)
+    for view in views:
+        fact = view.fact
+        line = (
+            f"{fact.id} p{fact.page_number} {fact.review_status:<12} "
+            f"{','.join(fact.review_reasons) or '-'}"
+        )
+        if args.show_values:
+            line += (
+                f" | {view.original['analyte']}: {view.original['value']} "
+                f"{view.original['unit'] or ''} [{view.source}]"
+            )
+        print(line, flush=True)
+    print(f"{len(views)} current fact(s). 'validated' = auto-checked, not verified.", flush=True)
+    return EXIT_OK
+
+
+def run_seed_reference(settings: Settings) -> int:
+    """Copy the versioned reference data (analytes, aliases, conversions) into the database."""
+    from app.services.reference_data import seed_reference
+
+    result, version = seed_reference()
+    print(
+        f"Reference data {version}: {result.analytes_added} analyte(s), "
+        f"{result.aliases_added} alias(es), {result.conversions_added} conversion(s) added.",
+        flush=True,
+    )
+    return EXIT_OK
+
+
 ARG_COMMANDS: dict[str, Callable[[Settings, argparse.Namespace], int]] = {
     "index": run_index,
     "ask": run_ask,
     "classify": run_classify,
     "identity": run_identity,
+    "extract": run_extract,
+    "facts": run_facts,
 }
+COMMANDS["seed-reference"] = run_seed_reference
 
 
 def build_parser() -> argparse.ArgumentParser:
@@ -221,6 +298,25 @@ def build_parser() -> argparse.ArgumentParser:
     )
     identity.add_argument("--patient", type=uuid.UUID, required=True, help="patient id")
     identity.add_argument("--document", type=uuid.UUID, required=True, help="document id")
+    subcommands.add_parser(
+        "seed-reference", help="copy the versioned analyte reference data into the database"
+    )
+    extract = subcommands.add_parser(
+        "extract", help="extract lab observations with exact source spans (Phase 3)"
+    )
+    extract.add_argument("--patient", type=uuid.UUID, required=True, help="patient id")
+    extract.add_argument("--document", type=uuid.UUID, help="one document id (default: all)")
+    extract.add_argument(
+        "--reextract",
+        action="store_true",
+        help="replace facts from an older extractor version (refused if any fact was reviewed)",
+    )
+    facts = subcommands.add_parser("facts", help="list a document's extracted facts (ids, status)")
+    facts.add_argument("--patient", type=uuid.UUID, required=True, help="patient id")
+    facts.add_argument("--document", type=uuid.UUID, required=True, help="document id")
+    facts.add_argument(
+        "--show-values", action="store_true", help="also print values (local terminal only)"
+    )
     ask = subcommands.add_parser(
         "ask", help="show page-cited evidence from one patient's documents (R1, no LLM)"
     )

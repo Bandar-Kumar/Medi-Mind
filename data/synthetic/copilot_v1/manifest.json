@@ -1,0 +1,67 @@
+{
+ "dataset": "copilot_v1",
+ "frozen_at_build": true,
+ "generator_version": "copilot-gen-2",
+ "seed": 20261119,
+ "sha256": {
+  "dev": "9395524848064fb107ecaff409cb541d59d2bf7734aeab66e010f9572f25e0cf",
+  "heldout": "d7bb8b46903504b9a553a07a6d2af155950cadee7dc1ea9208ea53f39da69364"
+ },
+ "sources": {
+  "lab_v0": "5dcdc7dfa3ff4c082585281ad3716e6c79164d90382e5fbb8e04a39156c8a56a",
+  "lab_v1": "868de36942693f2df18ae218a53427124f1ad66db591c01edd302559cedc45d7",
+  "longitudinal_v0": {
+   "dev": "08fe4a68590e5b799400178b78906b1afba0c1ad8bdefca5af9b801c0f8835ba",
+   "heldout": "30fb83def86f6de5fdd7da33ad3cb6518a91d63f29cb303b4c270827ccb27196"
+  },
+  "longitudinal_v1": {
+   "heldout": "f7305b7346e11f7e9c1faef89ba332cce1b8ed42cc2baee224ccd18303a47675"
+  }
+ },
+ "split": {
+  "dev": [
+   "lab_v0:P01",
+   "lab_v0:P02",
+   "lab_v0:P03",
+   "lab_v0:P04",
+   "lab_v0:P05",
+   "lab_v0:P06",
+   "lab_v0:P07",
+   "lab_v0:P08",
+   "lab_v0:P09",
+   "lab_v0:P10",
+   "lab_v0:P11",
+   "lab_v0:P12",
+   "longitudinal_v0:L01",
+   "longitudinal_v0:L02",
+   "longitudinal_v0:L03",
+   "longitudinal_v0:L04",
+   "longitudinal_v0:L05",
+   "longitudinal_v0:L06",
+   "longitudinal_v0:L07",
+   "longitudinal_v0:L08",
+   "longitudinal_v0:L09",
+   "longitudinal_v0:L10",
+   "longitudinal_v0:L11",
+   "longitudinal_v0:L12",
+   "longitudinal_v0:L13",
+   "longitudinal_v0:L14",
+   "longitudinal_v0:L15",
+   "longitudinal_v0:L16"
+  ],
+  "heldout": [
+   "lab_v1:P01",
+   "lab_v1:P02",
+   "lab_v1:P03",
+   "lab_v1:P04",
+   "lab_v1:P05",
+   "lab_v1:P06",
+   "longitudinal_v1:M01",
+   "longitudinal_v1:M02",
+   "longitudinal_v1:M03",
+   "longitudinal_v1:M04",
+   "longitudinal_v1:M05",
+   "longitudinal_v1:M06"
+  ]
+ }
+}

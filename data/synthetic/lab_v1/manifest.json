@@ -1,0 +1,133 @@
+{
+  "dataset": "lab_v1",
+  "files": {
+    "ground_truth.json": {
+      "sha256": "23cfeb65838ce56e5903bd8dc3cf6c5a34c54e1ac3c7efd14c34695de63347b6",
+      "size": 100170
+    },
+    "pdfs/P01-R01.pdf": {
+      "sha256": "12daff3ecad3d17b0f372e7a5c69b49ae04e8bddefc56049e8eb90f2cc6ffd35",
+      "size": 2461
+    },
+    "pdfs/P01-R02.pdf": {
+      "sha256": "72c7ca0d78e78a2204e828f031e3038ddb5632dc04a54602f76b95edffed1980",
+      "size": 2434
+    },
+    "pdfs/P01-R03.pdf": {
+      "sha256": "6e8d8c8eea7590861b7d862da5f76b0c7966cc41e93fe3a64cc9b9d03f616b7c",
+      "size": 3721
+    },
+    "pdfs/P01-R04.pdf": {
+      "sha256": "0eea364debaec4d9f7fb58b25daf270855af51abe04c97040614259a29f06197",
+      "size": 4646
+    },
+    "pdfs/P01-R05.pdf": {
+      "sha256": "7f8429c1c34d647ffebf68a85086ad0e590d845b9a0067a84790d399e3027dd1",
+      "size": 5167
+    },
+    "pdfs/P02-R01.pdf": {
+      "sha256": "0f2ff24b06aeecd0b5262a7e9e01af1da75ae53ddc3833c520cf8e752fc2807c",
+      "size": 2354
+    },
+    "pdfs/P02-R02.pdf": {
+      "sha256": "31b4e662592600168514e3a8075b89c0d9ee7781c575fb9aebe3f8bef40688ab",
+      "size": 3615
+    },
+    "pdfs/P02-R03.pdf": {
+      "sha256": "9db4b983c78003a4b5b26df0172593ab501aa18c2886e37e93cc5722006bc980",
+      "size": 3333
+    },
+    "pdfs/P02-R04.pdf": {
+      "sha256": "c0e55666e7d492668d169c99dd58e9dec4a80172967d98993d1753d78cffb202",
+      "size": 3600
+    },
+    "pdfs/P02-R05.pdf": {
+      "sha256": "20cccbfc9f5aa54284f7bfc6c6520ec0bb104d293bfdf4dca6e777dbe79b10f8",
+      "size": 2588
+    },
+    "pdfs/P03-R01.pdf": {
+      "sha256": "03be8888ce3867bb5e0f9024369a2d43f25651d9cf6667041d56b9e73cdc1641",
+      "size": 2412
+    },
+    "pdfs/P03-R02.pdf": {
+      "sha256": "dca82c44474abc8a7a99765a1407e3a70eb46325973f890891fe6179a33bc779",
+      "size": 3453
+    },
+    "pdfs/P03-R03.pdf": {
+      "sha256": "03f69319a6548c335b4f003525a103740e8d530c0e8a4977da4a8dfaf361f89e",
+      "size": 3482
+    },
+    "pdfs/P04-R01.pdf": {
+      "sha256": "ea5dc368f34274ab150bfaacb560c2bed3fed8c11f4f208d44f48d04333f34c9",
+      "size": 3434
+    },
+    "pdfs/P04-R02.pdf": {
+      "sha256": "a87175c5a5a6425829d33846efb1922984a3edaecf6767cb79fea6fb8d2c2fa7",
+      "size": 3911
+    },
+    "pdfs/P04-R03.pdf": {
+      "sha256": "7af4f351fba5b91dc5dd01dd7eb76c64f856156ffc6cc2e383501d00db6fcf1d",
+      "size": 2645
+    },
+    "pdfs/P04-R04.pdf": {
+      "sha256": "f53b5337af508cbe9040af1e2294d52a8fc7d4d4e4a33ffbd9f85b3398263e5a",
+      "size": 3521
+    },
+    "pdfs/P05-R01.pdf": {
+      "sha256": "ee2c610795bdbb070c566009ecf1b6f1e52c30bed65eca17540da920e2ed5a16",
+      "size": 3685
+    },
+    "pdfs/P05-R02.pdf": {
+      "sha256": "de07f8c7a94505deef20237f84768d0b50a10cf31422ae4c7c041484bf8ae718",
+      "size": 2615
+    },
+    "pdfs/P05-R03.pdf": {
+      "sha256": "e4301d1b554b1df60ec16f1d0ef7cb97e4e604092685634434e30338bddbaf04",
+      "size": 3372
+    },
+    "pdfs/P05-R04.pdf": {
+      "sha256": "36e4a45df050826a689a32322cc06caf3b4f18eb7400682285ea13fa0cfe691e",
+      "size": 2623
+    },
+    "pdfs/P05-R05.pdf": {
+      "sha256": "f1437cd8595eeb069b6ccdf4f5c1162e08eed569ff5dde1913a158e12fb68209",
+      "size": 2389
+    },
+    "pdfs/P06-R01.pdf": {
+      "sha256": "1068edd96c8bb4ee27bf67cd3f4e51add7a4de92174dda012ab21fb0383a2bd2",
+      "size": 3397
+    },
+    "pdfs/P06-R02.pdf": {
+      "sha256": "ce96c3e8805dd477daf40da06049dcb284e78ba9ec6f839e2c80900c852ccbbe",
+      "size": 3982
+    },
+    "pdfs/P06-R03.pdf": {
+      "sha256": "d232b380ee94956aea75c80f373e6c8245541950ba8555de3b6aa8c80cb1231a",
+      "size": 3541
+    },
+    "pdfs/P06-R04.pdf": {
+      "sha256": "f7180868d03d072436fda8a1a776c461c1aaaca2605901494550c8d37004875e",
+      "size": 3473
+    }
+  },
+  "generator_version": "0.1",
+  "heldout_sha256": "868de36942693f2df18ae218a53427124f1ad66db591c01edd302559cedc45d7",
+  "manifest_version": 1,
+  "pages": 45,
+  "patients": 6,
+  "reports": 26,
+  "seed": 20261119,
+  "split": {
+    "dev": [
+      "P01",
+      "P02",
+      "P04",
+      "P05"
+    ],
+    "heldout": [
+      "P03",
+      "P06"
+    ]
+  },
+  "synthetic": true
+}

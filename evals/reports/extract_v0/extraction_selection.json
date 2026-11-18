@@ -1,0 +1,38 @@
+{
+  "dataset_version": "extract_v0@2f0e7a670576",
+  "dev_report_sha256": "03e163992004c619a6c8291cb5c8860d96f3125c3a604e74b069fb7b5e8e1f8c",
+  "hard_gates": [
+    "unsupported_facts",
+    "trap_extractions",
+    "wrong_subject_facts",
+    "mismatch_facts"
+  ],
+  "heldout_sha256": "2f0e7a670576a40771bc628f4870f0526c61579c921845bc03d59cb681fc54b7",
+  "targets": {
+    "entity_precision": [
+      ">=",
+      0.97
+    ],
+    "native_entity_recall": [
+      ">=",
+      0.95
+    ],
+    "native_fully_correct_recall": [
+      ">=",
+      0.9
+    ],
+    "silent_error_rate": [
+      "<=",
+      0.01
+    ]
+  },
+  "versions": {
+    "classifier_rules_version": "2",
+    "date_policy_version": "dates-1",
+    "extraction_source_sha256": "41278dba719844227af62a03814cd0b530138bdfc0955c08e21d7c1b0dab4a90",
+    "extractor_version": "lab-rules-2",
+    "identity_rules_version": "2",
+    "normalizer_version": "norm-1",
+    "reference_data_version": "ref-535ecf5cbb7dc1ee"
+  }
+}

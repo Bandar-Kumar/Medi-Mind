@@ -51,6 +51,9 @@ A Proposed or Deferred ADR is not a final decision.
 | 034 | Patient and document CRUD; deletion keeps files | **Accepted** | Owner, 2026-11-16 (Task 1.8, decisions D1–D4, O1–O5) |
 | 035 | Evidence retrieval slice pulled forward (Milestone R1) | **Accepted** (model revisions approved and pinned; both models cached and verified, 2026-11-16) | Owner, 2026-11-16 (R1 plan, decisions P1–P4; model revisions) |
 | 036 | Rule-based classification, identity outcomes and the identity gate on indexing | **Accepted** (D1–D10, R1–R3, A1–A4 with clarifications) | Owner, 2026-11-17 (Phase 2 plan, Tasks 2.7–2.9) |
+| 037 | Deterministic lab extraction with exact provenance | **Accepted**, implemented | Owner, 2026-11-17 (Phase 3 plan) |
+| 038 | Extraction stage, identity mismatch, completion and conflicts | **Accepted**, implemented; PostgreSQL acceptance passed 2026-11-18 | Owner, 2026-11-17 (Phase 3 plan) |
+| 039 | Longitudinal views: usable facts only, clinical dates, derived duplicates, per-unit trends | **Implemented** 2026-11-18 on the owner's instruction to implement Phase 4; awaiting owner review | Owner instruction, 2026-11-18 ([PHASE_4_PLAN.md](PHASE_4_PLAN.md)) |
 
 ---
 
@@ -98,10 +101,13 @@ A Proposed or Deferred ADR is not a final decision.
 - **Status:** Proposed
 - **Decision:** A router classifies each question as `structured`, `document` or `out_of_scope`. Structured questions use parameterized, patient-scoped SQL tools, and the LLM only chooses the tool and its arguments. **No free-form text-to-SQL.**
 - **Trade-off:** It covers fewer kinds of question than text-to-SQL, but it is safe, scoped and testable. New question types need new tools.
+- **Phase 5 note (2026-11-18, ADR-040; owner review pending):** built with six allowlisted tools, but the **router and tool choice are deterministic rules**, not an LLM; routes are `document_search`, `structured_facts`, `longitudinal`, `combined`, `unsupported`, `refusal`. No text-to-SQL exists. ADR-007 stays Proposed.
+- **Update (2026-11-18, ADR-041):** rules-based routing is the recorded decision for the MVP; an LLM router would need its own evaluation against these rules first.
 
 ## ADR-008: Deterministic grounding check
 - **Status:** Proposed
 - **Decision:** An extracted fact passes only if its source excerpt is found in the page text and its value appears in that excerpt. Otherwise its status is `needs_review`.
+- **Refinement (owner, 2026-11-17, Phase 3 D-4; ADR-037):** a candidate whose excerpt cannot be located in the page text is never stored (it is counted as an abstention); a located fact that fails a check is stored as `needs_review`. ADR-008 stays Proposed as a whole.
 - **Trade-off:** OCR noise can cause false failures, which means extra review work. That is preferable to silently accepting hallucinated values.
 
 ## ADR-009: Docker for the database only
@@ -130,6 +136,7 @@ A Proposed or Deferred ADR is not a final decision.
 - **Status:** Proposed
 - **Decision:** Use LangChain only for the chat-model abstraction and structured output, behind our own `app/llm/provider.py`.
 - **Trade-off:** We write a little more glue code ourselves. In return, the provider stays swappable (important for ADR-024) and we are insulated from LangChain's API changes.
+- **Phase 5 note (2026-11-18, ADR-040):** LangChain was **not added**. The provider interface is `app/llm/provider.py` with a stdlib OpenAI-compatible adapter; no measured need for LangChain arose. ADR-011 stays Proposed.
 
 ## ADR-012: LangGraph scope
 - **Status:**
@@ -194,6 +201,7 @@ A Proposed or Deferred ADR is not a final decision.
 - **Consequences:**
   - The classifier only needs to distinguish `lab_report` from `other` until Phase 6.
   - The fact tables for other types are designed now and created through migrations in Phase 6.
+  - *Correction (2026-11-17):* migration 0002 already created those tables in Phase 1; Phase 6 adds the columns designed in PHASE_3_PLAN §3.3 by migration.
 
 ## ADR-020: Database foundation in Phase 1
 - **Status:** **Accepted** (owner, 2026-11-13; previously Proposed)
@@ -237,7 +245,7 @@ A Proposed or Deferred ADR is not a final decision.
   | Status | Meaning | Set by | Shown in UI as |
   |---|---|---|---|
   | `extracted` | Output of the extractor; checks not yet run (transient) | Pipeline | — |
-  | `validated` | Passed every automated check: grounding, plausibility, date, unit, analyte mapping | Pipeline | **Unverified** (auto-checked) |
+  | `validated` | Passed every automated check: grounding, plausibility, date, unit, analyte mapping | Pipeline | **Auto-checked, not verified** (wording changed 2026-11-17, D-15; previously "Unverified (auto-checked)") |
   | `needs_review` | One or more checks failed; reasons are listed | Pipeline | **Needs review** |
   | `verified` | A human confirmed it | **Review action only** | Verified |
   | `corrected` | A human supplied corrected values; the original is kept | **Review action only** | Verified (corrected) |
@@ -256,6 +264,9 @@ A Proposed or Deferred ADR is not a final decision.
 
 ## ADR-024: LLM provider selected by evaluation, free preferred
 - **Status:** **Deferred** to the start of Phase 3, the first phase that needs an LLM. Phase 2 classification is rule-based.
+  - *Update (owner, 2026-11-17, Phase 3 D-1; ADR-037):* Phase 3 extraction is rule-based; the provider evaluation is an optional batch (G) outside the Phase 3 gate, run only if the owner selects it. Still deferred.
+  - *Update (2026-11-18, Phase 5; ADR-040):* **evaluation blocked** — no credentials, no local model server. Provider interface, mock and an untested OpenAI-compatible adapter exist; the copilot uses the deterministic extractive generator. **No provider or model selected; no live result.** Still deferred.
+  - *Update (2026-11-18, remediation; ADR-041):* still **deferred**. No local model was installed and no credentials were requested, by instruction; no live LLM result exists. The extractive generator remains the default and the baseline any provider must beat on `copilot_v1`-style dev data, with a new held-out split.
 - **Decision:** No provider is chosen for popularity. At the start of Phase 3, candidates are compared on a fixed sample of about 20 dev-set pages:
 
   | Criterion | How it is measured |
@@ -289,7 +300,7 @@ A Proposed or Deferred ADR is not a final decision.
     - India's Digital Personal Data Protection Act 2023 is used only as a design *reference*: consent, purpose limitation, deletion, keeping data to a minimum.
     - It is not a certification or a compliance claim.
   - **Region profile:** the profile below (English documents, DD/MM/YYYY, ambiguous dates flagged, original units and ranges kept) is accepted as written.
-  - **Q12** (relaxing ambiguous-date flagging) stays open.
+  - **Q12** (relaxing ambiguous-date flagging) stays open. *Closed 2026-11-18: flagging retained (see Q12 below).*
 - *Original proposal (kept for history):*
 - **Decision:**
   - The initial region is **India**, with **English-only** documents.
@@ -306,7 +317,7 @@ A Proposed or Deferred ADR is not a final decision.
   - Original laboratory units and reference ranges are **always kept as printed**. Normalization is an additional field, never a replacement.
 - **Trade-offs:**
   - Strict flagging of ambiguous dates means many lab-report dates will need review.
-  - A possible relaxation is open question Q12 (below).
+  - A possible relaxation was open question Q12 (below), closed on 2026-11-18 with flagging retained.
   - Regional configuration adds a little indirection now, but avoids hard-coded assumptions.
 - **Consequences:**
   - The synthetic generator renders Indian-style layouts and units.
@@ -405,6 +416,7 @@ A Proposed or Deferred ADR is not a final decision.
   - The parser's output is a Pydantic intermediate representation, **schema version 1** (`app/ingestion/ir.py`): per page, the text, parse method (`native`/`ocr`), visible native character count, OCR provenance, tables as cell grids and review flags; plus document-level review flags.
   - Models are frozen and reject unknown fields. Validation errors never contain input values.
   - The IR is stored as a versioned JSON file next to Docling's own full JSON output. Tables stay in these files: there is no database table for them (no migration 0004).
+    - *Note (2026-11-17):* migration 0004 now exists, for Phase 3 extraction provenance (ADR-038); it adds no IR table.
   - IR text is Docling's extracted, normalized text, not the raw PDF text. **The stored original PDF is the authoritative source.**
   - *(Superseded 2026-11-15: "The schema stays at version 1 until Task 2.5 writes the first file." Task 2.5 now writes IR files, and version 1 is frozen.)*
 - **Version 1 contract (frozen 2026-11-15; `app/ingestion/ir.py`):**
@@ -551,6 +563,13 @@ A Proposed or Deferred ADR is not a final decision.
   - "Future" date of birth uses the local machine's date.
 - **Consequences:** a UI (and `DEMO_MODE`, ADR-014) can build on `create_patient`, `upload_document` and `process_document`. Patient listing, update and delete, document listing, and their isolation tests remain in Task 1.8.
 - **Clarification (2026-11-16, ADR-034):** "The display name is never returned" applies to `PatientRef` and to writes. `list_patients` returns it in `PatientSummary` (`repr=False`) for reading; it is still never logged or put in an error. The rest of Task 1.8 is done (ADR-034).
+
+- **Update (2026-11-18, two concurrency defects fixed; no protocol change):**
+  - With the default relative `MEDIMIND_DATA_DIR=data`, every upload was refused as `outside_data_dir`: `mkstemp` returns an absolute path. The containment check now compares absolute forms (`Path.absolute()`: no `..` normalization, no link following).
+  - With concurrent identical uploads on Windows (found by the existing concurrency test, which failed intermittently):
+    - `resolve()` can return the extended-length form `\\?\C:\...` while another writer holds the file. Only that prefix is now removed before the final containment comparison.
+    - A concurrent caller's read-only safeguard also protected this caller's temporary hard link, so its removal failed and a stored upload was reported as `write_failed`. The temporary link is now made writable and removed (the read-only safeguard is re-applied immediately), with a short retry for sharing violations.
+  - Each fix has a regression test that fails without it.
 
 ## ADR-034: Patient and document CRUD; deletion keeps files
 - **Status:** **Accepted** (owner, 2026-11-16; Task 1.8, decisions D1–D4 and O1–O5 of the Task 1.8 plan review).
@@ -808,5 +827,100 @@ A Proposed or Deferred ADR is not a final decision.
   - **Decision precedence (as built):** no text → `unknown`; strong lab evidence (a results-table header or reference range, plus enough lab cues) without strong other-document evidence → `lab_report`; the reverse → `other`; strong on both sides → `unknown` (`doc.conflict`, never silently resolved); neither → `unknown`.
   - **Failed stage:** an unexpected classification failure is recorded as a `failed` `classify` run (fixed error kind and class name only) and the original error is re-raised; `not_parsed`, `already_classified` and `document_not_found` write no run. Rule ids are returned to the caller but not stored; the run stores the rules version only.
 
+## ADR-037: Deterministic lab extraction with exact provenance
+- **Status:** **Accepted** (owner, 2026-11-17: Phase 3 plan revision 3 and decisions D-1, D-4, D-5, D-6, D-9, D-10, D-11, D-12, D-14, D-15; see [PHASE_3_PLAN.md](PHASE_3_PLAN.md)). Implemented 2026-11-17.
+- **Decision:**
+  - Lab observations are extracted by versioned rules (`lab-rules-2`, `app/extraction/`), not by an LLM. The LLM comparison of ADR-024 is an optional, owner-selected batch outside the phase gate (D-1).
+  - **Exact spans:** every stored excerpt is `pages.text[char_start:char_end]`. A table's rows are located by re-rendering the IR table the way `docling_mapping` writes it (rows joined by newlines, cells by tabs), finding that block exactly once, and computing row and cell offsets by arithmetic. Rows whose boundaries cannot be proven are not extracted: a cell containing a tab or newline, a row touched by a multi-row cell, a value cell spanning columns, a block found zero times or more than once.
+  - **Grounding (refines ADR-008, D-4):** a candidate whose text cannot be located is never stored; it is counted as an abstention. A located fact that fails a check is stored as `needs_review`.
+  - **Page flags (D-5):** facts from pages flagged OCR, replacement character, Docling-normalized text, invalid table structure or invisible text layer are `needs_review`.
+  - **Normalization:** additive and versioned (`norm-1`): Indian and international digit grouping, comparators, an exact qualitative vocabulary, unit spellings, generic power-of-ten scales (lakh, million), analyte-specific conversions with cited sources toward the default unit only, printed reference ranges, and exact-alias analyte mapping. No terminology codes (D-6).
+  - **Dates (D-11):** DD/MM order; ambiguous dates always flagged (Q12 closed 2026-11-18: retained); two-digit years never expanded; the future bound is a fixed reference date (the upload date, or the evaluation manifest's date). The clock is never read; a test enforces it.
+  - **Derived comparison (D-10):** `ref_range_comparison` (below / within / above) against the same document's printed range only, labelled as derived.
+  - **Corrections:** stored in the existing `review_decisions.corrected_values` (`observation-correction-1`: the entered values plus the complete normalized view). Fact value columns are never updated. The latest decision decides status and display; "verify" confirms the original extracted values.
+  - **`validated` means only that automated checks passed** (D-15): the UI shows "Auto-checked, not verified"; the database column carries a comment saying so; reports state it.
+- **Reasoning:** the measured layouts are tabular and Docling keeps the cell text verbatim (R1.3), so rules give zero cost, offline reproducibility, an explainable rule per fact and exact provenance by construction.
+- **Measured** (`extract_v0`, synthetic; rules and data by the same author; not a blind test; no clinical accuracy is claimed):
+
+  | Split | Group | Gold | Predicted | Entity precision | Entity recall | Fully correct recall | Silent error rate |
+  |---|---|---|---|---|---|---|---|
+  | dev | native | 275 | 275 | 1.0 | 1.0 | 1.0 | 0.0 |
+  | dev | raster (OCR) | 132 | 119 | 1.0 | 0.9015 | 0.7045 | — (all `needs_review`) |
+  | held-out (once) | native | 128 | 128 | 1.0 | 1.0 | 1.0 | 0.0 |
+  | held-out (once) | raster (OCR) | 63 | 60 | 1.0 | 0.9524 | 0.7143 | — (all `needs_review`) |
+
+  Hard gates were 0 on both splits: unsupported facts, trap extractions, wrong-subject facts, and facts for identity-mismatch documents (55 dev and 25 held-out swapped-profile mismatches, all blocked).
+  - `lab-rules-1` (untuned, first dev run) reached native recall 0.9273: Docling joins printed lines, and the line rule read one result per line. `lab-rules-2` reads several `name: value` segments only when they tile the whole line and every name maps. Both dev reports are kept.
+- **Trade-offs:** conservative abstention lowers recall on unusual layouts; the OCR path relies on review; the native results are optimistic for real documents because dev and held-out share templates.
+
+## ADR-038: Extraction stage, identity mismatch, completion and conflicts
+- **Status:** **Accepted** (owner, 2026-11-17: decisions D-2, D-3, D-7, D-13 of the Phase 3 plan). Implemented 2026-11-17; PostgreSQL integration tests written, **not run** (Docker unavailable). *Update 2026-11-18:* migration 0004 applied and verified against the models; all 205 integration tests passed; end-to-end acceptance passed (PROGRESS.md, 2026-11-18).
+- **Decision:**
+  - **Stage:** `extract` is a fifth pipeline stage, independent of `index`. Its gate has the indexing gate's precedence: pages, no identity `mismatch`, a succeeded identity run, a succeeded classify run (`extraction_gate_refusal`). A refusal writes no run.
+  - **Identity mismatch (D-2):** extraction is blocked; no fact is ever stored for the wrong person. `unknown` identity is extracted and labelled at display time. Phase 2 identity behaviour is unchanged.
+  - **Skipped runs:** a document that is not a lab report gets a `skipped` extract run (`skip_reason = unsupported_doc_type`); the pipeline reports `succeeded` with outcome `not_applicable`; a repeat is `already_done`. A succeeded or skipped run completes the stage.
+  - **Completion:** `complete_document_if_ready` sets `processed` when pages, classify, identity (not mismatch), index (chunks and a succeeded run) and extract are all complete. It is called by the index and extract services; it never touches `needs_review` or `failed`. The pipeline result has five stages (this changes ADR-036 A4's four-stage contract).
+  - **Schema (D-3, migration 0004):** a run link and supersession as composite foreign keys with document and patient; source locators; normalizer and reference versions; quality notes; review status without a default, never `extracted`, `validated` only without reasons; date provenance, time and derived comparison on observations; conflicts gain `closed` with a reason, history columns and an idempotent detection key. The upgrade refuses to run when the fact, review or conflict tables hold rows.
+  - **Re-extraction (D-7):** explicit only, after a version change; refused when any current fact has a human decision.
+  - **Conflicts (D-13, D-14):** one conflict per connected component of the conflict graph of usable facts (same analyte, same day-precision date and source); numeric values compared as intervals in the same normalized unit; qualitative values only through analyte-specific scales in the reference data; incomparable pairs never conflict. The detection key covers the members, their display values and a review-state token, so unchanged facts never churn and real changes give a new conflict. Every trigger (extraction, review, re-extraction, deletion) recomputes in its own transaction; vanished keys close with a reason (`member_rejected`, `member_corrected`, `member_reviewed`, `member_superseded`, `member_deleted`, `member_added`); closed conflicts are never reopened and stay as history.
+- **Deviation from the plan, recorded:** `member_added` was added to the closed reasons, because a first extraction can join an existing conflict group, and `member_superseded` would mislabel that closure. The source-locator format gained an optional segment (`p<page>:l<line>:s<k>`) for `lab-rules-2`.
+- **Trade-offs:** whole-patient recomputation per trigger is simple and correct at personal scale; it would need narrowing for large records.
+- **Corrections found on PostgreSQL (2026-11-18; no decision changed):**
+  - Migration 0004 drops check constraints by `op.f(name)`. A plain name was renamed by the naming convention, so the upgrade failed.
+  - The source-locator check escapes its colons (`\:r`, `\:s`). Unescaped, SQLAlchemy treated them as bind parameters and the stored check rejected every locator.
+  - Nullable JSONB columns (`corrected_values`, `bbox`) use `none_as_null=True`, so "no correction" is SQL `NULL` as the `corrected_values_match` check requires.
+  - A delete blocked by `ON DELETE RESTRICT` reports SQLSTATE `23001`; the repository's foreign-key mapping (ADR-034) now accepts it as well as `23503`.
+
+## ADR-039: Longitudinal views (Phase 4)
+- **Status:** **Implemented** 2026-11-18 under [PHASE_4_PLAN.md](PHASE_4_PLAN.md), on the owner's instruction to implement Phase 4 in one pass; awaiting owner review. No separate Phase 3 gate approval is claimed.
+- **Decision:**
+  - **Scope** (IMPLEMENTATION_PLAN Phase 4 outline): timeline, duplicate grouping, trend series, comparison of two dates, Overview, Timeline and Lab trends pages; a read-only presentation of the Phase 3 conflicts. Document comparison (F8) and new conflict rules stay in Phase 6.
+  - **What appears (ADR-023 rule 4):** `validated` (labelled "auto-checked, not verified"), `verified` and `corrected` facts. `needs_review` facts are counted, never shown; `rejected` facts never appear; identity-`mismatch` documents are excluded and counted; `unknown` identity is labelled.
+  - **Display values** are the latest correction, otherwise machine-normalized, exactly as on the document page; printed values are always carried alongside, unchanged.
+  - **Dates:** a result is placed by its display date and the source extraction recorded (collection, otherwise report); a document by its printed report date. Upload and processing dates are metadata only. Partial dates are labelled by month or year and sort at the start of their period; undated items are listed separately.
+  - **Duplicates are derived at read time and not stored.** A candidate is two usable results from different documents with the same analyte, the same day-precision date and values Phase 3's `compare_pair` calls `equal`. It is *exact* when the printed name, value, unit, range, date source and time are identical and no correction is involved; otherwise *possible*, with reason codes. Exact groups are shown once with every source. `extracted_facts.duplicate_group_id` stays unused.
+  - **Trends:** one series per (analyte, display unit); conversion happened at extraction only where exact (`norm-1`), so incompatible units are never combined. Each point carries its own document's printed range and the derived comparison. Range states use no clinical words. Differences are exact `Decimal`s between consecutive plotted points; a date with several untimed results gets none.
+  - **No migration.** Reads use existing tables: a fixed number of queries per call, measured.
+- **Reasoning:** storing duplicate groups would need recomputation on every review, correction, re-extraction and deletion (as conflicts do) for no measured benefit at personal scale. Deriving them keeps them consistent with the latest decisions by construction, and keeps every source fact untouched.
+- **Measured** (`longitudinal_v0`, synthetic; scenarios and rules by the same author; not a blind test; no clinical accuracy is claimed): every pre-registered target met on dev (11 scenario patients) and on held-out (5 patients, run once). Timeline, ordering, date source, trend values and differences, unit series, conflicts, provenance and corrected values: 1.0. Duplicate precision and recall: 1.0. Leaks and excluded items shown: 0. Performance patient (1,050 results): timeline page median about 0.29 s; trend about 0.09 s.
+- **Trade-offs:**
+  - Each timeline call loads the patient's usable history and paginates in Python, because a correction can change a result's date or analyte. This is fine at personal scale, and was measured at 1,050 results. It would need SQL-level paging over display values for much larger histories.
+  - Rounded unit conversions on the same day can look like a conflict (Phase 3 rule); the dataset avoids that case, and it is a stated limitation.
+
+## ADR-040: Phase 5 copilot: deterministic routing, extractive default, deterministic citation validation
+- **Status:** **Implemented** 2026-11-18 under [PHASE_5_PLAN.md](PHASE_5_PLAN.md) on the owner's instruction (one-pass Phase 5 brief); **awaiting owner review**. Items marked *deviation* change Proposed designs and need explicit approval.
+- **Decisions:**
+  - **R1.8 selection: `lexical`, no threshold** (frozen `evals/reports/lab_v0/dev_selection.json`). Dev: lexical MRR 0.888 / Hit@1 0.808 vs hybrid_rerank 0.877 / 0.769 (nDCG@10 0.890 vs 0.894) at 17 vs 970 ms p50; per ARCHITECTURE §9.4 hybrid and reranking are not kept. Held-out (once): MRR 0.891, Recall@5 0.971, leak 0, abstention P 1.0 / R 0.375. Trade-off: no calibrated abstention threshold for lexical.
+  - *Deviation from ARCHITECTURE §9.1 / ADR-007:* the **router is deterministic** (safety gate first, reference aliases, date parsing, keyword intents); tools are chosen by rules, not an LLM. Measured routing accuracy 0.990 held-out.
+  - **Default generator: extractive composer** (no model) because ADR-024 is unresolved; the LLM path (`LlmGenerator` + OpenAI-compatible adapter, loopback-only unless `MEDIMIND_LLM_ALLOW_EXTERNAL`, synthetic patients only for external providers) is implemented and tested offline only.
+  - **Citation validation is deterministic and two-layered:** every supplied source is checked against patient-scoped reads before generation (fail closed: nothing shown), and every claim after generation (ids, pages, exact text, usable facts, numbers, dates, quotes, test relevance, prohibited language). Invalid answers are withheld, never repaired.
+  - **Tools:** six allowlisted typed tools over Phase 3/4 services; `ToolArgs` forbids extra fields (no model-chosen `patient_id`); usable facts only (ADR-023).
+  - **No conversation history** (session state holds identifiers only, Task 2.9b rule).
+  - **No migration.** One read-only, patient-scoped repository function: `stored_chunks`.
+  - `copilot_retrieval_mode` defaults to `lexical` (the R1.8 selection).
+- **Measured** (`copilot_v0`, synthetic, same-author, not blind; held-out run once): routing 0.990, answer correctness 0.913, citation recall 0.944, **citation precision 0.605 (target 0.95 missed)**, unsupported claims 0/193, abstention F1 0.909, refusals 1.0, leaks/rejected/mismatch exposures 0, attacks accepted 0/304, p50 83 ms, 0 tokens.
+- **Trade-offs / limits:** patient phrasings outside the reference aliases ("A1c", "fasting sugar") are not recognised and fall back to all tests (the main precision loss); lexical grounding in the validator; no LLM evaluated.
+
+## ADR-041: Phase 5 remediation: rules-based routing confirmed, patient vocabulary, abstain on unrecognised test names, relevance-gated passages
+- **Status:** **Implemented** 2026-11-18 (remediation pass on the owner's instruction); awaiting owner review. **Routing is rules-based by decision**, replacing the LLM classifier proposed in ARCHITECTURE §9.1 and ADR-007's "the LLM chooses the tool": no LLM is used for routing or tool choice.
+- **Context:** `copilot_v0` held-out citation precision was 0.605 (target 0.95). 8 of 9 held-out failures were everyday test names ("A1c", "fasting sugar", "cholesterol") that the router did not know; it then widened the question to *all tests*, citing many irrelevant results. Lexical retrieval (R1.8) abstained on only 37.5% of held-out unanswerable questions.
+- **Decisions:**
+  1. **Patient vocabulary** (`app/answering/vocabulary.py`, `vocab-1`): a reviewed table of everyday names → canonical analytes, used for questions only; printed aliases win; extraction and `reference_data_version` are unchanged. Ambiguous names ("sugar", "thyroid", "bilirubin") keep every candidate and are labelled; nothing is chosen silently. Misspellings are not added.
+  2. **Never widen an unrecognised name to "all tests":** words left after test names, dates and framing words form *unrecognised phrases*. Without a known test the copilot abstains with a fixed message and runs no tool or search; with a known test it answers that one and reports the rest (partial). "All results" questions are answered only when nothing else is left in the question.
+  3. **Relevance gate on document passages:** a page is shown only if it mentions a name of the asked test, or the asked subject phrase; for questions only about the document (issuer, kind) the written date or the stored report date suffices. A failed gate means abstention, never a broader search.
+  4. **No lexical score threshold:** calibrated on `lab_v0` dev only (`evals/reports/lab_v0/lexical_abstention_dev.md`), answerable and unanswerable `ts_rank_cd` scores overlap (answerable minimum 0.1, unanswerable maximum 0.3); the F1-best threshold would abstain on 107 of 156 answerable questions (F1 0.23 vs 0.72 without). Abstention comes from the deterministic gates instead.
+  5. **New evaluation `copilot_v1`**, frozen before any remediation code; held-out = new patients only (`longitudinal_v1`, `lab_v1`); held-out run once after the configuration freeze. `copilot_v0` artifacts are untouched.
+- **Unchanged:** the citation validator, fail-closed source checks, patient isolation, refusal rules, provenance, ADR-023 filtering. No safety check was relaxed; the 0.95 citation-precision target is unchanged.
+- **Measured:** see [PHASE_5_PLAN.md](PHASE_5_PLAN.md) §12.
+- **Trade-offs:** a vocabulary table needs maintenance and is written by the system's author; unknown names abstain (safe but unhelpful); the question words are matched literally (no fuzzy matching, so misspellings abstain).
+
 ## Open questions linked to ADRs
-- **Q12** (from ADR-025): Should an ambiguous date be auto-accepted when the *same document* contains an unambiguous date confirming DD/MM order (for example `25/03/2024`)? This would reduce review work, but adds an inference rule. **Default: no. Always flag.**
+- **Q12** (from ADR-025): Should an ambiguous date be auto-accepted when the *same document* contains an unambiguous date confirming DD/MM order (for example `25/03/2024`)? This would reduce review work, but adds an inference rule. **Default: no. Always flag.** *Data (2026-11-17, `extract_v0` dev, lab-rules-2):* 129 of 394 extracted facts (0.33) carry `ambiguous_date`.
+  - **Closed (owner, 2026-11-18): retain `ambiguous_date` review** for every numeric date where both day and month are plausible (both 12 or less). No same-document auto-accept rule is added. The extraction rules are unchanged.
+  - **Measured rate:** 129 of 394 extracted dev facts = **32.7%** (`evals/reports/extract_v0/extraction_dev_lab-rules-2.md`: `ambiguous_date` 129, `own_facts_written` 394). The data is synthetic, generated by the same author as the rules, and not blind. It is evidence of the review load, not a real-world rate.
+  - **Rationale:**
+    - An unambiguous date elsewhere in the document is an *inference* about the ambiguous one, not evidence for it. Collection, report and printed dates can come from different systems or templates. Accepting the date would present an unverified reading as fact, which MediMind's evidence rules forbid.
+    - A wrong day/month swap is a silent error: it moves a result up to months in the chronology and in trends, and nothing downstream would reveal it. A flag costs one review action, and the value stays stored with its DD/MM reading and source excerpt in the meantime.
+    - The 32.7% load is acceptable for a personal-scale record, and it is lower than the 38% estimated before measurement.
+  - **Trade-off accepted:** about a third of dev facts need date review before they count as usable facts (for example in conflict detection, which excludes `needs_review` facts).
+  - **Revisit only with new evidence** (for example measured review burden on realistic documents). A future relaxation would need its own decision and evaluation; it is not planned.

@@ -1,0 +1,327 @@
+diff --git a/migrations/versions/0004_extraction.py b/migrations/versions/0004_extraction.py
+new file mode 100644
+index 0000000..fee9b47
+--- /dev/null
++++ b/migrations/versions/0004_extraction.py
+@@ -0,0 +1,321 @@
++"""Extraction provenance, supersession, review-status rules and the conflict lifecycle
++
++Revision ID: 0004
++Revises: 0003
++Create Date: 2026-11-17
++
++Frozen migration (Phase 3, docs/PHASE_3_PLAN.md §5): literal names and values only; it never
++imports application code. Every CHECK, foreign key and index here is mirrored by
++app/records/models.py, and an integration test compares the two catalogs.
++
++Precondition: the fact, review and conflict tables must be empty (no code wrote them before
++Phase 3, and the new NOT NULL provenance columns have no truthful backfill). The upgrade raises
++otherwise, inside its transaction, so nothing changes.
++"""
++
++from collections.abc import Sequence
++
++import sqlalchemy as sa
++from alembic import op
++from sqlalchemy.dialects import postgresql
++
++revision: str = "0004"
++down_revision: str | None = "0003"
++branch_labels: str | Sequence[str] | None = None
++depends_on: str | Sequence[str] | None = None
++
++REVIEW_STATUS_COMMENT = (
++    "validated = every automated check passed; not human verification and not clinical "
++    "validation. verified/corrected/rejected are set only by a human review decision."
++)
++
++
++def upgrade() -> None:
++    op.execute(
++        "DO $$ BEGIN "
++        "IF EXISTS (SELECT 1 FROM extracted_facts) OR EXISTS (SELECT 1 FROM review_decisions) "
++        "OR EXISTS (SELECT 1 FROM conflicts) THEN "
++        "RAISE EXCEPTION 'migration 0004 requires empty extracted_facts, review_decisions "
++        "and conflicts tables'; "
++        "END IF; END $$"
++    )
++
++    # pipeline_runs: a target for composite foreign keys (run, document, patient).
++    op.create_unique_constraint(
++        op.f("uq_pipeline_runs_id_document_id_patient_id"),
++        "pipeline_runs",
++        ["id", "document_id", "patient_id"],
++    )
++
++    # extracted_facts: run link, locator, versions, notes, supersession, status rules.
++    op.add_column("extracted_facts", sa.Column("extraction_run_id", sa.Uuid(), nullable=False))
++    op.add_column("extracted_facts", sa.Column("source_locator", sa.Text(), nullable=False))
++    op.add_column("extracted_facts", sa.Column("normalizer_version", sa.Text(), nullable=False))
++    op.add_column("extracted_facts", sa.Column("reference_data_version", sa.Text(), nullable=False))
++    op.add_column(
++        "extracted_facts",
++        sa.Column(
++            "quality_notes",
++            postgresql.ARRAY(sa.Text()),
++            server_default=sa.text("'{}'::text[]"),
++            nullable=False,
++        ),
++    )
++    op.add_column(
++        "extracted_facts",
++        sa.Column("superseded_at", sa.DateTime(timezone=True), nullable=True),
++    )
++    op.add_column("extracted_facts", sa.Column("superseded_by_run_id", sa.Uuid(), nullable=True))
++    op.alter_column(
++        "extracted_facts",
++        "review_status",
++        server_default=None,
++        comment=REVIEW_STATUS_COMMENT,
++        existing_type=sa.Text(),
++        existing_nullable=False,
++    )
++    op.create_foreign_key(
++        op.f("fk_extracted_facts_extraction_run"),
++        "extracted_facts",
++        "pipeline_runs",
++        ["extraction_run_id", "document_id", "patient_id"],
++        ["id", "document_id", "patient_id"],
++        ondelete="CASCADE",
++    )
++    op.create_foreign_key(
++        op.f("fk_extracted_facts_superseded_by_run"),
++        "extracted_facts",
++        "pipeline_runs",
++        ["superseded_by_run_id", "document_id", "patient_id"],
++        ["id", "document_id", "patient_id"],
++        ondelete="CASCADE",
++    )
++    op.create_unique_constraint(
++        op.f("uq_extracted_facts_extraction_run_id_fact_type_source_locator"),
++        "extracted_facts",
++        ["extraction_run_id", "fact_type", "source_locator"],
++    )
++    for name, condition in (
++        (
++            "ck_extracted_facts_source_locator_format",
++            # \: is a literal colon: SQLAlchemy's text() would read :r and :s as bind parameters.
++            r"source_locator ~ '^p[0-9]+:(t[0-9]+\:r[0-9]+|l[0-9]+(\:s[0-9]+)?)$'",
++        ),
++        ("ck_extracted_facts_char_span_required", "char_start IS NOT NULL"),
++        ("ck_extracted_facts_source_excerpt_length", "length(source_excerpt) <= 1000"),
++        (
++            "ck_extracted_facts_superseded_pair",
++            "(superseded_at IS NULL) = (superseded_by_run_id IS NULL)",
++        ),
++        (
++            "ck_extracted_facts_not_self_superseding",
++            "superseded_by_run_id IS NULL OR superseded_by_run_id <> extraction_run_id",
++        ),
++        ("ck_extracted_facts_review_status_not_transient", "review_status <> 'extracted'"),
++        (
++            "ck_extracted_facts_validated_has_no_reasons",
++            "review_status <> 'validated' OR cardinality(review_reasons) = 0",
++        ),
++    ):
++        op.create_check_constraint(op.f(name), "extracted_facts", condition)
++    op.create_index(
++        "ix_extracted_facts_current",
++        "extracted_facts",
++        ["patient_id", "document_id"],
++        unique=False,
++        postgresql_where=sa.text("superseded_at IS NULL"),
++    )
++    op.create_index(
++        "ix_extracted_facts_extraction_run_id",
++        "extracted_facts",
++        ["extraction_run_id"],
++        unique=False,
++    )
++
++    # observations: date provenance and role, time, derived comparison, mapping method.
++    op.add_column("observations", sa.Column("effective_date_source", sa.Text(), nullable=True))
++    op.add_column("observations", sa.Column("effective_time", sa.Time(), nullable=True))
++    op.add_column("observations", sa.Column("time_raw", sa.Text(), nullable=True))
++    op.add_column("observations", sa.Column("date_page_number", sa.Integer(), nullable=True))
++    op.add_column("observations", sa.Column("date_char_start", sa.Integer(), nullable=True))
++    op.add_column("observations", sa.Column("date_char_end", sa.Integer(), nullable=True))
++    op.add_column("observations", sa.Column("ref_range_comparison", sa.Text(), nullable=True))
++    op.add_column("observations", sa.Column("analyte_match", sa.Text(), nullable=True))
++    for name, condition in (
++        (
++            "ck_observations_effective_date_source_values",
++            "effective_date_source IN ('collection', 'report')",
++        ),
++        (
++            "ck_observations_effective_date_source_pair",
++            "(effective_date IS NULL) = (effective_date_source IS NULL)",
++        ),
++        (
++            "ck_observations_date_span_all_or_none",
++            "(date_page_number IS NULL) = (date_char_start IS NULL) "
++            "AND (date_char_start IS NULL) = (date_char_end IS NULL)",
++        ),
++        (
++            "ck_observations_date_span_order",
++            "date_char_start IS NULL OR (date_page_number >= 1 AND date_char_start >= 0 "
++            "AND date_char_start <= date_char_end)",
++        ),
++        (
++            "ck_observations_ref_range_comparison_values",
++            "ref_range_comparison IN ('below', 'within', 'above')",
++        ),
++        (
++            "ck_observations_ref_range_comparison_number",
++            "ref_range_comparison IS NULL OR value_num IS NOT NULL",
++        ),
++        ("ck_observations_analyte_match_values", "analyte_match IN ('alias_exact')"),
++    ):
++        op.create_check_constraint(op.f(name), "observations", condition)
++
++    # conflicts: closed state, history columns, idempotent detection key.
++    op.drop_constraint(op.f("ck_conflicts_status_values"), "conflicts", type_="check")
++    op.create_check_constraint(
++        op.f("ck_conflicts_status_values"),
++        "conflicts",
++        "status IN ('open', 'acknowledged', 'closed')",
++    )
++    op.add_column("conflicts", sa.Column("closed_at", sa.DateTime(timezone=True), nullable=True))
++    op.add_column("conflicts", sa.Column("closed_reason", sa.Text(), nullable=True))
++    op.add_column("conflicts", sa.Column("analyte_id", sa.Integer(), nullable=True))
++    op.add_column("conflicts", sa.Column("effective_date", sa.Date(), nullable=True))
++    op.add_column("conflicts", sa.Column("member_count_at_detection", sa.Integer(), nullable=True))
++    op.add_column("conflicts", sa.Column("detection_key", sa.Text(), nullable=True))
++    op.add_column("conflicts", sa.Column("rule_version", sa.Text(), nullable=True))
++    op.create_foreign_key(
++        op.f("fk_conflicts_analyte_id_analyte_catalog"),
++        "conflicts",
++        "analyte_catalog",
++        ["analyte_id"],
++        ["id"],
++        ondelete="RESTRICT",
++    )
++    op.create_unique_constraint(
++        op.f("uq_conflicts_patient_id_detection_key"), "conflicts", ["patient_id", "detection_key"]
++    )
++    for name, condition in (
++        ("ck_conflicts_closed_at_matches", "(status = 'closed') = (closed_at IS NOT NULL)"),
++        (
++            "ck_conflicts_closed_reason_matches",
++            "(status = 'closed') = (closed_reason IS NOT NULL)",
++        ),
++        (
++            "ck_conflicts_closed_reason_values",
++            "closed_reason IN ('member_rejected', 'member_corrected', 'member_reviewed', "
++            "'member_superseded', 'member_deleted', 'member_added')",
++        ),
++        (
++            "ck_conflicts_detection_key_pair",
++            "(detection_key IS NULL) = (rule_version IS NULL)",
++        ),
++        (
++            "ck_conflicts_member_count_positive",
++            "member_count_at_detection IS NULL OR member_count_at_detection >= 2",
++        ),
++    ):
++        op.create_check_constraint(op.f(name), "conflicts", condition)
++    op.create_index(
++        "ix_conflicts_patient_id_not_closed",
++        "conflicts",
++        ["patient_id"],
++        unique=False,
++        postgresql_where=sa.text("status <> 'closed'"),
++    )
++
++
++def downgrade() -> None:
++    # Destroys data in the added columns. Reverse order of upgrade().
++    op.drop_index("ix_conflicts_patient_id_not_closed", table_name="conflicts")
++    for name in (
++        "ck_conflicts_member_count_positive",
++        "ck_conflicts_detection_key_pair",
++        "ck_conflicts_closed_reason_values",
++        "ck_conflicts_closed_reason_matches",
++        "ck_conflicts_closed_at_matches",
++    ):
++        op.drop_constraint(op.f(name), "conflicts", type_="check")
++    op.drop_constraint("uq_conflicts_patient_id_detection_key", "conflicts", type_="unique")
++    op.drop_constraint("fk_conflicts_analyte_id_analyte_catalog", "conflicts", type_="foreignkey")
++    for column in (
++        "rule_version",
++        "detection_key",
++        "member_count_at_detection",
++        "effective_date",
++        "analyte_id",
++        "closed_reason",
++        "closed_at",
++    ):
++        op.drop_column("conflicts", column)
++    op.drop_constraint(op.f("ck_conflicts_status_values"), "conflicts", type_="check")
++    op.create_check_constraint(
++        op.f("ck_conflicts_status_values"), "conflicts", "status IN ('open', 'acknowledged')"
++    )
++
++    for name in (
++        "ck_observations_analyte_match_values",
++        "ck_observations_ref_range_comparison_number",
++        "ck_observations_ref_range_comparison_values",
++        "ck_observations_date_span_order",
++        "ck_observations_date_span_all_or_none",
++        "ck_observations_effective_date_source_pair",
++        "ck_observations_effective_date_source_values",
++    ):
++        op.drop_constraint(op.f(name), "observations", type_="check")
++    for column in (
++        "analyte_match",
++        "ref_range_comparison",
++        "date_char_end",
++        "date_char_start",
++        "date_page_number",
++        "time_raw",
++        "effective_time",
++        "effective_date_source",
++    ):
++        op.drop_column("observations", column)
++
++    op.drop_index("ix_extracted_facts_extraction_run_id", table_name="extracted_facts")
++    op.drop_index("ix_extracted_facts_current", table_name="extracted_facts")
++    for name in (
++        "ck_extracted_facts_validated_has_no_reasons",
++        "ck_extracted_facts_review_status_not_transient",
++        "ck_extracted_facts_not_self_superseding",
++        "ck_extracted_facts_superseded_pair",
++        "ck_extracted_facts_source_excerpt_length",
++        "ck_extracted_facts_char_span_required",
++        "ck_extracted_facts_source_locator_format",
++    ):
++        op.drop_constraint(op.f(name), "extracted_facts", type_="check")
++    op.drop_constraint(
++        "uq_extracted_facts_extraction_run_id_fact_type_source_locator",
++        "extracted_facts",
++        type_="unique",
++    )
++    op.drop_constraint(
++        "fk_extracted_facts_superseded_by_run", "extracted_facts", type_="foreignkey"
++    )
++    op.drop_constraint("fk_extracted_facts_extraction_run", "extracted_facts", type_="foreignkey")
++    op.alter_column(
++        "extracted_facts",
++        "review_status",
++        server_default=sa.text("'extracted'"),
++        comment=None,
++        existing_type=sa.Text(),
++        existing_nullable=False,
++    )
++    for column in (
++        "superseded_by_run_id",
++        "superseded_at",
++        "quality_notes",
++        "reference_data_version",
++        "normalizer_version",
++        "source_locator",
++        "extraction_run_id",
++    ):
++        op.drop_column("extracted_facts", column)
++    op.drop_constraint(
++        "uq_pipeline_runs_id_document_id_patient_id", "pipeline_runs", type_="unique"
++    )

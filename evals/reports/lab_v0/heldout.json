@@ -1,0 +1,60 @@
+{
+  "ingestion": null,
+  "runs": [
+    {
+      "config": {
+        "abstain_threshold": null,
+        "candidates": 50,
+        "chunker_version": "1",
+        "classifier_rules_version": "2",
+        "dataset_version": "lab_v0@5dcdc7dfa3ff",
+        "embedding_model": null,
+        "extra": {
+          "dev_selection_sha256": "23b481bacc213ea08506f782c2a9c65056562121bfdd9bbb2948a23761454c50"
+        },
+        "identity_rules_version": "2",
+        "mode": "lexical",
+        "rerank_top": 20,
+        "reranker_model": null,
+        "rrf_k": 60,
+        "split": "heldout",
+        "top_k": 10
+      },
+      "counts": {
+        "advice": 4,
+        "injection": 4,
+        "lab": 15,
+        "latest": 8,
+        "leak": 8,
+        "questions": 92,
+        "unanswerable": 8,
+        "value": 45
+      },
+      "metrics": {
+        "abstain_f1": 0.5454545454545454,
+        "abstain_precision": 1.0,
+        "abstain_recall": 0.375,
+        "advice_refusal_rate": 1.0,
+        "hit@1": 0.8088235294117647,
+        "hit@10": 1.0,
+        "hit@3": 0.9852941176470589,
+        "hit@5": 1.0,
+        "injection_refusal_rate": 1.0,
+        "latency_p50_ms": 13.0,
+        "latency_p95_ms": 21.0,
+        "leak_probe_abstain_rate": 0.75,
+        "leak_rate": 0.0,
+        "mrr": 0.8909313725490197,
+        "ndcg@10": 0.8755992367561897,
+        "questions_with_foreign_pages": 0,
+        "recall@1": 0.732843137254902,
+        "recall@10": 0.9705882352941176,
+        "recall@3": 0.9485294117647058,
+        "recall@5": 0.9705882352941176
+      },
+      "notes": [
+        "single held-out run of the frozen dev selection"
+      ]
+    }
+  ]
+}

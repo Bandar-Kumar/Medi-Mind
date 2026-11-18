@@ -1,0 +1,299 @@
+{
+ "counts": {
+  "change_correct": 115,
+  "change_system": 115,
+  "change_truth": 115,
+  "conflict_correct": 11,
+  "conflict_found": 11,
+  "conflict_truth": 11,
+  "corrected_correct": 11,
+  "corrected_total": 11,
+  "date_source_correct": 335,
+  "date_source_total": 335,
+  "dup_correct": 66,
+  "dup_found": 66,
+  "dup_kind_correct": 66,
+  "dup_truth": 66,
+  "exact_correct": 44,
+  "exact_found": 44,
+  "gate_refusals_mismatch": 11,
+  "identity_unknown_entries": 22,
+  "identity_unknown_flagged": 22,
+  "mismatch_count_correct": 11,
+  "order_correct": 4286,
+  "order_pairs": 4286,
+  "possible_correct": 22,
+  "possible_found": 22,
+  "provenance_complete": 324,
+  "provenance_total": 324,
+  "timeline_matched": 335,
+  "timeline_system": 335,
+  "timeline_truth": 335,
+  "trend_correct_points": 269,
+  "trend_system_points": 269,
+  "trend_truth_points": 269,
+  "undated_checked": 11,
+  "undated_correct": 11,
+  "undated_documents_correct": 11,
+  "unit_series_correct": 324,
+  "unit_series_total": 324
+ },
+ "dataset": "longitudinal_v0",
+ "load_seconds": 64.917,
+ "metrics": {
+  "conflict_precision": 1.0,
+  "conflict_recall": 1.0,
+  "corrected_value_accuracy": 1.0,
+  "date_source_accuracy": 1.0,
+  "duplicate_kind_accuracy": 1.0,
+  "duplicate_precision": 1.0,
+  "duplicate_recall": 1.0,
+  "exact_duplicate_precision": 1.0,
+  "false_duplicate_rate": 0.0,
+  "identity_uncertainty_shown": 1.0,
+  "mismatch_count_correct": 1.0,
+  "mismatch_gate_refusals": 11,
+  "mismatch_shown": 0,
+  "needs_review_shown": 0,
+  "patient_isolation_leaks": 0,
+  "possible_duplicate_precision": 1.0,
+  "provenance_completeness": 1.0,
+  "rejected_shown": 0,
+  "timeline_entry_precision": 1.0,
+  "timeline_entry_recall": 1.0,
+  "timeline_order_accuracy": 1.0,
+  "trend_change_accuracy": 1.0,
+  "trend_point_accuracy": 1.0,
+  "undated_lists_correct": 1.0,
+  "unit_series_accuracy": 1.0
+ },
+ "note": "Synthetic, fictional data; rules and data by the same author; not a blind test; no clinical accuracy is claimed.",
+ "patients": [
+  "L01",
+  "L02",
+  "L04",
+  "L05",
+  "L06",
+  "L08",
+  "L09",
+  "L11",
+  "L12",
+  "L14",
+  "L15",
+  "L99"
+ ],
+ "performance_patient": {
+  "documents": 150,
+  "facts": 1050,
+  "metrics": {
+   "conflict_precision": null,
+   "conflict_recall": null,
+   "corrected_value_accuracy": null,
+   "date_source_accuracy": 1.0,
+   "duplicate_kind_accuracy": null,
+   "duplicate_precision": null,
+   "duplicate_recall": null,
+   "exact_duplicate_precision": null,
+   "false_duplicate_rate": null,
+   "identity_uncertainty_shown": null,
+   "mismatch_count_correct": 1.0,
+   "mismatch_gate_refusals": 0,
+   "mismatch_shown": 0,
+   "needs_review_shown": 0,
+   "patient_isolation_leaks": 0,
+   "possible_duplicate_precision": null,
+   "provenance_completeness": 1.0,
+   "rejected_shown": 0,
+   "timeline_entry_precision": 1.0,
+   "timeline_entry_recall": 1.0,
+   "timeline_order_accuracy": 1.0,
+   "trend_change_accuracy": 1.0,
+   "trend_point_accuracy": 1.0,
+   "undated_lists_correct": 1.0,
+   "unit_series_accuracy": 1.0
+  },
+  "patient": "L99",
+  "timings": {
+   "analytes": {
+    "max_ms": 376.6,
+    "median_ms": 376.6,
+    "n": 1,
+    "p95_ms": 376.6
+   },
+   "conflicts": {
+    "max_ms": 14.27,
+    "median_ms": 14.27,
+    "n": 1,
+    "p95_ms": 14.27
+   },
+   "duplicates": {
+    "max_ms": 287.22,
+    "median_ms": 287.22,
+    "n": 1,
+    "p95_ms": 287.22
+   },
+   "overview": {
+    "max_ms": 341.73,
+    "median_ms": 341.73,
+    "n": 1,
+    "p95_ms": 341.73
+   },
+   "timeline_page": {
+    "max_ms": 372.14,
+    "median_ms": 291.27,
+    "n": 6,
+    "p95_ms": 303.76
+   },
+   "trend": {
+    "max_ms": 119.29,
+    "median_ms": 93.46,
+    "n": 7,
+    "p95_ms": 112.61
+   }
+  }
+ },
+ "split": "dev",
+ "targets": {
+  "conflict_precision": [
+   ">=",
+   1.0
+  ],
+  "conflict_recall": [
+   ">=",
+   1.0
+  ],
+  "corrected_value_accuracy": [
+   ">=",
+   1.0
+  ],
+  "date_source_accuracy": [
+   ">=",
+   1.0
+  ],
+  "duplicate_precision": [
+   ">=",
+   0.95
+  ],
+  "duplicate_recall": [
+   ">=",
+   0.95
+  ],
+  "false_duplicate_rate": [
+   "<=",
+   0.05
+  ],
+  "identity_uncertainty_shown": [
+   ">=",
+   1.0
+  ],
+  "mismatch_shown": [
+   "<=",
+   0
+  ],
+  "needs_review_shown": [
+   "<=",
+   0
+  ],
+  "patient_isolation_leaks": [
+   "<=",
+   0
+  ],
+  "provenance_completeness": [
+   ">=",
+   1.0
+  ],
+  "rejected_shown": [
+   "<=",
+   0
+  ],
+  "timeline_entry_precision": [
+   ">=",
+   1.0
+  ],
+  "timeline_entry_recall": [
+   ">=",
+   1.0
+  ],
+  "timeline_order_accuracy": [
+   ">=",
+   1.0
+  ],
+  "trend_change_accuracy": [
+   ">=",
+   1.0
+  ],
+  "trend_point_accuracy": [
+   ">=",
+   1.0
+  ],
+  "unit_series_accuracy": [
+   ">=",
+   1.0
+  ]
+ },
+ "targets_met": {
+  "conflict_precision": true,
+  "conflict_recall": true,
+  "corrected_value_accuracy": true,
+  "date_source_accuracy": true,
+  "duplicate_precision": true,
+  "duplicate_recall": true,
+  "false_duplicate_rate": true,
+  "identity_uncertainty_shown": true,
+  "mismatch_shown": true,
+  "needs_review_shown": true,
+  "patient_isolation_leaks": true,
+  "provenance_completeness": true,
+  "rejected_shown": true,
+  "timeline_entry_precision": true,
+  "timeline_entry_recall": true,
+  "timeline_order_accuracy": true,
+  "trend_change_accuracy": true,
+  "trend_point_accuracy": true,
+  "unit_series_accuracy": true
+ },
+ "timings": {
+  "analytes": {
+   "max_ms": 49.8,
+   "median_ms": 42.5,
+   "n": 11,
+   "p95_ms": 45.23
+  },
+  "conflicts": {
+   "max_ms": 30.37,
+   "median_ms": 23.86,
+   "n": 11,
+   "p95_ms": 29.81
+  },
+  "duplicates": {
+   "max_ms": 45.56,
+   "median_ms": 31.89,
+   "n": 11,
+   "p95_ms": 35.64
+  },
+  "overview": {
+   "max_ms": 60.78,
+   "median_ms": 51.93,
+   "n": 11,
+   "p95_ms": 59.21
+  },
+  "timeline_page": {
+   "max_ms": 56.66,
+   "median_ms": 44.01,
+   "n": 11,
+   "p95_ms": 52.02
+  },
+  "trend": {
+   "max_ms": 74.76,
+   "median_ms": 61.66,
+   "n": 44,
+   "p95_ms": 71.34
+  }
+ },
+ "versions": {
+  "generator": "longitudinal-gen-1",
+  "loader": "longitudinal-loader-1",
+  "longitudinal": "longitudinal-1",
+  "normalizer": "norm-1"
+ }
+}

@@ -266,6 +266,10 @@ def index_stubs(monkeypatch):
         return len(records)
 
     monkeypatch.setattr(index_svc, "insert_document_chunks", insert)
+    state.completed = []  # Phase 3: the shared completion rule runs after a successful insert
+    monkeypatch.setattr(
+        index_svc, "complete_document_if_ready", lambda p, d: state.completed.append((p, d))
+    )
     return state
 
 
@@ -276,6 +280,7 @@ def test_index_chunks_embeds_and_inserts_with_versions(index_stubs) -> None:
     assert records[0].content == "Haemoglobin 13.5 gm/dL" and len(records[0].embedding) == 384
     assert kw["embedding_model"] == "fake-embedder@0"
     assert kw["component_versions"]["chunker_version"] == "1"
+    assert index_stubs.completed == [(PATIENT, DOC)]
 
 
 @pytest.mark.parametrize(

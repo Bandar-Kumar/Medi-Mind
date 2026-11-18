@@ -22,7 +22,125 @@ Only work that actually happened and was verified is recorded.
 
 ---
 
-## 2026-11-17: R1.8 deferred (Docker unavailable); Phase 2 remaining-work planning (later: Tasks 2.7–2.9b implemented; see the correction at the end of this entry)
+## 2026-11-18 (evening): Phase 5 remediation (ADR-041): citation precision 0.605 → 1.000 on a new held-out set; rules-based routing confirmed
+
+**Phase:** 5, focused remediation (owner's instruction)
+
+### Done
+- Diagnosed `copilot_v0` precision loss: unknown everyday names widened to "all tests".
+- Added patient vocabulary, unrecognised-name abstention (never "all tests"), partial answers for known + unknown, passage relevance gate.
+- Calibrated a lexical threshold on dev only and rejected it (overlapping scores).
+- Built new sources `lab_v1`, `longitudinal_v1` and the `copilot_v1` set (frozen before remediation code); dev, freeze, held-out once.
+- Held-out (167 questions, new patients): every target met; citation precision 1.000; 0 unsupported claims, leaks, exposures; 0/320 attacks accepted.
+- Tests: default 1919 passed, 282 deselected; integration 221; real-model 3; Ruff clean. Docs: ADR-041, ADR-007/024 notes, PHASE_5_PLAN §12, ARCHITECTURE, USER_FLOWS, IMPLEMENTATION_PLAN, ROADMAP, README, PROGRESS.
+
+### Decisions
+- Routing stays rules-based (recorded decision). No lexical score threshold. LLM provider evaluation stays deferred (no model, no credentials).
+
+### Learned
+- The precision problem was a fallback design choice, not retrieval: abstaining on unknown names fixed it.
+- A ts_rank threshold cannot separate answerable from unanswerable here; term-based relevance can.
+
+### Issues
+- Same-author vocabulary and held-out phrasings: coverage of real patient language is not measured.
+- Two held-out invocations aborted in a harness bug before any metric existed (recorded).
+
+### Next
+- Owner review of ADR-040/041; real or independently written patient phrasings to measure vocabulary coverage; LLM provider evaluation when access is approved.
+
+## 2026-11-18 (later): Phase 5 evidence-grounded copilot implemented (ADR-040); R1.8 retrieval evaluation completed; LLM provider evaluation blocked
+
+**Phase:** 5, advanced hybrid RAG (one-pass implementation on the owner's instruction; awaiting review)
+
+### Done
+- **R1.8 completed** with Docker running: dev ingest, ablation, `lexical` frozen, held-out ingest, one held-out run (MRR 0.891, Recall@5 0.971, leak 0, abstention recall 0.375).
+- Built the copilot: `app/llm/` (interface, mock, OpenAI-compatible adapter), `app/answering/` (router, guardrails, composer, LLM generator, citation validator), `copilot_tools.py`, `copilot.py`, `stored_chunks`, Copilot page, settings.
+- Built and froze `copilot_v0` (231 dev / 103 held-out questions) and `evals/run_copilot.py` with an attack suite; dev runs, freeze, held-out once.
+- Tests: 177 new unit/UI tests, 7 integration tests; default suite 1894 passed, 282 deselected (0 failed, 0 skipped); integration 221 passed; real-model 3 passed; Ruff clean.
+- Docs: PHASE_5_PLAN.md (new), DECISIONS (ADR-040; notes on ADR-007, 011, 024), ARCHITECTURE, IMPLEMENTATION_PLAN, ROADMAP, USER_FLOWS, DATABASE_DESIGN, README, PROGRESS.
+
+### Decisions
+- Retrieval: lexical over hybrid/rerank (no measured ranking gain; ~57× latency). Abstention trade-off accepted pending owner review.
+- Deterministic router and rule-chosen tools (deviation from ARCHITECTURE §9.1 / ADR-007, flagged); no LangChain; extractive generator as default until ADR-024 is resolved; no conversation history.
+- Fail-closed validation of every supplied source, added after the eval exposed a display leak path.
+
+### Learned
+- On exact-code lab questions, full-text search beat dense embeddings by a wide margin and matched a cross-encoder.
+- An adversarial eval found a bug unit tests had not: validating only *cited* sources still let an uncited foreign source reach the screen.
+- Router vocabulary, not grounding, limits answer quality: held-out citation precision 0.605 because "A1c"/"fasting sugar" are not reference aliases.
+
+### Issues
+- LLM provider evaluation blocked (no credentials, no local model server).
+- Citation-precision target missed on dev (0.827) and held-out (0.605).
+- `copilot_v0` held-out is spent; further copilot work needs `copilot_v1`.
+
+### Next
+- Owner review of Phase 5 and its deviations; provide LLM access or approve a local model; patient-vocabulary table + abstain-on-unknown-test with `copilot_v1`; portfolio checkpoint (demo seed, video).
+
+## 2026-11-18: Q12 closed (ambiguous-date review retained); Phase 3 PostgreSQL acceptance passed (205 integration tests, end-to-end UI run, 6 defects fixed); Phase 4 longitudinal intelligence implemented (ADR-039; all targets met on dev and held-out)
+
+*The entry starts with the Phase 3 acceptance work, then Phase 4.*
+
+**Phase:** 3, structured lab extraction (acceptance); then 4, longitudinal intelligence
+
+### Done
+- Closed Q12 with the owner's decision: keep `ambiguous_date` review. The dev rate of 129 of 394 facts (32.7%) was checked against the frozen `extraction_dev_lab-rules-2` report. Recorded in DECISIONS.md (Q12, ADR-025, ADR-037), PROGRESS.md, ARCHITECTURE.md and PHASE_3_PLAN.md.
+- First session: Docker checked once, unavailable; database acceptance stopped there, as instructed.
+- Later, with Docker running:
+  - **Migration:** 0001 → 0004 applied to `medimind`; the schema matches the models (0 autogenerate differences, 173/173 columns).
+  - **Seeding:** reference seeding is idempotent (31/89/9 rows, then 0 added, identical hashes).
+  - **Integration tests:** 205 passed, 0 failed, 0 skipped (first run: 41 failed).
+- **End to end** through the Streamlit script (`AppTest`) with fictional dev documents, persisted state checked by SQL:
+  - five stages to `processed`;
+  - exact spans and run links for all 41 facts;
+  - mismatch blocked, `unknown` labelled;
+  - review history and the full conflict lifecycle;
+  - idempotent repeats; cross-patient refusal.
+- **Regression:** default suite 1666 passed; Ruff and `git diff --check` clean; frozen artifacts byte-identical.
+- **Phase 4** (on the owner's instruction; [docs/PHASE_4_PLAN.md](docs/PHASE_4_PLAN.md), ADR-039):
+  - **Implemented:** timeline, lab trends, comparison of two dates, cross-document duplicates (derived, exact or possible, with reasons) and the presentation of stored conflicts; Overview, Timeline and Lab trends pages. No migration; no LLM.
+  - **Dataset** `longitudinal_v0`: 16 fictional scenario patients covering 14 cases, plus a 1,050-result performance patient. Held-out digest frozen at build.
+  - **Measured** (synthetic; not blind; no clinical accuracy claimed): every pre-registered target met on dev and on held-out (run once):
+    - timeline, ordering, trend values and differences, conflicts and provenance at 1.0;
+    - duplicates 1.0 / 1.0;
+    - 0 leaks.
+
+    Timeline page median: 291 ms at 1,050 results.
+  - **Tests:** default suite 1717 passed; integration 214 passed, 0 failed, 0 skipped; Docling and models 64 passed.
+  - **Fixed:** two Windows concurrency defects in upload storage, found by an intermittently failing existing test (ADR-033 update).
+
+### Decisions
+- Q12: no same-document auto-accept rule. A confirming date elsewhere is an inference; a silent day/month swap is worse than one review action.
+- Fixes stayed inside the approved design: no schema shape, rule or evaluation changed.
+- Phase 4: only usable facts appear (ADR-023); duplicates are derived, never stored; one trend series per unit; no migration (ADR-039).
+
+### Learned
+- The measured rate (32.7%) is below the pre-measurement estimate (about 38%).
+- Code that only ever ran against stand-ins hid six defects that a real PostgreSQL found in minutes:
+  - Alembic naming conventions re-apply to plain names in `drop_constraint`.
+  - `text()` treats `:r` inside a regex as a bind parameter.
+  - SQLAlchemy writes `None` to JSONB as JSON `'null'`.
+  - RESTRICT deletes raise `23001`, not `23503`.
+  - `mkstemp` returns absolute paths, which broke the check against a relative data dir.
+  - A catalog comparison between models and migrations cannot catch a bug both share.
+- Phase 4:
+  - Pre-registering targets and freezing held-out before the first run made a first-run 1.0 a statement about the specification, not tuning. A negative control (duplicates disabled) proved the scoring can fail.
+  - On Windows, `Path.resolve()` can return `\\?\C:\...` while a file is busy, and a read-only attribute on one hard link protects them all.
+
+### Issues / blockers
+- None blocking. Not seen in the UI run: an `unknown`-identity document with extracted facts. The UI was driven by `AppTest`, not a browser; a manual browser pass is still worthwhile.
+- R1.8 (retrieval evaluation) is still deferred.
+- Phase 3 and Phase 4 gates both await the owner's approval. Phase 4 started on the owner's instruction, without a recorded Phase 3 gate approval.
+
+### Next
+- Owner: review Phase 3 and Phase 4 (with today's fixes), decide both phase gates and commit.
+- R1.8 now that the database runs; Phase 5 only after approval.
+
+---
+
+## 2026-11-17: Phase 2 completed (Tasks 2.7–2.9b, committed as `f989b98`); Phase 3 planned, approved and implemented (structured lab extraction); R1.8 deferred (Docker unavailable)
+
+*The entry starts with the day's Phase 2 work (its original headline: "R1.8 deferred; Phase 2 remaining-work planning"), then the Phase 3 work, then the end-of-day wrap-up.*
 
 **Phase:** 2, document intelligence
 
@@ -177,6 +295,46 @@ Only work that actually happened and was verified is recorded.
   2. R1.8, still deferred: **no retrieval metric has been measured.**
   3. Owner review and commit of the uncommitted work (Task 1.8 onward).
 - **README model setup corrected:** the BGE and MiniLM revisions were already approved, pinned, cached and CPU-verified on 2026-11-16 (R1.5). The README no longer describes them as awaiting approval.
+
+### Phase 3 (later the same day): structured lab extraction
+
+
+#### Done
+- **Planning:** `docs/PHASE_3_PLAN.md` written after three owner review rounds and approved once (revision 3, decisions D-1 to D-15).
+- **Batch 0:** Docker checked once with `docker info`: unavailable; not retried. Database acceptance is pending.
+- **Batch A:** `app/extraction/`: exact table spans computed from the IR's rendering (a test ties it to Docling's renderer), grounding, normalizers (numbers, dates with a fixed reference date, units, ranges, analytes), versioned reference CSVs, analyte-specific comparison and conflict components.
+- **Batch B:** dataset `extract_v0` (16 fictional patients, 112 documents, held-out frozen at build); the extractor (`lab-rules-1`, then `lab-rules-2`); `evals/run_extraction.py` (component and system modes, end-to-end metrics, freeze, one-time held-out).
+- **Batch C:** migration `0004_extraction`, mirrored models, `app/records/facts.py`; integration tests written.
+- **Batch D:** extraction, review, read and reference services; the conflict detector; pipeline stage 5 and the completion rule; CLI `extract`, `facts`, `seed-reference`.
+- **Batch E:** UI: results with source text, original vs normalized vs derived vs corrected values, review actions, run history, conflicts with direct pairs and history.
+- **Batch F:** dev report, freeze, held-out run once; ADR-037, ADR-038 and doc updates.
+- **Measured** (synthetic; not blind; no clinical accuracy): native entity recall 1.0 and fully correct 1.0 on dev and held-out with `lab-rules-2`; OCR group recall 0.90 (dev) and 0.95 (held-out), every OCR fact flagged for review; hard gates 0 on both splits. `lab-rules-1` dev native recall was 0.9273.
+- **Tests:** 1659 unit tests passed; 205 integration tests skipped (no database), including the 24 new ones.
+
+#### Decisions
+- Rule-based extraction instead of an LLM in Phase 3 (D-1); identity mismatch blocks extraction (D-2); corrections in `review_decisions`; one conflict per connected component; analyte-specific qualitative scales; single approval for the whole phase.
+
+#### Learned
+- Docling joins several printed lines into one text line; the first rule set missed those results. Reading them needed a strict "segments tile the whole line" rule, not looser matching.
+- Docling writes each table into the page text as tab-separated rows, so exact offsets can be computed instead of searched.
+- The synthetic generator flags 100.4 as high but prints "100"; the extractor correctly sends that to review.
+
+#### Issues / blockers
+- Docker unavailable: migration 0004, the extraction repository and every earlier integration suite are unverified against PostgreSQL.
+
+#### Next
+- Owner review of Phase 3; database verification when Docker runs; optional Batch G; Q12 with the measured ambiguous-date rate.
+
+### End of day (wrap-up, 2026-11-17)
+- **Done today:** Phase 2 Tasks 2.7–2.9b implemented, frozen where applicable, and committed by the owner as `f989b98` ("complete ph 2 document intelligence"); Phase 3 planned (three review rounds), approved once, and implemented through Batch F, with its dev and held-out extraction evaluations run (held-out once).
+- **Corrected open item:** item 3 of "Current open items" above ("commit of the uncommitted work, Task 1.8 onward") is done: the Phase 2 work is in `f989b98`. The Phase 3 work is **not committed** (the owner commits manually).
+- **Decisions today:** ADR-036 (Phase 2 rules and gate), ADR-037 and ADR-038 (Phase 3), with the Phase 3 plan decisions D-1 to D-15.
+- **Learned today:** strict rules need measurement on real parser output (Docling joined lines and merged header cells); freezing the held-out split before any rule is written kept every evaluation honest.
+- **Issues / blockers:** Docker is still unavailable. Unverified against PostgreSQL: the integration suites of Task 1.8, R1, 2.7, 2.8, 2.9a and Phase 3 (205 integration tests skipped), migration 0004, the 2.9b and Phase 3 UI acceptance runs. R1.8 is still deferred: no retrieval metric has been measured.
+- **Next:**
+  1. Owner: review Phase 3 (`docs/PHASE_3_PLAN.md`, ADR-037, ADR-038, `evals/reports/extract_v0/`), decide the phase gate, and commit.
+  2. When Docker runs: `python -m app migrate`, `python -m app seed-reference`, `pytest -m integration`, then one synthetic PDF through all five stages in the UI; then R1.8.
+  3. Optional: Batch G (LLM comparison) if selected; decide Q12 with the measured ambiguous-date rate (129 of 394 dev facts).
 
 ---
 

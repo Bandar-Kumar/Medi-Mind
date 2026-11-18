@@ -1000,13 +1000,22 @@ def test_conflicts_survive_document_deletion_without_members_and_block_patient_d
     test_patient, sql
 ) -> None:
     document, _ = _parsed(test_patient)
-    fact = sql(
-        "INSERT INTO extracted_facts (patient_id, document_id, fact_type, page_number,"
-        " source_excerpt, assertion_type, negated, subject, extractor_version, prompt_version,"
-        " model_id) VALUES (:p, :d, 'observation', 1, 'Haemoglobin 13.5 g/dL', 'direct_fact',"
-        " false, 'patient', 'x1', 'p1', 'm1') RETURNING id",
+    run = sql(
+        "INSERT INTO pipeline_runs (patient_id, document_id, stage, status, finished_at)"
+        " VALUES (:p, :d, 'extract', 'succeeded', now()) RETURNING id",
         p=test_patient,
         d=document,
+    )[0][0]
+    fact = sql(  # the migration 0004 fact shape (ADR-038)
+        "INSERT INTO extracted_facts (patient_id, document_id, fact_type, page_number,"
+        " source_excerpt, assertion_type, negated, subject, extractor_version, prompt_version,"
+        " model_id, extraction_run_id, source_locator, char_start, char_end, normalizer_version,"
+        " reference_data_version, review_status) VALUES (:p, :d, 'observation', 1,"
+        " 'Haemoglobin 13.5 g/dL', 'direct_fact', false, 'patient', 'x1', 'p1', 'm1', :r,"
+        " 'p1:l1', 0, 21, 'norm-test', 'ref-test', 'validated') RETURNING id",
+        p=test_patient,
+        d=document,
+        r=run,
     )[0][0]
     conflict = _insert_conflict(sql, test_patient)
     try:
@@ -1017,7 +1026,9 @@ def test_conflicts_survive_document_deletion_without_members_and_block_patient_d
             p=test_patient,
         )
         repo.delete_document(test_patient, document)
-        assert sql("SELECT status FROM conflicts WHERE id = :c", c=conflict) == [("open",)]
+        # Phase 3 (ADR-038): the conflict is closed as member_deleted and kept as history.
+        status = "SELECT status, closed_reason FROM conflicts WHERE id = :c"
+        assert sql(status, c=conflict) == [("closed", "member_deleted")]
         members = "SELECT count(*) FROM conflict_members WHERE conflict_id = :c"
         assert sql(members, c=conflict) == [(0,)]
         _expect_patient_error("patient_not_empty", lambda: repo.delete_patient(test_patient))

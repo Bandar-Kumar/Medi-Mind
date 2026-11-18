@@ -1,0 +1,3373 @@
+[
+  {
+    "date_of_birth": "1983-12-25",
+    "display_name": "Lakshmi Placeholder",
+    "panels": [
+      "cbc",
+      "diabetes",
+      "kft",
+      "lft",
+      "lipid"
+    ],
+    "patient_key": "P01",
+    "reports": [
+      {
+        "date": "2022-04-23",
+        "date_ambiguous": false,
+        "date_printed": "23/04/2022",
+        "lab_address": "88 Test Marg, Lucknow",
+        "lab_name": "Neelkanth Health Labs (Fictional)",
+        "layout": "compact",
+        "pages": [
+          {
+            "page_number": 1,
+            "panels": [
+              "cbc",
+              "kft"
+            ],
+            "rows": [
+              {
+                "analyte_key": "hb",
+                "flag": "L",
+                "printed_name": "Haemoglobin",
+                "reference": "13.0 - 17.0",
+                "unit": "gm/dL",
+                "value": "12.9"
+              },
+              {
+                "analyte_key": "tlc",
+                "flag": "",
+                "printed_name": "Total Leucocyte Count",
+                "reference": "4000 - 11000",
+                "unit": "/cumm",
+                "value": "5873"
+              },
+              {
+                "analyte_key": "plt",
+                "flag": "",
+                "printed_name": "Platelet Count",
+                "reference": "1.50 - 4.50",
+                "unit": "lakhs/cumm",
+                "value": "2.61"
+              },
+              {
+                "analyte_key": "rbc",
+                "flag": "",
+                "printed_name": "RBC Count",
+                "reference": "4.50 - 5.50",
+                "unit": "million/cumm",
+                "value": "4.94"
+              },
+              {
+                "analyte_key": "pcv",
+                "flag": "",
+                "printed_name": "Packed Cell Volume",
+                "reference": "40.0 - 50.0",
+                "unit": "%",
+                "value": "46.0"
+              },
+              {
+                "analyte_key": "mcv",
+                "flag": "",
+                "printed_name": "MCV",
+                "reference": "83.0 - 101.0",
+                "unit": "fL",
+                "value": "87.0"
+              },
+              {
+                "analyte_key": "creat",
+                "flag": "",
+                "printed_name": "Creatinine",
+                "reference": "0.70 - 1.30",
+                "unit": "mg/dL",
+                "value": "1.11"
+              },
+              {
+                "analyte_key": "urea",
+                "flag": "",
+                "printed_name": "Blood Urea",
+                "reference": "15 - 40",
+                "unit": "mg/dL",
+                "value": "34"
+              },
+              {
+                "analyte_key": "uric",
+                "flag": "",
+                "printed_name": "Uric Acid",
+                "reference": "3.5 - 7.2",
+                "unit": "mg/dL",
+                "value": "5.5"
+              },
+              {
+                "analyte_key": "egfr",
+                "flag": "",
+                "printed_name": "Estimated GFR",
+                "reference": "> 90",
+                "unit": "mL/min/1.73m²",
+                "value": "109"
+              }
+            ]
+          }
+        ],
+        "patient_key": "P01",
+        "report_id": "P01-R01",
+        "sample_id": "SMP317025"
+      },
+      {
+        "date": "2023-07-17",
+        "date_ambiguous": false,
+        "date_printed": "17/07/2023",
+        "lab_address": "4 Sample Nagar, Chennai",
+        "lab_name": "Lotus Pathology Lab (Fictional)",
+        "layout": "compact",
+        "pages": [
+          {
+            "page_number": 1,
+            "panels": [
+              "cbc",
+              "kft"
+            ],
+            "rows": [
+              {
+                "analyte_key": "hb",
+                "flag": "",
+                "printed_name": "Hb",
+                "reference": "13.0 - 17.0",
+                "unit": "gm/dL",
+                "value": "15.5"
+              },
+              {
+                "analyte_key": "tlc",
+                "flag": "",
+                "printed_name": "Total Leucocyte Count",
+                "reference": "4000 - 11000",
+                "unit": "/cumm",
+                "value": "6134"
+              },
+              {
+                "analyte_key": "plt",
+                "flag": "L",
+                "printed_name": "Platelet Count",
+                "reference": "1.50 - 4.50",
+                "unit": "lakhs/cumm",
+                "value": "1.23"
+              },
+              {
+                "analyte_key": "rbc",
+                "flag": "",
+                "printed_name": "RBC Count",
+                "reference": "4.50 - 5.50",
+                "unit": "million/cumm",
+                "value": "4.98"
+              },
+              {
+                "analyte_key": "pcv",
+                "flag": "",
+                "printed_name": "Packed Cell Volume",
+                "reference": "40.0 - 50.0",
+                "unit": "%",
+                "value": "42.4"
+              },
+              {
+                "analyte_key": "mcv",
+                "flag": "",
+                "printed_name": "MCV",
+                "reference": "83.0 - 101.0",
+                "unit": "fL",
+                "value": "94.6"
+              },
+              {
+                "analyte_key": "creat",
+                "flag": "",
+                "printed_name": "Serum Creatinine",
+                "reference": "0.70 - 1.30",
+                "unit": "mg/dL",
+                "value": "1.17"
+              },
+              {
+                "analyte_key": "urea",
+                "flag": "",
+                "printed_name": "Urea",
+                "reference": "15 - 40",
+                "unit": "mg/dL",
+                "value": "25"
+              },
+              {
+                "analyte_key": "uric",
+                "flag": "",
+                "printed_name": "Uric Acid",
+                "reference": "3.5 - 7.2",
+                "unit": "mg/dL",
+                "value": "6.3"
+              },
+              {
+                "analyte_key": "egfr",
+                "flag": "",
+                "printed_name": "eGFR",
+                "reference": "> 90",
+                "unit": "mL/min/1.73m²",
+                "value": "108"
+              }
+            ]
+          }
+        ],
+        "patient_key": "P01",
+        "report_id": "P01-R02",
+        "sample_id": "SMP506288"
+      },
+      {
+        "date": "2024-01-12",
+        "date_ambiguous": true,
+        "date_printed": "12/01/2024",
+        "lab_address": "4 Sample Nagar, Chennai",
+        "lab_name": "Lotus Pathology Lab (Fictional)",
+        "layout": "grid",
+        "pages": [
+          {
+            "page_number": 1,
+            "panels": [
+              "cbc",
+              "diabetes"
+            ],
+            "rows": [
+              {
+                "analyte_key": "hb",
+                "flag": "L",
+                "printed_name": "Haemoglobin",
+                "reference": "13.0 - 17.0",
+                "unit": "gm/dL",
+                "value": "12.7"
+              },
+              {
+                "analyte_key": "tlc",
+                "flag": "",
+                "printed_name": "Total Leucocyte Count",
+                "reference": "4000 - 11000",
+                "unit": "/cumm",
+                "value": "6977"
+              },
+              {
+                "analyte_key": "plt",
+                "flag": "",
+                "printed_name": "Platelets",
+                "reference": "1.50 - 4.50",
+                "unit": "lakhs/cumm",
+                "value": "2.54"
+              },
+              {
+                "analyte_key": "rbc",
+                "flag": "",
+                "printed_name": "Red Blood Cell Count",
+                "reference": "4.50 - 5.50",
+                "unit": "million/cumm",
+                "value": "5.35"
+              },
+              {
+                "analyte_key": "pcv",
+                "flag": "",
+                "printed_name": "Packed Cell Volume",
+                "reference": "40.0 - 50.0",
+                "unit": "%",
+                "value": "40.6"
+              },
+              {
+                "analyte_key": "mcv",
+                "flag": "",
+                "printed_name": "MCV",
+                "reference": "83.0 - 101.0",
+                "unit": "fL",
+                "value": "85.3"
+              },
+              {
+                "analyte_key": "fbs",
+                "flag": "",
+                "printed_name": "Fasting Blood Sugar",
+                "reference": "70 - 100",
+                "unit": "mg/dL",
+                "value": "100"
+              },
+              {
+                "analyte_key": "ppbs",
+                "flag": "",
+                "printed_name": "Post Prandial Blood Sugar",
+                "reference": "70 - 140",
+                "unit": "mg/dL",
+                "value": "71"
+              },
+              {
+                "analyte_key": "hba1c",
+                "flag": "H",
+                "printed_name": "Glycated Hemoglobin",
+                "reference": "4.0 - 5.6",
+                "unit": "%",
+                "value": "7.5"
+              }
+            ]
+          },
+          {
+            "page_number": 2,
+            "panels": [
+              "lipid"
+            ],
+            "rows": [
+              {
+                "analyte_key": "chol",
+                "flag": "H",
+                "printed_name": "Total Cholesterol",
+                "reference": "< 200",
+                "unit": "mg/dL",
+                "value": "214"
+              },
+              {
+                "analyte_key": "tg",
+                "flag": "H",
+                "printed_name": "Triglycerides",
+                "reference": "< 150",
+                "unit": "mg/dL",
+                "value": "161"
+              },
+              {
+                "analyte_key": "hdl",
+                "flag": "L",
+                "printed_name": "HDL Cholesterol",
+                "reference": "> 40",
+                "unit": "mg/dL",
+                "value": "32"
+              },
+              {
+                "analyte_key": "ldl",
+                "flag": "",
+                "printed_name": "LDL Cholesterol",
+                "reference": "< 100",
+                "unit": "mg/dL",
+                "value": "39"
+              }
+            ]
+          }
+        ],
+        "patient_key": "P01",
+        "report_id": "P01-R03",
+        "sample_id": "SMP835725"
+      },
+      {
+        "date": "2024-06-27",
+        "date_ambiguous": false,
+        "date_printed": "27/06/2024",
+        "lab_address": "4 Sample Nagar, Chennai",
+        "lab_name": "Lotus Pathology Lab (Fictional)",
+        "layout": "compact",
+        "pages": [
+          {
+            "page_number": 1,
+            "panels": [
+              "cbc",
+              "diabetes"
+            ],
+            "rows": [
+              {
+                "analyte_key": "hb",
+                "flag": "",
+                "printed_name": "Hb",
+                "reference": "13.0 - 17.0",
+                "unit": "gm/dL",
+                "value": "15.3"
+              },
+              {
+                "analyte_key": "tlc",
+                "flag": "",
+                "printed_name": "Total Leucocyte Count",
+                "reference": "4000 - 11000",
+                "unit": "/cumm",
+                "value": "4934"
+              },
+              {
+                "analyte_key": "plt",
+                "flag": "",
+                "printed_name": "Platelet Count",
+                "reference": "1.50 - 4.50",
+                "unit": "lakhs/cumm",
+                "value": "2.81"
+              },
+              {
+                "analyte_key": "rbc",
+                "flag": "L",
+                "printed_name": "RBC Count",
+                "reference": "4.50 - 5.50",
+                "unit": "million/cumm",
+                "value": "4.48"
+              },
+              {
+                "analyte_key": "pcv",
+                "flag": "",
+                "printed_name": "Packed Cell Volume",
+                "reference": "40.0 - 50.0",
+                "unit": "%",
+                "value": "45.9"
+              },
+              {
+                "analyte_key": "mcv",
+                "flag": "",
+                "printed_name": "MCV",
+                "reference": "83.0 - 101.0",
+                "unit": "fL",
+                "value": "98.9"
+              },
+              {
+                "analyte_key": "fbs",
+                "flag": "H",
+                "printed_name": "Fasting Blood Sugar",
+                "reference": "70 - 100",
+                "unit": "mg/dL",
+                "value": "112"
+              },
+              {
+                "analyte_key": "ppbs",
+                "flag": "H",
+                "printed_name": "Post Prandial Blood Sugar",
+                "reference": "70 - 140",
+                "unit": "mg/dL",
+                "value": "157"
+              },
+              {
+                "analyte_key": "hba1c",
+                "flag": "",
+                "printed_name": "HbA1c",
+                "reference": "4.0 - 5.6",
+                "unit": "%",
+                "value": "4.8"
+              }
+            ]
+          },
+          {
+            "page_number": 2,
+            "panels": [
+              "kft",
+              "lft"
+            ],
+            "rows": [
+              {
+                "analyte_key": "creat",
+                "flag": "",
+                "printed_name": "Serum Creatinine",
+                "reference": "0.70 - 1.30",
+                "unit": "mg/dL",
+                "value": "0.70"
+              },
+              {
+                "analyte_key": "urea",
+                "flag": "",
+                "printed_name": "Urea",
+                "reference": "15 - 40",
+                "unit": "mg/dL",
+                "value": "18"
+              },
+              {
+                "analyte_key": "uric",
+                "flag": "",
+                "printed_name": "Serum Uric Acid",
+                "reference": "3.5 - 7.2",
+                "unit": "mg/dL",
+                "value": "4.2"
+              },
+              {
+                "analyte_key": "egfr",
+                "flag": "L",
+                "printed_name": "Estimated GFR",
+                "reference": "> 90",
+                "unit": "mL/min/1.73m²",
+                "value": "69"
+              },
+              {
+                "analyte_key": "sgot",
+                "flag": "H",
+                "printed_name": "AST",
+                "reference": "5 - 40",
+                "unit": "U/L",
+                "value": "46"
+              },
+              {
+                "analyte_key": "sgpt",
+                "flag": "",
+                "printed_name": "SGPT",
+                "reference": "7 - 56",
+                "unit": "U/L",
+                "value": "32"
+              },
+              {
+                "analyte_key": "tbil",
+                "flag": "",
+                "printed_name": "Total Bilirubin",
+                "reference": "0.20 - 1.20",
+                "unit": "mg/dL",
+                "value": "0.70"
+              },
+              {
+                "analyte_key": "alp",
+                "flag": "",
+                "printed_name": "Alkaline Phosphatase",
+                "reference": "44 - 147",
+                "unit": "U/L",
+                "value": "84"
+              }
+            ]
+          },
+          {
+            "page_number": 3,
+            "panels": [
+              "lipid"
+            ],
+            "rows": [
+              {
+                "analyte_key": "chol",
+                "flag": "H",
+                "printed_name": "Total Cholesterol",
+                "reference": "< 200",
+                "unit": "mg/dL",
+                "value": "221"
+              },
+              {
+                "analyte_key": "tg",
+                "flag": "H",
+                "printed_name": "Triglycerides",
+                "reference": "< 150",
+                "unit": "mg/dL",
+                "value": "159"
+              },
+              {
+                "analyte_key": "hdl",
+                "flag": "L",
+                "printed_name": "HDL Cholesterol",
+                "reference": "> 40",
+                "unit": "mg/dL",
+                "value": "31"
+              },
+              {
+                "analyte_key": "ldl",
+                "flag": "H",
+                "printed_name": "LDL",
+                "reference": "< 100",
+                "unit": "mg/dL",
+                "value": "113"
+              }
+            ]
+          }
+        ],
+        "patient_key": "P01",
+        "report_id": "P01-R04",
+        "sample_id": "SMP467121"
+      },
+      {
+        "date": "2025-05-30",
+        "date_ambiguous": false,
+        "date_printed": "30/05/2025",
+        "lab_address": "4 Sample Nagar, Chennai",
+        "lab_name": "Lotus Pathology Lab (Fictional)",
+        "layout": "grid",
+        "pages": [
+          {
+            "page_number": 1,
+            "panels": [
+              "cbc",
+              "diabetes"
+            ],
+            "rows": [
+              {
+                "analyte_key": "hb",
+                "flag": "",
+                "printed_name": "Haemoglobin",
+                "reference": "13.0 - 17.0",
+                "unit": "gm/dL",
+                "value": "13.8"
+              },
+              {
+                "analyte_key": "tlc",
+                "flag": "",
+                "printed_name": "TLC",
+                "reference": "4000 - 11000",
+                "unit": "/cumm",
+                "value": "9542"
+              },
+              {
+                "analyte_key": "plt",
+                "flag": "",
+                "printed_name": "Platelet Count",
+                "reference": "1.50 - 4.50",
+                "unit": "lakhs/cumm",
+                "value": "2.83"
+              },
+              {
+                "analyte_key": "rbc",
+                "flag": "",
+                "printed_name": "RBC Count",
+                "reference": "4.50 - 5.50",
+                "unit": "million/cumm",
+                "value": "5.43"
+              },
+              {
+                "analyte_key": "pcv",
+                "flag": "L",
+                "printed_name": "Packed Cell Volume",
+                "reference": "40.0 - 50.0",
+                "unit": "%",
+                "value": "37.3"
+              },
+              {
+                "analyte_key": "mcv",
+                "flag": "",
+                "printed_name": "MCV",
+                "reference": "83.0 - 101.0",
+                "unit": "fL",
+                "value": "85.5"
+              },
+              {
+                "analyte_key": "fbs",
+                "flag": "",
+                "printed_name": "Fasting Blood Sugar",
+                "reference": "70 - 100",
+                "unit": "mg/dL",
+                "value": "89"
+              },
+              {
+                "analyte_key": "ppbs",
+                "flag": "",
+                "printed_name": "Post Prandial Blood Sugar",
+                "reference": "70 - 140",
+                "unit": "mg/dL",
+                "value": "138"
+              },
+              {
+                "analyte_key": "hba1c",
+                "flag": "H",
+                "printed_name": "HbA1c",
+                "reference": "4.0 - 5.6",
+                "unit": "%",
+                "value": "6.4"
+              }
+            ]
+          },
+          {
+            "page_number": 2,
+            "panels": [
+              "kft",
+              "lft"
+            ],
+            "rows": [
+              {
+                "analyte_key": "creat",
+                "flag": "",
+                "printed_name": "Serum Creatinine",
+                "reference": "0.70 - 1.30",
+                "unit": "mg/dL",
+                "value": "0.85"
+              },
+              {
+                "analyte_key": "urea",
+                "flag": "",
+                "printed_name": "Urea",
+                "reference": "15 - 40",
+                "unit": "mg/dL",
+                "value": "27"
+              },
+              {
+                "analyte_key": "uric",
+                "flag": "",
+                "printed_name": "Serum Uric Acid",
+                "reference": "3.5 - 7.2",
+                "unit": "mg/dL",
+                "value": "6.9"
+              },
+              {
+                "analyte_key": "egfr",
+                "flag": "L",
+                "printed_name": "eGFR",
+                "reference": "> 90",
+                "unit": "mL/min/1.73m²",
+                "value": "90"
+              },
+              {
+                "analyte_key": "sgot",
+                "flag": "",
+                "printed_name": "SGOT",
+                "reference": "5 - 40",
+                "unit": "U/L",
+                "value": "18"
+              },
+              {
+                "analyte_key": "sgpt",
+                "flag": "",
+                "printed_name": "Alanine Aminotransferase",
+                "reference": "7 - 56",
+                "unit": "U/L",
+                "value": "38"
+              },
+              {
+                "analyte_key": "tbil",
+                "flag": "",
+                "printed_name": "Total Bilirubin",
+                "reference": "0.20 - 1.20",
+                "unit": "mg/dL",
+                "value": "0.31"
+              },
+              {
+                "analyte_key": "alp",
+                "flag": "",
+                "printed_name": "Alkaline Phosphatase",
+                "reference": "44 - 147",
+                "unit": "U/L",
+                "value": "130"
+              }
+            ]
+          },
+          {
+            "page_number": 3,
+            "panels": [
+              "lipid"
+            ],
+            "rows": [
+              {
+                "analyte_key": "chol",
+                "flag": "",
+                "printed_name": "Total Cholesterol",
+                "reference": "< 200",
+                "unit": "mg/dL",
+                "value": "125"
+              },
+              {
+                "analyte_key": "tg",
+                "flag": "H",
+                "printed_name": "Triglycerides",
+                "reference": "< 150",
+                "unit": "mg/dL",
+                "value": "200"
+              },
+              {
+                "analyte_key": "hdl",
+                "flag": "",
+                "printed_name": "HDL Cholesterol",
+                "reference": "> 40",
+                "unit": "mg/dL",
+                "value": "50"
+              },
+              {
+                "analyte_key": "ldl",
+                "flag": "H",
+                "printed_name": "LDL Cholesterol",
+                "reference": "< 100",
+                "unit": "mg/dL",
+                "value": "114"
+              }
+            ]
+          }
+        ],
+        "patient_key": "P01",
+        "report_id": "P01-R05",
+        "sample_id": "SMP482726"
+      }
+    ],
+    "sex": "F"
+  },
+  {
+    "date_of_birth": "1973-08-27",
+    "display_name": "Yash Demorao",
+    "panels": [
+      "cbc",
+      "thyroid",
+      "vitamins"
+    ],
+    "patient_key": "P02",
+    "reports": [
+      {
+        "date": "2023-01-18",
+        "date_ambiguous": false,
+        "date_printed": "18/01/2023",
+        "lab_address": "4 Sample Nagar, Chennai",
+        "lab_name": "Lotus Pathology Lab (Fictional)",
+        "layout": "compact",
+        "pages": [
+          {
+            "page_number": 1,
+            "panels": [
+              "cbc",
+              "vitamins"
+            ],
+            "rows": [
+              {
+                "analyte_key": "hb",
+                "flag": "",
+                "printed_name": "Haemoglobin",
+                "reference": "13.0 - 17.0",
+                "unit": "gm/dL",
+                "value": "14.4"
+              },
+              {
+                "analyte_key": "tlc",
+                "flag": "",
+                "printed_name": "Total Leucocyte Count",
+                "reference": "4000 - 11000",
+                "unit": "/cumm",
+                "value": "8269"
+              },
+              {
+                "analyte_key": "plt",
+                "flag": "",
+                "printed_name": "Platelets",
+                "reference": "1.50 - 4.50",
+                "unit": "lakhs/cumm",
+                "value": "2.47"
+              },
+              {
+                "analyte_key": "rbc",
+                "flag": "",
+                "printed_name": "RBC Count",
+                "reference": "4.50 - 5.50",
+                "unit": "million/cumm",
+                "value": "5.09"
+              },
+              {
+                "analyte_key": "pcv",
+                "flag": "",
+                "printed_name": "Packed Cell Volume",
+                "reference": "40.0 - 50.0",
+                "unit": "%",
+                "value": "46.3"
+              },
+              {
+                "analyte_key": "mcv",
+                "flag": "",
+                "printed_name": "MCV",
+                "reference": "83.0 - 101.0",
+                "unit": "fL",
+                "value": "85.2"
+              },
+              {
+                "analyte_key": "vitd",
+                "flag": "",
+                "printed_name": "Vitamin D (25-OH)",
+                "reference": "30.0 - 100.0",
+                "unit": "ng/mL",
+                "value": "36.8"
+              },
+              {
+                "analyte_key": "b12",
+                "flag": "",
+                "printed_name": "Vitamin B12",
+                "reference": "200 - 900",
+                "unit": "pg/mL",
+                "value": "600"
+              }
+            ]
+          }
+        ],
+        "patient_key": "P02",
+        "report_id": "P02-R01",
+        "sample_id": "SMP575064"
+      },
+      {
+        "date": "2023-10-28",
+        "date_ambiguous": false,
+        "date_printed": "28/10/2023",
+        "lab_address": "88 Test Marg, Lucknow",
+        "lab_name": "Neelkanth Health Labs (Fictional)",
+        "layout": "grid",
+        "pages": [
+          {
+            "page_number": 1,
+            "panels": [
+              "cbc",
+              "thyroid"
+            ],
+            "rows": [
+              {
+                "analyte_key": "hb",
+                "flag": "L",
+                "printed_name": "Haemoglobin",
+                "reference": "13.0 - 17.0",
+                "unit": "gm/dL",
+                "value": "11.7"
+              },
+              {
+                "analyte_key": "tlc",
+                "flag": "",
+                "printed_name": "Total Leucocyte Count",
+                "reference": "4000 - 11000",
+                "unit": "/cumm",
+                "value": "6248"
+              },
+              {
+                "analyte_key": "plt",
+                "flag": "",
+                "printed_name": "Platelet Count",
+                "reference": "1.50 - 4.50",
+                "unit": "lakhs/cumm",
+                "value": "1.98"
+              },
+              {
+                "analyte_key": "rbc",
+                "flag": "",
+                "printed_name": "RBC Count",
+                "reference": "4.50 - 5.50",
+                "unit": "million/cumm",
+                "value": "5.07"
+              },
+              {
+                "analyte_key": "pcv",
+                "flag": "",
+                "printed_name": "Packed Cell Volume",
+                "reference": "40.0 - 50.0",
+                "unit": "%",
+                "value": "43.2"
+              },
+              {
+                "analyte_key": "mcv",
+                "flag": "",
+                "printed_name": "MCV",
+                "reference": "83.0 - 101.0",
+                "unit": "fL",
+                "value": "85.9"
+              },
+              {
+                "analyte_key": "tsh",
+                "flag": "",
+                "printed_name": "TSH",
+                "reference": "0.40 - 4.50",
+                "unit": "µIU/mL",
+                "value": "3.23"
+              },
+              {
+                "analyte_key": "t3",
+                "flag": "",
+                "printed_name": "Total T3",
+                "reference": "80 - 200",
+                "unit": "ng/dL",
+                "value": "85"
+              },
+              {
+                "analyte_key": "t4",
+                "flag": "",
+                "printed_name": "T4",
+                "reference": "5.0 - 12.0",
+                "unit": "µg/dL",
+                "value": "11.4"
+              }
+            ]
+          },
+          {
+            "page_number": 2,
+            "panels": [
+              "vitamins"
+            ],
+            "rows": [
+              {
+                "analyte_key": "vitd",
+                "flag": "L",
+                "printed_name": "Vitamin D (25-OH)",
+                "reference": "30.0 - 100.0",
+                "unit": "ng/mL",
+                "value": "13.1"
+              },
+              {
+                "analyte_key": "b12",
+                "flag": "L",
+                "printed_name": "Cobalamin",
+                "reference": "200 - 900",
+                "unit": "pg/mL",
+                "value": "200"
+              }
+            ]
+          }
+        ],
+        "patient_key": "P02",
+        "report_id": "P02-R02",
+        "sample_id": "SMP541637"
+      },
+      {
+        "date": "2025-03-12",
+        "date_ambiguous": true,
+        "date_printed": "12/03/2025",
+        "lab_address": "12 Imaginary Road, Pune",
+        "lab_name": "Sunrise Diagnostics (Fictional)",
+        "layout": "compact",
+        "pages": [
+          {
+            "page_number": 1,
+            "panels": [
+              "cbc",
+              "thyroid"
+            ],
+            "rows": [
+              {
+                "analyte_key": "hb",
+                "flag": "",
+                "printed_name": "Haemoglobin",
+                "reference": "13.0 - 17.0",
+                "unit": "gm/dL",
+                "value": "13.9"
+              },
+              {
+                "analyte_key": "tlc",
+                "flag": "",
+                "printed_name": "Total Leucocyte Count",
+                "reference": "4000 - 11000",
+                "unit": "/cumm",
+                "value": "7260"
+              },
+              {
+                "analyte_key": "plt",
+                "flag": "",
+                "printed_name": "Platelet Count",
+                "reference": "1.50 - 4.50",
+                "unit": "lakhs/cumm",
+                "value": "2.93"
+              },
+              {
+                "analyte_key": "rbc",
+                "flag": "",
+                "printed_name": "RBC Count",
+                "reference": "4.50 - 5.50",
+                "unit": "million/cumm",
+                "value": "4.95"
+              },
+              {
+                "analyte_key": "pcv",
+                "flag": "",
+                "printed_name": "PCV",
+                "reference": "40.0 - 50.0",
+                "unit": "%",
+                "value": "40.8"
+              },
+              {
+                "analyte_key": "mcv",
+                "flag": "",
+                "printed_name": "MCV",
+                "reference": "83.0 - 101.0",
+                "unit": "fL",
+                "value": "93.4"
+              },
+              {
+                "analyte_key": "tsh",
+                "flag": "",
+                "printed_name": "Thyroid Stimulating Hormone",
+                "reference": "0.40 - 4.50",
+                "unit": "µIU/mL",
+                "value": "4.37"
+              },
+              {
+                "analyte_key": "t3",
+                "flag": "",
+                "printed_name": "T3",
+                "reference": "80 - 200",
+                "unit": "ng/dL",
+                "value": "93"
+              },
+              {
+                "analyte_key": "t4",
+                "flag": "",
+                "printed_name": "Total T4",
+                "reference": "5.0 - 12.0",
+                "unit": "µg/dL",
+                "value": "6.9"
+              }
+            ]
+          },
+          {
+            "page_number": 2,
+            "panels": [
+              "vitamins"
+            ],
+            "rows": [
+              {
+                "analyte_key": "vitd",
+                "flag": "L",
+                "printed_name": "Vitamin D (25-OH)",
+                "reference": "30.0 - 100.0",
+                "unit": "ng/mL",
+                "value": "24.6"
+              },
+              {
+                "analyte_key": "b12",
+                "flag": "",
+                "printed_name": "Vitamin B12",
+                "reference": "200 - 900",
+                "unit": "pg/mL",
+                "value": "291"
+              }
+            ]
+          }
+        ],
+        "patient_key": "P02",
+        "report_id": "P02-R03",
+        "sample_id": "SMP263183"
+      },
+      {
+        "date": "2025-04-19",
+        "date_ambiguous": false,
+        "date_printed": "19/04/2025",
+        "lab_address": "88 Test Marg, Lucknow",
+        "lab_name": "Neelkanth Health Labs (Fictional)",
+        "layout": "grid",
+        "pages": [
+          {
+            "page_number": 1,
+            "panels": [
+              "cbc",
+              "thyroid"
+            ],
+            "rows": [
+              {
+                "analyte_key": "hb",
+                "flag": "",
+                "printed_name": "Hemoglobin",
+                "reference": "13.0 - 17.0",
+                "unit": "gm/dL",
+                "value": "13.2"
+              },
+              {
+                "analyte_key": "tlc",
+                "flag": "",
+                "printed_name": "Total Leucocyte Count",
+                "reference": "4000 - 11000",
+                "unit": "/cumm",
+                "value": "10441"
+              },
+              {
+                "analyte_key": "plt",
+                "flag": "",
+                "printed_name": "Platelet Count",
+                "reference": "1.50 - 4.50",
+                "unit": "lakhs/cumm",
+                "value": "3.19"
+              },
+              {
+                "analyte_key": "rbc",
+                "flag": "H",
+                "printed_name": "RBC Count",
+                "reference": "4.50 - 5.50",
+                "unit": "million/cumm",
+                "value": "5.58"
+              },
+              {
+                "analyte_key": "pcv",
+                "flag": "L",
+                "printed_name": "Haematocrit",
+                "reference": "40.0 - 50.0",
+                "unit": "%",
+                "value": "40.0"
+              },
+              {
+                "analyte_key": "mcv",
+                "flag": "",
+                "printed_name": "MCV",
+                "reference": "83.0 - 101.0",
+                "unit": "fL",
+                "value": "94.2"
+              },
+              {
+                "analyte_key": "tsh",
+                "flag": "",
+                "printed_name": "TSH",
+                "reference": "0.40 - 4.50",
+                "unit": "µIU/mL",
+                "value": "3.76"
+              },
+              {
+                "analyte_key": "t3",
+                "flag": "",
+                "printed_name": "Total T3",
+                "reference": "80 - 200",
+                "unit": "ng/dL",
+                "value": "114"
+              },
+              {
+                "analyte_key": "t4",
+                "flag": "",
+                "printed_name": "Total T4",
+                "reference": "5.0 - 12.0",
+                "unit": "µg/dL",
+                "value": "6.2"
+              }
+            ]
+          },
+          {
+            "page_number": 2,
+            "panels": [
+              "vitamins"
+            ],
+            "rows": [
+              {
+                "analyte_key": "vitd",
+                "flag": "L",
+                "printed_name": "Vitamin D (25-OH)",
+                "reference": "30.0 - 100.0",
+                "unit": "ng/mL",
+                "value": "13.3"
+              },
+              {
+                "analyte_key": "b12",
+                "flag": "L",
+                "printed_name": "Vitamin B12",
+                "reference": "200 - 900",
+                "unit": "pg/mL",
+                "value": "176"
+              }
+            ]
+          }
+        ],
+        "patient_key": "P02",
+        "report_id": "P02-R04",
+        "sample_id": "SMP182452"
+      },
+      {
+        "date": "2025-05-23",
+        "date_ambiguous": false,
+        "date_printed": "23/05/2025",
+        "lab_address": "4 Sample Nagar, Chennai",
+        "lab_name": "Lotus Pathology Lab (Fictional)",
+        "layout": "grid",
+        "pages": [
+          {
+            "page_number": 1,
+            "panels": [
+              "cbc",
+              "thyroid"
+            ],
+            "rows": [
+              {
+                "analyte_key": "hb",
+                "flag": "",
+                "printed_name": "Haemoglobin",
+                "reference": "13.0 - 17.0",
+                "unit": "gm/dL",
+                "value": "16.3"
+              },
+              {
+                "analyte_key": "tlc",
+                "flag": "",
+                "printed_name": "Total Leucocyte Count",
+                "reference": "4000 - 11000",
+                "unit": "/cumm",
+                "value": "6607"
+              },
+              {
+                "analyte_key": "plt",
+                "flag": "",
+                "printed_name": "Platelet Count",
+                "reference": "1.50 - 4.50",
+                "unit": "lakhs/cumm",
+                "value": "2.24"
+              },
+              {
+                "analyte_key": "rbc",
+                "flag": "",
+                "printed_name": "RBC Count",
+                "reference": "4.50 - 5.50",
+                "unit": "million/cumm",
+                "value": "5.11"
+              },
+              {
+                "analyte_key": "pcv",
+                "flag": "L",
+                "printed_name": "Packed Cell Volume",
+                "reference": "40.0 - 50.0",
+                "unit": "%",
+                "value": "39.4"
+              },
+              {
+                "analyte_key": "mcv",
+                "flag": "",
+                "printed_name": "MCV",
+                "reference": "83.0 - 101.0",
+                "unit": "fL",
+                "value": "92.1"
+              },
+              {
+                "analyte_key": "tsh",
+                "flag": "",
+                "printed_name": "TSH",
+                "reference": "0.40 - 4.50",
+                "unit": "µIU/mL",
+                "value": "1.85"
+              },
+              {
+                "analyte_key": "t3",
+                "flag": "",
+                "printed_name": "Total T3",
+                "reference": "80 - 200",
+                "unit": "ng/dL",
+                "value": "98"
+              },
+              {
+                "analyte_key": "t4",
+                "flag": "",
+                "printed_name": "T4",
+                "reference": "5.0 - 12.0",
+                "unit": "µg/dL",
+                "value": "7.3"
+              }
+            ]
+          }
+        ],
+        "patient_key": "P02",
+        "report_id": "P02-R05",
+        "sample_id": "SMP752453"
+      }
+    ],
+    "sex": "F"
+  },
+  {
+    "date_of_birth": "1976-05-26",
+    "display_name": "Tara Testwala",
+    "panels": [
+      "cbc",
+      "kft",
+      "lipid"
+    ],
+    "patient_key": "P03",
+    "reports": [
+      {
+        "date": "2022-01-15",
+        "date_ambiguous": false,
+        "date_printed": "15/01/2022",
+        "lab_address": "4 Sample Nagar, Chennai",
+        "lab_name": "Lotus Pathology Lab (Fictional)",
+        "layout": "compact",
+        "pages": [
+          {
+            "page_number": 1,
+            "panels": [
+              "cbc",
+              "lipid"
+            ],
+            "rows": [
+              {
+                "analyte_key": "hb",
+                "flag": "",
+                "printed_name": "Haemoglobin",
+                "reference": "13.0 - 17.0",
+                "unit": "gm/dL",
+                "value": "14.6"
+              },
+              {
+                "analyte_key": "tlc",
+                "flag": "",
+                "printed_name": "Total Leucocyte Count",
+                "reference": "4000 - 11000",
+                "unit": "/cumm",
+                "value": "6187"
+              },
+              {
+                "analyte_key": "plt",
+                "flag": "",
+                "printed_name": "Platelet Count",
+                "reference": "1.50 - 4.50",
+                "unit": "lakhs/cumm",
+                "value": "2.64"
+              },
+              {
+                "analyte_key": "rbc",
+                "flag": "",
+                "printed_name": "RBC Count",
+                "reference": "4.50 - 5.50",
+                "unit": "million/cumm",
+                "value": "5.12"
+              },
+              {
+                "analyte_key": "pcv",
+                "flag": "L",
+                "printed_name": "Packed Cell Volume",
+                "reference": "40.0 - 50.0",
+                "unit": "%",
+                "value": "36.8"
+              },
+              {
+                "analyte_key": "mcv",
+                "flag": "",
+                "printed_name": "MCV",
+                "reference": "83.0 - 101.0",
+                "unit": "fL",
+                "value": "87.2"
+              },
+              {
+                "analyte_key": "chol",
+                "flag": "H",
+                "printed_name": "Total Cholesterol",
+                "reference": "< 200",
+                "unit": "mg/dL",
+                "value": "244"
+              },
+              {
+                "analyte_key": "tg",
+                "flag": "H",
+                "printed_name": "Triglycerides",
+                "reference": "< 150",
+                "unit": "mg/dL",
+                "value": "181"
+              },
+              {
+                "analyte_key": "hdl",
+                "flag": "",
+                "printed_name": "HDL Cholesterol",
+                "reference": "> 40",
+                "unit": "mg/dL",
+                "value": "44"
+              },
+              {
+                "analyte_key": "ldl",
+                "flag": "",
+                "printed_name": "LDL Cholesterol",
+                "reference": "< 100",
+                "unit": "mg/dL",
+                "value": "98"
+              }
+            ]
+          }
+        ],
+        "patient_key": "P03",
+        "report_id": "P03-R01",
+        "sample_id": "SMP650772"
+      },
+      {
+        "date": "2023-11-02",
+        "date_ambiguous": true,
+        "date_printed": "02/11/2023",
+        "lab_address": "12 Imaginary Road, Pune",
+        "lab_name": "Sunrise Diagnostics (Fictional)",
+        "layout": "compact",
+        "pages": [
+          {
+            "page_number": 1,
+            "panels": [
+              "cbc",
+              "kft"
+            ],
+            "rows": [
+              {
+                "analyte_key": "hb",
+                "flag": "",
+                "printed_name": "Hb",
+                "reference": "13.0 - 17.0",
+                "unit": "gm/dL",
+                "value": "15.3"
+              },
+              {
+                "analyte_key": "tlc",
+                "flag": "",
+                "printed_name": "Total Leucocyte Count",
+                "reference": "4000 - 11000",
+                "unit": "/cumm",
+                "value": "7240"
+              },
+              {
+                "analyte_key": "plt",
+                "flag": "",
+                "printed_name": "Platelet Count",
+                "reference": "1.50 - 4.50",
+                "unit": "lakhs/cumm",
+                "value": "3.88"
+              },
+              {
+                "analyte_key": "rbc",
+                "flag": "",
+                "printed_name": "RBC Count",
+                "reference": "4.50 - 5.50",
+                "unit": "million/cumm",
+                "value": "5.26"
+              },
+              {
+                "analyte_key": "pcv",
+                "flag": "",
+                "printed_name": "Packed Cell Volume",
+                "reference": "40.0 - 50.0",
+                "unit": "%",
+                "value": "42.1"
+              },
+              {
+                "analyte_key": "mcv",
+                "flag": "",
+                "printed_name": "Mean Corpuscular Volume",
+                "reference": "83.0 - 101.0",
+                "unit": "fL",
+                "value": "87.7"
+              },
+              {
+                "analyte_key": "creat",
+                "flag": "",
+                "printed_name": "Serum Creatinine",
+                "reference": "0.70 - 1.30",
+                "unit": "mg/dL",
+                "value": "1.17"
+              },
+              {
+                "analyte_key": "urea",
+                "flag": "",
+                "printed_name": "Urea",
+                "reference": "15 - 40",
+                "unit": "mg/dL",
+                "value": "24"
+              },
+              {
+                "analyte_key": "uric",
+                "flag": "",
+                "printed_name": "Uric Acid",
+                "reference": "3.5 - 7.2",
+                "unit": "mg/dL",
+                "value": "5.7"
+              },
+              {
+                "analyte_key": "egfr",
+                "flag": "L",
+                "printed_name": "eGFR",
+                "reference": "> 90",
+                "unit": "mL/min/1.73m²",
+                "value": "67"
+              }
+            ]
+          },
+          {
+            "page_number": 2,
+            "panels": [
+              "lipid"
+            ],
+            "rows": [
+              {
+                "analyte_key": "chol",
+                "flag": "",
+                "printed_name": "Total Cholesterol",
+                "reference": "< 200",
+                "unit": "mg/dL",
+                "value": "166"
+              },
+              {
+                "analyte_key": "tg",
+                "flag": "H",
+                "printed_name": "Triglycerides",
+                "reference": "< 150",
+                "unit": "mg/dL",
+                "value": "155"
+              },
+              {
+                "analyte_key": "hdl",
+                "flag": "",
+                "printed_name": "HDL Cholesterol",
+                "reference": "> 40",
+                "unit": "mg/dL",
+                "value": "47"
+              },
+              {
+                "analyte_key": "ldl",
+                "flag": "H",
+                "printed_name": "LDL",
+                "reference": "< 100",
+                "unit": "mg/dL",
+                "value": "134"
+              }
+            ]
+          }
+        ],
+        "patient_key": "P03",
+        "report_id": "P03-R02",
+        "sample_id": "SMP049387"
+      },
+      {
+        "date": "2024-09-10",
+        "date_ambiguous": true,
+        "date_printed": "10/09/2024",
+        "lab_address": "4 Sample Nagar, Chennai",
+        "lab_name": "Lotus Pathology Lab (Fictional)",
+        "layout": "plain",
+        "pages": [
+          {
+            "page_number": 1,
+            "panels": [
+              "cbc",
+              "kft"
+            ],
+            "rows": [
+              {
+                "analyte_key": "hb",
+                "flag": "L",
+                "printed_name": "Hb",
+                "reference": "13.0 - 17.0",
+                "unit": "gm/dL",
+                "value": "12.6"
+              },
+              {
+                "analyte_key": "tlc",
+                "flag": "",
+                "printed_name": "Total Leucocyte Count",
+                "reference": "4000 - 11000",
+                "unit": "/cumm",
+                "value": "5687"
+              },
+              {
+                "analyte_key": "plt",
+                "flag": "",
+                "printed_name": "Platelet Count",
+                "reference": "1.50 - 4.50",
+                "unit": "lakhs/cumm",
+                "value": "2.48"
+              },
+              {
+                "analyte_key": "rbc",
+                "flag": "",
+                "printed_name": "RBC Count",
+                "reference": "4.50 - 5.50",
+                "unit": "million/cumm",
+                "value": "4.90"
+              },
+              {
+                "analyte_key": "pcv",
+                "flag": "",
+                "printed_name": "Haematocrit",
+                "reference": "40.0 - 50.0",
+                "unit": "%",
+                "value": "42.7"
+              },
+              {
+                "analyte_key": "mcv",
+                "flag": "",
+                "printed_name": "MCV",
+                "reference": "83.0 - 101.0",
+                "unit": "fL",
+                "value": "90.6"
+              },
+              {
+                "analyte_key": "creat",
+                "flag": "",
+                "printed_name": "Serum Creatinine",
+                "reference": "0.70 - 1.30",
+                "unit": "mg/dL",
+                "value": "0.89"
+              },
+              {
+                "analyte_key": "urea",
+                "flag": "",
+                "printed_name": "Urea",
+                "reference": "15 - 40",
+                "unit": "mg/dL",
+                "value": "33"
+              },
+              {
+                "analyte_key": "uric",
+                "flag": "",
+                "printed_name": "Uric Acid",
+                "reference": "3.5 - 7.2",
+                "unit": "mg/dL",
+                "value": "4.2"
+              },
+              {
+                "analyte_key": "egfr",
+                "flag": "",
+                "printed_name": "eGFR",
+                "reference": "> 90",
+                "unit": "mL/min/1.73m²",
+                "value": "121"
+              }
+            ]
+          },
+          {
+            "page_number": 2,
+            "panels": [
+              "lipid"
+            ],
+            "rows": [
+              {
+                "analyte_key": "chol",
+                "flag": "",
+                "printed_name": "Total Cholesterol",
+                "reference": "< 200",
+                "unit": "mg/dL",
+                "value": "177"
+              },
+              {
+                "analyte_key": "tg",
+                "flag": "",
+                "printed_name": "Triglycerides",
+                "reference": "< 150",
+                "unit": "mg/dL",
+                "value": "82"
+              },
+              {
+                "analyte_key": "hdl",
+                "flag": "",
+                "printed_name": "HDL Cholesterol",
+                "reference": "> 40",
+                "unit": "mg/dL",
+                "value": "41"
+              },
+              {
+                "analyte_key": "ldl",
+                "flag": "H",
+                "printed_name": "LDL Cholesterol",
+                "reference": "< 100",
+                "unit": "mg/dL",
+                "value": "181"
+              }
+            ]
+          }
+        ],
+        "patient_key": "P03",
+        "report_id": "P03-R03",
+        "sample_id": "SMP065462"
+      }
+    ],
+    "sex": "M"
+  },
+  {
+    "date_of_birth": "1981-05-16",
+    "display_name": "Nikhil Mockrishnan",
+    "panels": [
+      "cbc",
+      "diabetes",
+      "lipid",
+      "vitamins"
+    ],
+    "patient_key": "P04",
+    "reports": [
+      {
+        "date": "2022-03-12",
+        "date_ambiguous": true,
+        "date_printed": "12/03/2022",
+        "lab_address": "12 Imaginary Road, Pune",
+        "lab_name": "Sunrise Diagnostics (Fictional)",
+        "layout": "plain",
+        "pages": [
+          {
+            "page_number": 1,
+            "panels": [
+              "cbc",
+              "lipid"
+            ],
+            "rows": [
+              {
+                "analyte_key": "hb",
+                "flag": "",
+                "printed_name": "Hb",
+                "reference": "13.0 - 17.0",
+                "unit": "gm/dL",
+                "value": "14.7"
+              },
+              {
+                "analyte_key": "tlc",
+                "flag": "H",
+                "printed_name": "Total Leucocyte Count",
+                "reference": "4000 - 11000",
+                "unit": "/cumm",
+                "value": "11896"
+              },
+              {
+                "analyte_key": "plt",
+                "flag": "",
+                "printed_name": "Platelets",
+                "reference": "1.50 - 4.50",
+                "unit": "lakhs/cumm",
+                "value": "2.49"
+              },
+              {
+                "analyte_key": "rbc",
+                "flag": "",
+                "printed_name": "RBC Count",
+                "reference": "4.50 - 5.50",
+                "unit": "million/cumm",
+                "value": "4.53"
+              },
+              {
+                "analyte_key": "pcv",
+                "flag": "H",
+                "printed_name": "Packed Cell Volume",
+                "reference": "40.0 - 50.0",
+                "unit": "%",
+                "value": "50.2"
+              },
+              {
+                "analyte_key": "mcv",
+                "flag": "",
+                "printed_name": "MCV",
+                "reference": "83.0 - 101.0",
+                "unit": "fL",
+                "value": "84.0"
+              },
+              {
+                "analyte_key": "chol",
+                "flag": "",
+                "printed_name": "Serum Cholesterol",
+                "reference": "< 200",
+                "unit": "mg/dL",
+                "value": "161"
+              },
+              {
+                "analyte_key": "tg",
+                "flag": "H",
+                "printed_name": "Triglycerides",
+                "reference": "< 150",
+                "unit": "mg/dL",
+                "value": "235"
+              },
+              {
+                "analyte_key": "hdl",
+                "flag": "L",
+                "printed_name": "HDL Cholesterol",
+                "reference": "> 40",
+                "unit": "mg/dL",
+                "value": "31"
+              },
+              {
+                "analyte_key": "ldl",
+                "flag": "",
+                "printed_name": "LDL Cholesterol",
+                "reference": "< 100",
+                "unit": "mg/dL",
+                "value": "82"
+              }
+            ]
+          },
+          {
+            "page_number": 2,
+            "panels": [
+              "vitamins"
+            ],
+            "rows": [
+              {
+                "analyte_key": "vitd",
+                "flag": "L",
+                "printed_name": "Vitamin D (25-OH)",
+                "reference": "30.0 - 100.0",
+                "unit": "ng/mL",
+                "value": "17.4"
+              },
+              {
+                "analyte_key": "b12",
+                "flag": "",
+                "printed_name": "Vitamin B12",
+                "reference": "200 - 900",
+                "unit": "pg/mL",
+                "value": "751"
+              }
+            ]
+          }
+        ],
+        "patient_key": "P04",
+        "report_id": "P04-R01",
+        "sample_id": "SMP492680"
+      },
+      {
+        "date": "2022-06-11",
+        "date_ambiguous": true,
+        "date_printed": "11/06/2022",
+        "lab_address": "4 Sample Nagar, Chennai",
+        "lab_name": "Lotus Pathology Lab (Fictional)",
+        "layout": "grid",
+        "pages": [
+          {
+            "page_number": 1,
+            "panels": [
+              "cbc",
+              "diabetes"
+            ],
+            "rows": [
+              {
+                "analyte_key": "hb",
+                "flag": "H",
+                "printed_name": "Haemoglobin",
+                "reference": "13.0 - 17.0",
+                "unit": "gm/dL",
+                "value": "17.7"
+              },
+              {
+                "analyte_key": "tlc",
+                "flag": "",
+                "printed_name": "TLC",
+                "reference": "4000 - 11000",
+                "unit": "/cumm",
+                "value": "9464"
+              },
+              {
+                "analyte_key": "plt",
+                "flag": "",
+                "printed_name": "Platelet Count",
+                "reference": "1.50 - 4.50",
+                "unit": "lakhs/cumm",
+                "value": "1.74"
+              },
+              {
+                "analyte_key": "rbc",
+                "flag": "",
+                "printed_name": "RBC Count",
+                "reference": "4.50 - 5.50",
+                "unit": "million/cumm",
+                "value": "5.22"
+              },
+              {
+                "analyte_key": "pcv",
+                "flag": "",
+                "printed_name": "Packed Cell Volume",
+                "reference": "40.0 - 50.0",
+                "unit": "%",
+                "value": "45.4"
+              },
+              {
+                "analyte_key": "mcv",
+                "flag": "",
+                "printed_name": "MCV",
+                "reference": "83.0 - 101.0",
+                "unit": "fL",
+                "value": "93.6"
+              },
+              {
+                "analyte_key": "fbs",
+                "flag": "L",
+                "printed_name": "Fasting Blood Sugar",
+                "reference": "70 - 100",
+                "unit": "mg/dL",
+                "value": "66"
+              },
+              {
+                "analyte_key": "ppbs",
+                "flag": "H",
+                "printed_name": "Post Prandial Blood Sugar",
+                "reference": "70 - 140",
+                "unit": "mg/dL",
+                "value": "141"
+              },
+              {
+                "analyte_key": "hba1c",
+                "flag": "",
+                "printed_name": "HbA1c",
+                "reference": "4.0 - 5.6",
+                "unit": "%",
+                "value": "5.3"
+              }
+            ]
+          },
+          {
+            "page_number": 2,
+            "panels": [
+              "lipid",
+              "vitamins"
+            ],
+            "rows": [
+              {
+                "analyte_key": "chol",
+                "flag": "H",
+                "printed_name": "Serum Cholesterol",
+                "reference": "< 200",
+                "unit": "mg/dL",
+                "value": "208"
+              },
+              {
+                "analyte_key": "tg",
+                "flag": "",
+                "printed_name": "Triglycerides",
+                "reference": "< 150",
+                "unit": "mg/dL",
+                "value": "117"
+              },
+              {
+                "analyte_key": "hdl",
+                "flag": "",
+                "printed_name": "HDL Cholesterol",
+                "reference": "> 40",
+                "unit": "mg/dL",
+                "value": "54"
+              },
+              {
+                "analyte_key": "ldl",
+                "flag": "H",
+                "printed_name": "LDL Cholesterol",
+                "reference": "< 100",
+                "unit": "mg/dL",
+                "value": "111"
+              },
+              {
+                "analyte_key": "vitd",
+                "flag": "L",
+                "printed_name": "Vitamin D (25-OH)",
+                "reference": "30.0 - 100.0",
+                "unit": "ng/mL",
+                "value": "29.7"
+              },
+              {
+                "analyte_key": "b12",
+                "flag": "",
+                "printed_name": "Vitamin B12",
+                "reference": "200 - 900",
+                "unit": "pg/mL",
+                "value": "763"
+              }
+            ]
+          }
+        ],
+        "patient_key": "P04",
+        "report_id": "P04-R02",
+        "sample_id": "SMP290079"
+      },
+      {
+        "date": "2024-10-03",
+        "date_ambiguous": true,
+        "date_printed": "03/10/2024",
+        "lab_address": "88 Test Marg, Lucknow",
+        "lab_name": "Neelkanth Health Labs (Fictional)",
+        "layout": "grid",
+        "pages": [
+          {
+            "page_number": 1,
+            "panels": [
+              "cbc",
+              "lipid"
+            ],
+            "rows": [
+              {
+                "analyte_key": "hb",
+                "flag": "L",
+                "printed_name": "Haemoglobin",
+                "reference": "13.0 - 17.0",
+                "unit": "gm/dL",
+                "value": "12.9"
+              },
+              {
+                "analyte_key": "tlc",
+                "flag": "",
+                "printed_name": "Total Leucocyte Count",
+                "reference": "4000 - 11000",
+                "unit": "/cumm",
+                "value": "8332"
+              },
+              {
+                "analyte_key": "plt",
+                "flag": "",
+                "printed_name": "Platelet Count",
+                "reference": "1.50 - 4.50",
+                "unit": "lakhs/cumm",
+                "value": "2.54"
+              },
+              {
+                "analyte_key": "rbc",
+                "flag": "",
+                "printed_name": "RBC Count",
+                "reference": "4.50 - 5.50",
+                "unit": "million/cumm",
+                "value": "5.17"
+              },
+              {
+                "analyte_key": "pcv",
+                "flag": "",
+                "printed_name": "Packed Cell Volume",
+                "reference": "40.0 - 50.0",
+                "unit": "%",
+                "value": "45.8"
+              },
+              {
+                "analyte_key": "mcv",
+                "flag": "",
+                "printed_name": "MCV",
+                "reference": "83.0 - 101.0",
+                "unit": "fL",
+                "value": "87.0"
+              },
+              {
+                "analyte_key": "chol",
+                "flag": "",
+                "printed_name": "Total Cholesterol",
+                "reference": "< 200",
+                "unit": "mg/dL",
+                "value": "150"
+              },
+              {
+                "analyte_key": "tg",
+                "flag": "",
+                "printed_name": "Triglycerides",
+                "reference": "< 150",
+                "unit": "mg/dL",
+                "value": "95"
+              },
+              {
+                "analyte_key": "hdl",
+                "flag": "L",
+                "printed_name": "HDL Cholesterol",
+                "reference": "> 40",
+                "unit": "mg/dL",
+                "value": "37"
+              },
+              {
+                "analyte_key": "ldl",
+                "flag": "H",
+                "printed_name": "LDL Cholesterol",
+                "reference": "< 100",
+                "unit": "mg/dL",
+                "value": "161"
+              }
+            ]
+          }
+        ],
+        "patient_key": "P04",
+        "report_id": "P04-R03",
+        "sample_id": "SMP129826"
+      },
+      {
+        "date": "2025-11-22",
+        "date_ambiguous": false,
+        "date_printed": "22/11/2025",
+        "lab_address": "4 Sample Nagar, Chennai",
+        "lab_name": "Lotus Pathology Lab (Fictional)",
+        "layout": "compact",
+        "pages": [
+          {
+            "page_number": 1,
+            "panels": [
+              "cbc",
+              "diabetes"
+            ],
+            "rows": [
+              {
+                "analyte_key": "hb",
+                "flag": "L",
+                "printed_name": "Haemoglobin",
+                "reference": "13.0 - 17.0",
+                "unit": "gm/dL",
+                "value": "12.4"
+              },
+              {
+                "analyte_key": "tlc",
+                "flag": "",
+                "printed_name": "Total Leucocyte Count",
+                "reference": "4000 - 11000",
+                "unit": "/cumm",
+                "value": "8814"
+              },
+              {
+                "analyte_key": "plt",
+                "flag": "",
+                "printed_name": "Platelet Count",
+                "reference": "1.50 - 4.50",
+                "unit": "lakhs/cumm",
+                "value": "2.72"
+              },
+              {
+                "analyte_key": "rbc",
+                "flag": "",
+                "printed_name": "RBC Count",
+                "reference": "4.50 - 5.50",
+                "unit": "million/cumm",
+                "value": "5.06"
+              },
+              {
+                "analyte_key": "pcv",
+                "flag": "H",
+                "printed_name": "PCV",
+                "reference": "40.0 - 50.0",
+                "unit": "%",
+                "value": "50.4"
+              },
+              {
+                "analyte_key": "mcv",
+                "flag": "L",
+                "printed_name": "MCV",
+                "reference": "83.0 - 101.0",
+                "unit": "fL",
+                "value": "79.7"
+              },
+              {
+                "analyte_key": "fbs",
+                "flag": "H",
+                "printed_name": "Fasting Blood Sugar",
+                "reference": "70 - 100",
+                "unit": "mg/dL",
+                "value": "116"
+              },
+              {
+                "analyte_key": "ppbs",
+                "flag": "",
+                "printed_name": "PPBS",
+                "reference": "70 - 140",
+                "unit": "mg/dL",
+                "value": "128"
+              },
+              {
+                "analyte_key": "hba1c",
+                "flag": "L",
+                "printed_name": "HbA1c",
+                "reference": "4.0 - 5.6",
+                "unit": "%",
+                "value": "3.3"
+              }
+            ]
+          },
+          {
+            "page_number": 2,
+            "panels": [
+              "lipid",
+              "vitamins"
+            ],
+            "rows": [
+              {
+                "analyte_key": "chol",
+                "flag": "",
+                "printed_name": "Serum Cholesterol",
+                "reference": "< 200",
+                "unit": "mg/dL",
+                "value": "146"
+              },
+              {
+                "analyte_key": "tg",
+                "flag": "",
+                "printed_name": "Triglycerides",
+                "reference": "< 150",
+                "unit": "mg/dL",
+                "value": "89"
+              },
+              {
+                "analyte_key": "hdl",
+                "flag": "",
+                "printed_name": "HDL Cholesterol",
+                "reference": "> 40",
+                "unit": "mg/dL",
+                "value": "53"
+              },
+              {
+                "analyte_key": "ldl",
+                "flag": "",
+                "printed_name": "LDL Cholesterol",
+                "reference": "< 100",
+                "unit": "mg/dL",
+                "value": "100"
+              },
+              {
+                "analyte_key": "vitd",
+                "flag": "L",
+                "printed_name": "25-OH Vitamin D",
+                "reference": "30.0 - 100.0",
+                "unit": "ng/mL",
+                "value": "15.5"
+              },
+              {
+                "analyte_key": "b12",
+                "flag": "",
+                "printed_name": "Vitamin B12",
+                "reference": "200 - 900",
+                "unit": "pg/mL",
+                "value": "413"
+              }
+            ]
+          }
+        ],
+        "patient_key": "P04",
+        "report_id": "P04-R04",
+        "sample_id": "SMP495993"
+      }
+    ],
+    "sex": "F"
+  },
+  {
+    "date_of_birth": "1985-06-08",
+    "display_name": "Vihaan Mockrishnan",
+    "panels": [
+      "cbc",
+      "diabetes",
+      "thyroid"
+    ],
+    "patient_key": "P05",
+    "reports": [
+      {
+        "date": "2022-11-23",
+        "date_ambiguous": false,
+        "date_printed": "23/11/2022",
+        "lab_address": "12 Imaginary Road, Pune",
+        "lab_name": "Sunrise Diagnostics (Fictional)",
+        "layout": "grid",
+        "pages": [
+          {
+            "page_number": 1,
+            "panels": [
+              "cbc",
+              "diabetes"
+            ],
+            "rows": [
+              {
+                "analyte_key": "hb",
+                "flag": "",
+                "printed_name": "Haemoglobin",
+                "reference": "13.0 - 17.0",
+                "unit": "gm/dL",
+                "value": "13.3"
+              },
+              {
+                "analyte_key": "tlc",
+                "flag": "",
+                "printed_name": "Total Leucocyte Count",
+                "reference": "4000 - 11000",
+                "unit": "/cumm",
+                "value": "4994"
+              },
+              {
+                "analyte_key": "plt",
+                "flag": "",
+                "printed_name": "Platelet Count",
+                "reference": "1.50 - 4.50",
+                "unit": "lakhs/cumm",
+                "value": "2.09"
+              },
+              {
+                "analyte_key": "rbc",
+                "flag": "L",
+                "printed_name": "RBC Count",
+                "reference": "4.50 - 5.50",
+                "unit": "million/cumm",
+                "value": "4.44"
+              },
+              {
+                "analyte_key": "pcv",
+                "flag": "",
+                "printed_name": "Packed Cell Volume",
+                "reference": "40.0 - 50.0",
+                "unit": "%",
+                "value": "40.0"
+              },
+              {
+                "analyte_key": "mcv",
+                "flag": "",
+                "printed_name": "MCV",
+                "reference": "83.0 - 101.0",
+                "unit": "fL",
+                "value": "88.5"
+              },
+              {
+                "analyte_key": "fbs",
+                "flag": "H",
+                "printed_name": "Fasting Blood Sugar",
+                "reference": "70 - 100",
+                "unit": "mg/dL",
+                "value": "116"
+              },
+              {
+                "analyte_key": "ppbs",
+                "flag": "H",
+                "printed_name": "Post Prandial Blood Sugar",
+                "reference": "70 - 140",
+                "unit": "mg/dL",
+                "value": "143"
+              },
+              {
+                "analyte_key": "hba1c",
+                "flag": "H",
+                "printed_name": "HbA1c",
+                "reference": "4.0 - 5.6",
+                "unit": "%",
+                "value": "5.7"
+              }
+            ]
+          },
+          {
+            "page_number": 2,
+            "panels": [
+              "thyroid"
+            ],
+            "rows": [
+              {
+                "analyte_key": "tsh",
+                "flag": "",
+                "printed_name": "TSH",
+                "reference": "0.40 - 4.50",
+                "unit": "µIU/mL",
+                "value": "4.04"
+              },
+              {
+                "analyte_key": "t3",
+                "flag": "",
+                "printed_name": "Total T3",
+                "reference": "80 - 200",
+                "unit": "ng/dL",
+                "value": "135"
+              },
+              {
+                "analyte_key": "t4",
+                "flag": "",
+                "printed_name": "Total T4",
+                "reference": "5.0 - 12.0",
+                "unit": "µg/dL",
+                "value": "7.8"
+              }
+            ]
+          }
+        ],
+        "patient_key": "P05",
+        "report_id": "P05-R01",
+        "sample_id": "SMP918045"
+      },
+      {
+        "date": "2024-06-09",
+        "date_ambiguous": true,
+        "date_printed": "09/06/2024",
+        "lab_address": "12 Imaginary Road, Pune",
+        "lab_name": "Sunrise Diagnostics (Fictional)",
+        "layout": "grid",
+        "pages": [
+          {
+            "page_number": 1,
+            "panels": [
+              "cbc",
+              "thyroid"
+            ],
+            "rows": [
+              {
+                "analyte_key": "hb",
+                "flag": "",
+                "printed_name": "Haemoglobin",
+                "reference": "13.0 - 17.0",
+                "unit": "gm/dL",
+                "value": "16.8"
+              },
+              {
+                "analyte_key": "tlc",
+                "flag": "",
+                "printed_name": "Total Leucocyte Count",
+                "reference": "4000 - 11000",
+                "unit": "/cumm",
+                "value": "9531"
+              },
+              {
+                "analyte_key": "plt",
+                "flag": "",
+                "printed_name": "Platelet Count",
+                "reference": "1.50 - 4.50",
+                "unit": "lakhs/cumm",
+                "value": "3.52"
+              },
+              {
+                "analyte_key": "rbc",
+                "flag": "L",
+                "printed_name": "RBC Count",
+                "reference": "4.50 - 5.50",
+                "unit": "million/cumm",
+                "value": "4.28"
+              },
+              {
+                "analyte_key": "pcv",
+                "flag": "",
+                "printed_name": "Packed Cell Volume",
+                "reference": "40.0 - 50.0",
+                "unit": "%",
+                "value": "46.2"
+              },
+              {
+                "analyte_key": "mcv",
+                "flag": "",
+                "printed_name": "Mean Corpuscular Volume",
+                "reference": "83.0 - 101.0",
+                "unit": "fL",
+                "value": "88.6"
+              },
+              {
+                "analyte_key": "tsh",
+                "flag": "",
+                "printed_name": "TSH",
+                "reference": "0.40 - 4.50",
+                "unit": "µIU/mL",
+                "value": "2.60"
+              },
+              {
+                "analyte_key": "t3",
+                "flag": "",
+                "printed_name": "Total T3",
+                "reference": "80 - 200",
+                "unit": "ng/dL",
+                "value": "108"
+              },
+              {
+                "analyte_key": "t4",
+                "flag": "",
+                "printed_name": "Total T4",
+                "reference": "5.0 - 12.0",
+                "unit": "µg/dL",
+                "value": "9.3"
+              }
+            ]
+          }
+        ],
+        "patient_key": "P05",
+        "report_id": "P05-R02",
+        "sample_id": "SMP512161"
+      },
+      {
+        "date": "2024-08-11",
+        "date_ambiguous": true,
+        "date_printed": "11/08/2024",
+        "lab_address": "4 Sample Nagar, Chennai",
+        "lab_name": "Lotus Pathology Lab (Fictional)",
+        "layout": "compact",
+        "pages": [
+          {
+            "page_number": 1,
+            "panels": [
+              "cbc",
+              "diabetes"
+            ],
+            "rows": [
+              {
+                "analyte_key": "hb",
+                "flag": "",
+                "printed_name": "Haemoglobin",
+                "reference": "13.0 - 17.0",
+                "unit": "gm/dL",
+                "value": "13.9"
+              },
+              {
+                "analyte_key": "tlc",
+                "flag": "",
+                "printed_name": "Total Leucocyte Count",
+                "reference": "4000 - 11000",
+                "unit": "/cumm",
+                "value": "7883"
+              },
+              {
+                "analyte_key": "plt",
+                "flag": "",
+                "printed_name": "Platelets",
+                "reference": "1.50 - 4.50",
+                "unit": "lakhs/cumm",
+                "value": "2.59"
+              },
+              {
+                "analyte_key": "rbc",
+                "flag": "",
+                "printed_name": "RBC Count",
+                "reference": "4.50 - 5.50",
+                "unit": "million/cumm",
+                "value": "4.82"
+              },
+              {
+                "analyte_key": "pcv",
+                "flag": "",
+                "printed_name": "Haematocrit",
+                "reference": "40.0 - 50.0",
+                "unit": "%",
+                "value": "49.6"
+              },
+              {
+                "analyte_key": "mcv",
+                "flag": "L",
+                "printed_name": "MCV",
+                "reference": "83.0 - 101.0",
+                "unit": "fL",
+                "value": "82.1"
+              },
+              {
+                "analyte_key": "fbs",
+                "flag": "",
+                "printed_name": "Fasting Blood Sugar",
+                "reference": "70 - 100",
+                "unit": "mg/dL",
+                "value": "80"
+              },
+              {
+                "analyte_key": "ppbs",
+                "flag": "H",
+                "printed_name": "Post Prandial Blood Sugar",
+                "reference": "70 - 140",
+                "unit": "mg/dL",
+                "value": "157"
+              },
+              {
+                "analyte_key": "hba1c",
+                "flag": "H",
+                "printed_name": "HbA1c",
+                "reference": "4.0 - 5.6",
+                "unit": "%",
+                "value": "5.8"
+              }
+            ]
+          },
+          {
+            "page_number": 2,
+            "panels": [
+              "thyroid"
+            ],
+            "rows": [
+              {
+                "analyte_key": "tsh",
+                "flag": "",
+                "printed_name": "TSH",
+                "reference": "0.40 - 4.50",
+                "unit": "µIU/mL",
+                "value": "1.79"
+              },
+              {
+                "analyte_key": "t3",
+                "flag": "",
+                "printed_name": "Total T3",
+                "reference": "80 - 200",
+                "unit": "ng/dL",
+                "value": "131"
+              },
+              {
+                "analyte_key": "t4",
+                "flag": "",
+                "printed_name": "T4",
+                "reference": "5.0 - 12.0",
+                "unit": "µg/dL",
+                "value": "8.1"
+              }
+            ]
+          }
+        ],
+        "patient_key": "P05",
+        "report_id": "P05-R03",
+        "sample_id": "SMP817409"
+      },
+      {
+        "date": "2025-04-07",
+        "date_ambiguous": true,
+        "date_printed": "07/04/2025",
+        "lab_address": "88 Test Marg, Lucknow",
+        "lab_name": "Neelkanth Health Labs (Fictional)",
+        "layout": "grid",
+        "pages": [
+          {
+            "page_number": 1,
+            "panels": [
+              "cbc",
+              "diabetes"
+            ],
+            "rows": [
+              {
+                "analyte_key": "hb",
+                "flag": "",
+                "printed_name": "Hb",
+                "reference": "13.0 - 17.0",
+                "unit": "gm/dL",
+                "value": "14.0"
+              },
+              {
+                "analyte_key": "tlc",
+                "flag": "",
+                "printed_name": "Total Leucocyte Count",
+                "reference": "4000 - 11000",
+                "unit": "/cumm",
+                "value": "6934"
+              },
+              {
+                "analyte_key": "plt",
+                "flag": "",
+                "printed_name": "Platelet Count",
+                "reference": "1.50 - 4.50",
+                "unit": "lakhs/cumm",
+                "value": "2.48"
+              },
+              {
+                "analyte_key": "rbc",
+                "flag": "",
+                "printed_name": "RBC Count",
+                "reference": "4.50 - 5.50",
+                "unit": "million/cumm",
+                "value": "4.77"
+              },
+              {
+                "analyte_key": "pcv",
+                "flag": "L",
+                "printed_name": "Packed Cell Volume",
+                "reference": "40.0 - 50.0",
+                "unit": "%",
+                "value": "36.1"
+              },
+              {
+                "analyte_key": "mcv",
+                "flag": "L",
+                "printed_name": "MCV",
+                "reference": "83.0 - 101.0",
+                "unit": "fL",
+                "value": "82.7"
+              },
+              {
+                "analyte_key": "fbs",
+                "flag": "",
+                "printed_name": "Fasting Blood Sugar",
+                "reference": "70 - 100",
+                "unit": "mg/dL",
+                "value": "96"
+              },
+              {
+                "analyte_key": "ppbs",
+                "flag": "",
+                "printed_name": "Post Prandial Blood Sugar",
+                "reference": "70 - 140",
+                "unit": "mg/dL",
+                "value": "125"
+              },
+              {
+                "analyte_key": "hba1c",
+                "flag": "H",
+                "printed_name": "Glycated Hemoglobin",
+                "reference": "4.0 - 5.6",
+                "unit": "%",
+                "value": "5.8"
+              }
+            ]
+          }
+        ],
+        "patient_key": "P05",
+        "report_id": "P05-R04",
+        "sample_id": "SMP204089"
+      },
+      {
+        "date": "2025-11-30",
+        "date_ambiguous": false,
+        "date_printed": "30/11/2025",
+        "lab_address": "12 Imaginary Road, Pune",
+        "lab_name": "Sunrise Diagnostics (Fictional)",
+        "layout": "compact",
+        "pages": [
+          {
+            "page_number": 1,
+            "panels": [
+              "cbc",
+              "thyroid"
+            ],
+            "rows": [
+              {
+                "analyte_key": "hb",
+                "flag": "",
+                "printed_name": "Haemoglobin",
+                "reference": "13.0 - 17.0",
+                "unit": "gm/dL",
+                "value": "13.1"
+              },
+              {
+                "analyte_key": "tlc",
+                "flag": "",
+                "printed_name": "Total Leucocyte Count",
+                "reference": "4000 - 11000",
+                "unit": "/cumm",
+                "value": "7379"
+              },
+              {
+                "analyte_key": "plt",
+                "flag": "",
+                "printed_name": "Platelets",
+                "reference": "1.50 - 4.50",
+                "unit": "lakhs/cumm",
+                "value": "2.95"
+              },
+              {
+                "analyte_key": "rbc",
+                "flag": "",
+                "printed_name": "Red Blood Cell Count",
+                "reference": "4.50 - 5.50",
+                "unit": "million/cumm",
+                "value": "5.01"
+              },
+              {
+                "analyte_key": "pcv",
+                "flag": "",
+                "printed_name": "Packed Cell Volume",
+                "reference": "40.0 - 50.0",
+                "unit": "%",
+                "value": "44.8"
+              },
+              {
+                "analyte_key": "mcv",
+                "flag": "L",
+                "printed_name": "MCV",
+                "reference": "83.0 - 101.0",
+                "unit": "fL",
+                "value": "81.9"
+              },
+              {
+                "analyte_key": "tsh",
+                "flag": "",
+                "printed_name": "TSH",
+                "reference": "0.40 - 4.50",
+                "unit": "µIU/mL",
+                "value": "1.41"
+              },
+              {
+                "analyte_key": "t3",
+                "flag": "",
+                "printed_name": "Total T3",
+                "reference": "80 - 200",
+                "unit": "ng/dL",
+                "value": "142"
+              },
+              {
+                "analyte_key": "t4",
+                "flag": "",
+                "printed_name": "T4",
+                "reference": "5.0 - 12.0",
+                "unit": "µg/dL",
+                "value": "8.8"
+              }
+            ]
+          }
+        ],
+        "patient_key": "P05",
+        "report_id": "P05-R05",
+        "sample_id": "SMP446333"
+      }
+    ],
+    "sex": "M"
+  },
+  {
+    "date_of_birth": "1974-12-07",
+    "display_name": "Pooja Mockrishnan",
+    "panels": [
+      "cbc",
+      "kft",
+      "lipid",
+      "vitamins"
+    ],
+    "patient_key": "P06",
+    "reports": [
+      {
+        "date": "2022-04-17",
+        "date_ambiguous": false,
+        "date_printed": "17/04/2022",
+        "lab_address": "12 Imaginary Road, Pune",
+        "lab_name": "Sunrise Diagnostics (Fictional)",
+        "layout": "compact",
+        "pages": [
+          {
+            "page_number": 1,
+            "panels": [
+              "cbc",
+              "kft"
+            ],
+            "rows": [
+              {
+                "analyte_key": "hb",
+                "flag": "",
+                "printed_name": "Haemoglobin",
+                "reference": "13.0 - 17.0",
+                "unit": "gm/dL",
+                "value": "15.8"
+              },
+              {
+                "analyte_key": "tlc",
+                "flag": "",
+                "printed_name": "Total Leucocyte Count",
+                "reference": "4000 - 11000",
+                "unit": "/cumm",
+                "value": "7684"
+              },
+              {
+                "analyte_key": "plt",
+                "flag": "",
+                "printed_name": "Platelet Count",
+                "reference": "1.50 - 4.50",
+                "unit": "lakhs/cumm",
+                "value": "2.52"
+              },
+              {
+                "analyte_key": "rbc",
+                "flag": "",
+                "printed_name": "RBC Count",
+                "reference": "4.50 - 5.50",
+                "unit": "million/cumm",
+                "value": "4.71"
+              },
+              {
+                "analyte_key": "pcv",
+                "flag": "",
+                "printed_name": "Packed Cell Volume",
+                "reference": "40.0 - 50.0",
+                "unit": "%",
+                "value": "40.8"
+              },
+              {
+                "analyte_key": "mcv",
+                "flag": "",
+                "printed_name": "MCV",
+                "reference": "83.0 - 101.0",
+                "unit": "fL",
+                "value": "90.8"
+              },
+              {
+                "analyte_key": "creat",
+                "flag": "",
+                "printed_name": "Serum Creatinine",
+                "reference": "0.70 - 1.30",
+                "unit": "mg/dL",
+                "value": "1.09"
+              },
+              {
+                "analyte_key": "urea",
+                "flag": "",
+                "printed_name": "Blood Urea",
+                "reference": "15 - 40",
+                "unit": "mg/dL",
+                "value": "24"
+              },
+              {
+                "analyte_key": "uric",
+                "flag": "",
+                "printed_name": "Uric Acid",
+                "reference": "3.5 - 7.2",
+                "unit": "mg/dL",
+                "value": "5.5"
+              },
+              {
+                "analyte_key": "egfr",
+                "flag": "",
+                "printed_name": "eGFR",
+                "reference": "> 90",
+                "unit": "mL/min/1.73m²",
+                "value": "95"
+              }
+            ]
+          },
+          {
+            "page_number": 2,
+            "panels": [
+              "vitamins"
+            ],
+            "rows": [
+              {
+                "analyte_key": "vitd",
+                "flag": "L",
+                "printed_name": "Vitamin D",
+                "reference": "30.0 - 100.0",
+                "unit": "ng/mL",
+                "value": "8.5"
+              },
+              {
+                "analyte_key": "b12",
+                "flag": "",
+                "printed_name": "Vitamin B12",
+                "reference": "200 - 900",
+                "unit": "pg/mL",
+                "value": "228"
+              }
+            ]
+          }
+        ],
+        "patient_key": "P06",
+        "report_id": "P06-R01",
+        "sample_id": "SMP697468"
+      },
+      {
+        "date": "2022-07-20",
+        "date_ambiguous": false,
+        "date_printed": "20/07/2022",
+        "lab_address": "4 Sample Nagar, Chennai",
+        "lab_name": "Lotus Pathology Lab (Fictional)",
+        "layout": "grid",
+        "pages": [
+          {
+            "page_number": 1,
+            "panels": [
+              "cbc",
+              "kft"
+            ],
+            "rows": [
+              {
+                "analyte_key": "hb",
+                "flag": "",
+                "printed_name": "Hemoglobin",
+                "reference": "13.0 - 17.0",
+                "unit": "gm/dL",
+                "value": "16.3"
+              },
+              {
+                "analyte_key": "tlc",
+                "flag": "",
+                "printed_name": "Total Leucocyte Count",
+                "reference": "4000 - 11000",
+                "unit": "/cumm",
+                "value": "7952"
+              },
+              {
+                "analyte_key": "plt",
+                "flag": "",
+                "printed_name": "Platelet Count",
+                "reference": "1.50 - 4.50",
+                "unit": "lakhs/cumm",
+                "value": "3.21"
+              },
+              {
+                "analyte_key": "rbc",
+                "flag": "",
+                "printed_name": "RBC Count",
+                "reference": "4.50 - 5.50",
+                "unit": "million/cumm",
+                "value": "5.41"
+              },
+              {
+                "analyte_key": "pcv",
+                "flag": "",
+                "printed_name": "Packed Cell Volume",
+                "reference": "40.0 - 50.0",
+                "unit": "%",
+                "value": "46.5"
+              },
+              {
+                "analyte_key": "mcv",
+                "flag": "",
+                "printed_name": "Mean Corpuscular Volume",
+                "reference": "83.0 - 101.0",
+                "unit": "fL",
+                "value": "94.1"
+              },
+              {
+                "analyte_key": "creat",
+                "flag": "",
+                "printed_name": "Creatinine",
+                "reference": "0.70 - 1.30",
+                "unit": "mg/dL",
+                "value": "0.82"
+              },
+              {
+                "analyte_key": "urea",
+                "flag": "",
+                "printed_name": "Urea",
+                "reference": "15 - 40",
+                "unit": "mg/dL",
+                "value": "39"
+              },
+              {
+                "analyte_key": "uric",
+                "flag": "L",
+                "printed_name": "Uric Acid",
+                "reference": "3.5 - 7.2",
+                "unit": "mg/dL",
+                "value": "3.3"
+              },
+              {
+                "analyte_key": "egfr",
+                "flag": "",
+                "printed_name": "eGFR",
+                "reference": "> 90",
+                "unit": "mL/min/1.73m²",
+                "value": "102"
+              }
+            ]
+          },
+          {
+            "page_number": 2,
+            "panels": [
+              "lipid",
+              "vitamins"
+            ],
+            "rows": [
+              {
+                "analyte_key": "chol",
+                "flag": "",
+                "printed_name": "Total Cholesterol",
+                "reference": "< 200",
+                "unit": "mg/dL",
+                "value": "194"
+              },
+              {
+                "analyte_key": "tg",
+                "flag": "",
+                "printed_name": "Triglycerides",
+                "reference": "< 150",
+                "unit": "mg/dL",
+                "value": "39"
+              },
+              {
+                "analyte_key": "hdl",
+                "flag": "",
+                "printed_name": "HDL Cholesterol",
+                "reference": "> 40",
+                "unit": "mg/dL",
+                "value": "46"
+              },
+              {
+                "analyte_key": "ldl",
+                "flag": "",
+                "printed_name": "LDL Cholesterol",
+                "reference": "< 100",
+                "unit": "mg/dL",
+                "value": "98"
+              },
+              {
+                "analyte_key": "vitd",
+                "flag": "",
+                "printed_name": "Vitamin D (25-OH)",
+                "reference": "30.0 - 100.0",
+                "unit": "ng/mL",
+                "value": "38.7"
+              },
+              {
+                "analyte_key": "b12",
+                "flag": "",
+                "printed_name": "Cobalamin",
+                "reference": "200 - 900",
+                "unit": "pg/mL",
+                "value": "398"
+              }
+            ]
+          }
+        ],
+        "patient_key": "P06",
+        "report_id": "P06-R02",
+        "sample_id": "SMP929470"
+      },
+      {
+        "date": "2023-02-19",
+        "date_ambiguous": false,
+        "date_printed": "19/02/2023",
+        "lab_address": "88 Test Marg, Lucknow",
+        "lab_name": "Neelkanth Health Labs (Fictional)",
+        "layout": "plain",
+        "pages": [
+          {
+            "page_number": 1,
+            "panels": [
+              "cbc",
+              "kft"
+            ],
+            "rows": [
+              {
+                "analyte_key": "hb",
+                "flag": "",
+                "printed_name": "Haemoglobin",
+                "reference": "13.0 - 17.0",
+                "unit": "gm/dL",
+                "value": "14.1"
+              },
+              {
+                "analyte_key": "tlc",
+                "flag": "",
+                "printed_name": "Total Leucocyte Count",
+                "reference": "4000 - 11000",
+                "unit": "/cumm",
+                "value": "7418"
+              },
+              {
+                "analyte_key": "plt",
+                "flag": "",
+                "printed_name": "Platelets",
+                "reference": "1.50 - 4.50",
+                "unit": "lakhs/cumm",
+                "value": "3.83"
+              },
+              {
+                "analyte_key": "rbc",
+                "flag": "",
+                "printed_name": "Red Blood Cell Count",
+                "reference": "4.50 - 5.50",
+                "unit": "million/cumm",
+                "value": "5.32"
+              },
+              {
+                "analyte_key": "pcv",
+                "flag": "",
+                "printed_name": "Packed Cell Volume",
+                "reference": "40.0 - 50.0",
+                "unit": "%",
+                "value": "44.3"
+              },
+              {
+                "analyte_key": "mcv",
+                "flag": "",
+                "printed_name": "Mean Corpuscular Volume",
+                "reference": "83.0 - 101.0",
+                "unit": "fL",
+                "value": "91.0"
+              },
+              {
+                "analyte_key": "creat",
+                "flag": "",
+                "printed_name": "Serum Creatinine",
+                "reference": "0.70 - 1.30",
+                "unit": "mg/dL",
+                "value": "1.10"
+              },
+              {
+                "analyte_key": "urea",
+                "flag": "",
+                "printed_name": "Urea",
+                "reference": "15 - 40",
+                "unit": "mg/dL",
+                "value": "39"
+              },
+              {
+                "analyte_key": "uric",
+                "flag": "",
+                "printed_name": "Uric Acid",
+                "reference": "3.5 - 7.2",
+                "unit": "mg/dL",
+                "value": "6.9"
+              },
+              {
+                "analyte_key": "egfr",
+                "flag": "",
+                "printed_name": "eGFR",
+                "reference": "> 90",
+                "unit": "mL/min/1.73m²",
+                "value": "94"
+              }
+            ]
+          },
+          {
+            "page_number": 2,
+            "panels": [
+              "lipid"
+            ],
+            "rows": [
+              {
+                "analyte_key": "chol",
+                "flag": "",
+                "printed_name": "Serum Cholesterol",
+                "reference": "< 200",
+                "unit": "mg/dL",
+                "value": "193"
+              },
+              {
+                "analyte_key": "tg",
+                "flag": "H",
+                "printed_name": "Triglycerides",
+                "reference": "< 150",
+                "unit": "mg/dL",
+                "value": "198"
+              },
+              {
+                "analyte_key": "hdl",
+                "flag": "",
+                "printed_name": "HDL Cholesterol",
+                "reference": "> 40",
+                "unit": "mg/dL",
+                "value": "42"
+              },
+              {
+                "analyte_key": "ldl",
+                "flag": "H",
+                "printed_name": "LDL",
+                "reference": "< 100",
+                "unit": "mg/dL",
+                "value": "146"
+              }
+            ]
+          }
+        ],
+        "patient_key": "P06",
+        "report_id": "P06-R03",
+        "sample_id": "SMP774294"
+      },
+      {
+        "date": "2024-07-22",
+        "date_ambiguous": false,
+        "date_printed": "22/07/2024",
+        "lab_address": "88 Test Marg, Lucknow",
+        "lab_name": "Neelkanth Health Labs (Fictional)",
+        "layout": "plain",
+        "pages": [
+          {
+            "page_number": 1,
+            "panels": [
+              "cbc",
+              "kft"
+            ],
+            "rows": [
+              {
+                "analyte_key": "hb",
+                "flag": "",
+                "printed_name": "Hemoglobin",
+                "reference": "13.0 - 17.0",
+                "unit": "gm/dL",
+                "value": "15.5"
+              },
+              {
+                "analyte_key": "tlc",
+                "flag": "",
+                "printed_name": "Total Leucocyte Count",
+                "reference": "4000 - 11000",
+                "unit": "/cumm",
+                "value": "7298"
+              },
+              {
+                "analyte_key": "plt",
+                "flag": "",
+                "printed_name": "Platelet Count",
+                "reference": "1.50 - 4.50",
+                "unit": "lakhs/cumm",
+                "value": "2.35"
+              },
+              {
+                "analyte_key": "rbc",
+                "flag": "L",
+                "printed_name": "RBC Count",
+                "reference": "4.50 - 5.50",
+                "unit": "million/cumm",
+                "value": "4.21"
+              },
+              {
+                "analyte_key": "pcv",
+                "flag": "L",
+                "printed_name": "Haematocrit",
+                "reference": "40.0 - 50.0",
+                "unit": "%",
+                "value": "39.1"
+              },
+              {
+                "analyte_key": "mcv",
+                "flag": "H",
+                "printed_name": "MCV",
+                "reference": "83.0 - 101.0",
+                "unit": "fL",
+                "value": "102.2"
+              },
+              {
+                "analyte_key": "creat",
+                "flag": "",
+                "printed_name": "Serum Creatinine",
+                "reference": "0.70 - 1.30",
+                "unit": "mg/dL",
+                "value": "1.13"
+              },
+              {
+                "analyte_key": "urea",
+                "flag": "",
+                "printed_name": "Blood Urea",
+                "reference": "15 - 40",
+                "unit": "mg/dL",
+                "value": "31"
+              },
+              {
+                "analyte_key": "uric",
+                "flag": "",
+                "printed_name": "Uric Acid",
+                "reference": "3.5 - 7.2",
+                "unit": "mg/dL",
+                "value": "6.4"
+              },
+              {
+                "analyte_key": "egfr",
+                "flag": "",
+                "printed_name": "eGFR",
+                "reference": "> 90",
+                "unit": "mL/min/1.73m²",
+                "value": "116"
+              }
+            ]
+          },
+          {
+            "page_number": 2,
+            "panels": [
+              "vitamins"
+            ],
+            "rows": [
+              {
+                "analyte_key": "vitd",
+                "flag": "L",
+                "printed_name": "25-OH Vitamin D",
+                "reference": "30.0 - 100.0",
+                "unit": "ng/mL",
+                "value": "17.4"
+              },
+              {
+                "analyte_key": "b12",
+                "flag": "",
+                "printed_name": "Cobalamin",
+                "reference": "200 - 900",
+                "unit": "pg/mL",
+                "value": "378"
+              }
+            ]
+          }
+        ],
+        "patient_key": "P06",
+        "report_id": "P06-R04",
+        "sample_id": "SMP424460"
+      }
+    ],
+    "sex": "M"
+  }
+]

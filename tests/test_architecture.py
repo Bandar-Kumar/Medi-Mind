@@ -67,6 +67,44 @@ ALLOWED_RECORDS_NAMES: dict[str, set[str]] = {
         "rename_document",
         "update_patient",
     },
+    "app.records.facts": {  # Phase 3 services (docs/PHASE_3_PLAN.md); the pure gate rule too
+        "ALREADY_EXTRACTED",
+        "AnalyteSeed",
+        "ConflictDetector",
+        "ConflictRecord",
+        "DetectedConflict",
+        "EXTRACT_GATE_REFUSALS",
+        "ExtractionRunRecord",
+        "FactRecord",
+        "GroupFact",
+        "NOT_PARSED",
+        "ObservationRecord",
+        "ReportDate",
+        "ReviewRecord",
+        "SeedResult",
+        "acknowledge_conflict",
+        "complete_document_if_ready",
+        "extraction_applies",
+        "get_extraction_target",
+        "get_fact",
+        "list_conflicts",
+        "list_document_facts",
+        "list_extraction_runs",
+        "record_extraction",
+        "record_extraction_failure",
+        "record_extraction_skipped",
+        "record_review_decision",
+        "reextract_and_supersede",
+        "reference_analyte_ids",
+        "seed_reference_data",
+    },
+    "app.records.longitudinal": {  # Phase 4 reads (docs/PHASE_4_PLAN.md; ADR-039)
+        "TimelineDocumentRecord",
+        "count_facts_by_status",
+        "list_facts_by_ids",
+        "list_timeline_documents",
+        "list_usable_facts",
+    },
     "app.records.chunks": {
         "ALREADY_INDEXED",  # app/services/index_document.py (Milestone R1.6)
         "GATE_REFUSALS",  # the indexing gate's refusal kinds (Task 2.8)
@@ -79,6 +117,7 @@ ALLOWED_RECORDS_NAMES: dict[str, set[str]] = {
         "dense_search",
         "lexical_search",
         "page_contexts",
+        "stored_chunks",  # app/services/copilot.py: citation validation (Phase 5, ADR-040)
     },
 }
 
@@ -331,6 +370,7 @@ PUBLIC_CHUNK_API = frozenset(
         "dense_search",
         "lexical_search",
         "page_contexts",
+        "stored_chunks",  # Phase 5 citation validation (ADR-040)
     }
 )
 
@@ -346,6 +386,37 @@ def test_every_chunk_repository_function_takes_patient_id_first() -> None:
     assert set(functions) == PUBLIC_CHUNK_API
     for name, function in functions.items():
         assert next(iter(inspect.signature(function).parameters)) == "patient_id", name
+
+
+PUBLIC_LONGITUDINAL_API = frozenset(
+    {"list_usable_facts", "list_facts_by_ids", "list_timeline_documents", "count_facts_by_status"}
+)
+
+
+def test_every_longitudinal_repository_function_is_read_only_and_patient_scoped() -> None:
+    from app.records import longitudinal
+
+    functions = {
+        name: function
+        for name, function in inspect.getmembers(longitudinal, inspect.isfunction)
+        if not name.startswith("_") and function.__module__ == longitudinal.__name__
+    }
+    assert set(functions) == PUBLIC_LONGITUDINAL_API
+    for name, function in functions.items():
+        assert next(iter(inspect.signature(function).parameters)) == "patient_id", name
+    source = (RECORDS_DIR / "longitudinal.py").read_text(encoding="utf-8")
+    for write in ("insert(", "update(", "delete(", ".add(", ".merge("):
+        assert write not in source, write  # Phase 4 reads only; nothing is stored
+
+
+def test_longitudinal_logic_is_pure() -> None:
+    """app/longitudinal/: no database, records, services, UI or model libraries (ADR-003)."""
+    for path in (APP_DIR / "longitudinal").rglob("*.py"):
+        for module in _imports(path):
+            assert not module.startswith(
+                ("sqlalchemy", "psycopg", "app.records", "app.services", "app.ui", "torch")
+            ), f"{path.name} imports {module}"
+            assert not module.startswith(("transformers", "docling", "streamlit")), module
 
 
 def test_retrieval_logic_contains_no_database_access() -> None:
@@ -397,3 +468,78 @@ def test_classification_and_identity_do_not_depend_on_each_other() -> None:
         (APP_DIR / "services" / "check_identity.py", "app.services.classify_document"),
     ):
         assert other not in _imports(path), path.name
+
+
+# --- Phase 3: extraction (docs/PHASE_3_PLAN.md §2.4, §2.6) ----------------------------------
+
+EXTRACTION_FORBIDDEN = (
+    "sqlalchemy",
+    "psycopg",
+    "app.records",
+    "app.services",
+    "app.ui",
+    "app.retrieval",
+    "docling",
+    "torch",
+    "transformers",
+    "app.ingestion.identity",
+    "app.ingestion.classification",
+    "app.ingestion.docling_mapping",
+    "app.ingestion.parsing",
+)
+
+
+def test_extraction_is_pure_domain_logic() -> None:
+    """app/extraction/: no database, services, UI, models, Docling, or the frozen Phase 2 rules."""
+    for path in (APP_DIR / "extraction").rglob("*.py"):
+        for module in _imports(path):
+            assert not module.startswith(EXTRACTION_FORBIDDEN), f"{path.name} imports {module}"
+
+
+def test_frozen_phase2_rule_files_are_untouched_by_extraction() -> None:
+    """The extraction subject guard is its own; it never imports the frozen identity rules."""
+    for path in (APP_DIR / "extraction").rglob("*.py"):
+        assert "app.ingestion.identity" not in _imports(path)
+
+
+# --- patient scoping of the extraction repository (Phase 3; ADR-016) -------------------------
+
+UNSCOPED_FACT_FUNCTIONS = frozenset(
+    {
+        "extraction_gate_refusal",  # pure rule, no database access
+        "extraction_applies",  # pure rule, no database access
+        "seed_reference_data",  # reference tables only, no patient data
+        "reference_analyte_ids",  # reference tables only, read-only
+        "close_conflicts_for_deleted_document",  # runs inside delete_document's transaction
+    }
+)
+
+
+def test_every_fact_repository_function_takes_patient_id_first() -> None:
+    from app.records import facts
+
+    functions = {
+        name: function
+        for name, function in inspect.getmembers(facts, inspect.isfunction)
+        if not name.startswith("_") and function.__module__ == facts.__name__
+    }
+    assert UNSCOPED_FACT_FUNCTIONS <= functions.keys()
+    for name, function in functions.items():
+        parameters = list(inspect.signature(function).parameters)
+        if name in UNSCOPED_FACT_FUNCTIONS:
+            assert (
+                "patient_id" not in parameters[:1] or name == "close_conflicts_for_deleted_document"
+            )
+            continue
+        assert parameters[0] == "patient_id", name
+        if "document_id" in parameters:
+            assert parameters[1] == "document_id", name
+
+
+def test_records_layer_never_imports_domain_rules() -> None:
+    """Conflict comparison is injected as a detector; records stays free of domain logic."""
+    for path in RECORDS_DIR.glob("*.py"):
+        for module in _imports(path):
+            assert not module.startswith(("app.extraction", "app.services", "app.ingestion")), (
+                f"{path.name} imports {module}"
+            )

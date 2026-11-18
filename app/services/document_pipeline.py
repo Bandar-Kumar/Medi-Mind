@@ -10,6 +10,7 @@ dependency order, each through its existing service; nothing here decides a stag
     2. classify  ``classify_document``        (reads the stored pages; independent of identity)
     3. identity  ``check_document_identity``  (reads the stored pages; independent of classify)
     4. index     ``index_document``           (the centralized gate, then chunk, embed, store)
+    5. extract   ``extract_document``         (Phase 3: its own gate; independent of index)
 
 **Every stage is attempted once per call, and each service decides for itself.** A stage whose
 input is missing is refused by its own service, not skipped here: without pages, classify and
@@ -20,7 +21,13 @@ never stops identity (and vice versa), either failure blocks indexing, and an ``
 identity is indexed only when its succeeded run recorded it (ADR-036 A1). The pipeline adds no
 gate, no SQL and no status change: ``processing_status`` changes only where the stage services
 already change it (parse; identity ``mismatch`` → ``needs_review``), and a parsed or indexed
-document stays ``processing`` until Phase 3 extraction (ADR-032, D7).
+document stays ``processing`` until every stage is complete: the shared completion rule
+(``complete_document_if_ready``, called by the index and extract services) sets ``processed``
+(docs/PHASE_3_PLAN.md §9.4).
+
+Extraction (Phase 3) has its own gate with the indexing gate's precedence; an index failure never
+blocks it. A document that is not a lab report gets a ``skipped`` extract run and the stage
+reports ``succeeded`` with ``detail.outcome == "not_applicable"`` (§9.2).
 
 Each stage reports exactly one status (A4):
 - ``succeeded``    the service ran and stored its result (``detail`` holds it);
@@ -55,10 +62,12 @@ from app.core.config import Settings
 from app.core.errors import MediMindError
 from app.records.chunks import ALREADY_INDEXED, GATE_REFUSALS, NOT_PARSED
 from app.records.db import is_database_error
+from app.records.facts import ALREADY_EXTRACTED, EXTRACT_GATE_REFUSALS
 from app.records.repositories import ALREADY_CHECKED, ALREADY_CLASSIFIED, ProcessingErrorKind
 from app.retrieval.models import Embedder
 from app.services.check_identity import IdentityCheckResult, check_document_identity
 from app.services.classify_document import ClassifyResult, classify_document
+from app.services.extract_document import ExtractResult, extract_document
 from app.services.index_document import IndexResult, index_document
 from app.services.library import get_document, list_documents
 from app.services.process_document import Parser, ProcessResult, process_document
@@ -69,7 +78,8 @@ PARSE: Final = "parse"
 CLASSIFY: Final = "classify"
 IDENTITY: Final = "identity"
 INDEX: Final = "index"
-STAGES: Final = (PARSE, CLASSIFY, IDENTITY, INDEX)
+EXTRACT: Final = "extract"
+STAGES: Final = (PARSE, CLASSIFY, IDENTITY, INDEX, EXTRACT)
 
 SUCCEEDED: Final = "succeeded"
 ALREADY_DONE: Final = "already_done"
@@ -85,17 +95,19 @@ _ALREADY_DONE_KIND: Final = {
     CLASSIFY: ALREADY_CLASSIFIED,
     IDENTITY: ALREADY_CHECKED,
     INDEX: ALREADY_INDEXED,
+    EXTRACT: ALREADY_EXTRACTED,
 }
 _BLOCKED_KINDS: Final = {
     PARSE: frozenset({ProcessingErrorKind.ALREADY_RUNNING.value}),
     CLASSIFY: frozenset({NOT_PARSED}),
     IDENTITY: frozenset({NOT_PARSED}),
     INDEX: frozenset({NOT_PARSED}) | GATE_REFUSALS,
+    EXTRACT: frozenset({NOT_PARSED}) | EXTRACT_GATE_REFUSALS,
 }
 _SAFE_KIND = re.compile(r"[a-z][a-z0-9_]{0,63}")
 _SAFE_CLASS = re.compile(r"[A-Za-z_][A-Za-z0-9_.]{0,127}")
 
-StageDetail = ProcessResult | ClassifyResult | IdentityCheckResult | IndexResult
+StageDetail = ProcessResult | ClassifyResult | IdentityCheckResult | IndexResult | ExtractResult
 
 
 @dataclass(frozen=True)
@@ -112,7 +124,7 @@ class StageResult:
 
 @dataclass(frozen=True)
 class DocumentPipelineResult:
-    """Every stage of one document, always all four, in ``STAGES`` order."""
+    """Every stage of one document, always all five, in ``STAGES`` order."""
 
     document_id: uuid.UUID
     stages: tuple[StageResult, ...]
@@ -128,6 +140,11 @@ class DocumentPipelineResult:
         """The document is in the evidence index (indexed now or earlier)."""
         return self.stage(INDEX).status in (SUCCEEDED, ALREADY_DONE)
 
+    @property
+    def extracted(self) -> bool:
+        """The extract stage is complete (facts stored, or not applicable to this type)."""
+        return self.stage(EXTRACT).status in (SUCCEEDED, ALREADY_DONE)
+
 
 StageCallback = Callable[[uuid.UUID, StageResult], None]
 
@@ -141,7 +158,7 @@ def run_document_pipeline(
     *,
     on_stage: StageCallback | None = None,
 ) -> DocumentPipelineResult:
-    """Run parse → classify → identity → index for one document of this patient.
+    """Run parse → classify → identity → index → extract for one document of this patient.
 
     ``on_stage`` (optional) is called after each stage, for progress display; an exception it
     raises propagates.
@@ -199,6 +216,7 @@ def _run_stages(
         (CLASSIFY, lambda: classify_document(patient_id, document_id)),
         (IDENTITY, lambda: check_document_identity(patient_id, document_id)),
         (INDEX, lambda: index_document(settings, embedder, patient_id, document_id)),
+        (EXTRACT, lambda: extract_document(settings, patient_id, document_id)),
     )
     results = []
     for stage, call in calls:

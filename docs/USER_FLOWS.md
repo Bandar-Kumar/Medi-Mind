@@ -49,6 +49,8 @@ The prototype is single-user and runs locally (ADR-013).
 - **Demo mode.** Upload is disabled, with an explanation.
 
 ## F3. Review extracted information [MVP]
+
+> **As built (2026-11-17):** the Documents page shows each extracted result with its page and exact source text, the printed values next to the normalized ones, the derived comparison with the report's own range (labelled derived), the status ("Auto-checked, not verified", "Needs review", "Verified by you", "Corrected by you") and reasons in plain language. Verify means "confirm the original extracted values"; Correct keeps the original visible; Reject moves the result to an audit list, and a rejected result can be reviewed again. The page image viewer is not built.
 1. The user opens Document detail. The page image or text is on the left, and the extracted facts are on the right.
 2. Each fact shows its original value, its normalized value (if any), the source excerpt with the page, and a status badge: **Unverified (auto-checked)**, **Needs review** or **Verified** (ADR-023).
 3. Facts flagged for review list their reasons, e.g. "Value not found in source text", "Implausible value", "Ambiguous date 03/04/2024 (read as 3 April)", "Unknown analyte".
@@ -60,6 +62,13 @@ The prototype is single-user and runs locally (ADR-013).
 - "Needs review" facts are kept out of the timeline, trends and copilot until they are reviewed.
 
 ## F4. View the timeline [MVP]
+
+> **As built (2026-11-18, Phase 4; ADR-039):**
+> - **Contents:** lab results and dated documents. Medications and events come with Phase 6.
+> - **Filters:** date window, tests, document types and entry kinds; 25–200 entries per page, newest or oldest first.
+> - **Dates:** the date-source column says "collection date" or "report date". Undated results, and documents without a report date, have their own lists.
+> - **Sources:** an exact repeated result shows once with every source; a possible repeat is shown separately with a note. The exact source text of a selected result is shown below the table.
+> - **Not shown:** results awaiting review and identity-mismatch documents are counted, not shown.
 1. The Timeline page lists dated facts in order: lab results, documented medications, events and documents.
 2. The user can filter by fact type, document type and date range.
 3. Each entry links to its source document and page.
@@ -67,6 +76,12 @@ The prototype is single-user and runs locally (ADR-013).
 5. Dates with month or year precision are shown as "March 2021" or "2021", never as a made-up exact day.
 
 ## F5. View lab trends [MVP]
+
+> **As built (2026-11-18, Phase 4; ADR-039):**
+> - **Series:** one chart and table per unit. Only day-precision numeric values are drawn; bounds and partial dates stay in the table with the reason.
+> - **Values:** each row shows the shown and printed values, the report's printed range and flag, and the derived range state. Differences are exact decimals with the days between.
+> - **Also on the page:** a two-date comparison and the test's conflicts.
+> - **Overview page:** counts, warnings and the latest result of each test.
 1. The user picks an analyte, e.g. HbA1c.
 2. The page shows a chart and table of values over time, each linked to its source. Each point shows *that document's* reference range and printed flag.
 3. If units differ and a conversion is defined, values are converted, and the original is shown on hover. If no conversion is defined, the series are shown separately with an explanation.
@@ -81,7 +96,13 @@ The prototype is single-user and runs locally (ADR-013).
 3. If the evidence is insufficient: "I couldn't find this in your documents." The system does not guess.
 4. Answers that rely on unverified facts say so.
 
+**As built (Phase 5, 2026-11-18):** the **Copilot** page. Ask → fixed refusal (advice, diagnosis, injection), "unsupported" (general knowledge), "not enough evidence", or validated statements with citation ids. Each cited source expands to its exact stored text, shown and printed values, review status, identity/OCR/conflict warnings, the full stored page and **Open this document**. Withheld answers show reason texts only. No conversation history is kept. See PHASE_5_PLAN §9.
+
+**Remediation (2026-11-18, ADR-041):** everyday test names ("A1c", "fasting sugar") are understood; a name that can mean several tests shows each result under its own name with a note; an unrecognised test name gets "MediMind did not recognise the test name…" and nothing is looked up; pages that do not mention what was asked are not shown.
+
 ## F7. Resolve flags and conflicts [MVP: view and acknowledge]
+
+> **As built (2026-11-17):** conflicts appear on the Documents page (not an Overview page). Each lists its members and only the pairs that disagree directly; "Acknowledge" is the only action. Closed conflicts are listed as history with the reason they closed.
 1. The Overview page lists open conflicts. For example: "Metformin 500 mg (Doc A, 2024-01-10) vs 1000 mg (Doc B, 2024-01-10)."
 2. The user opens the conflict to see both sources side by side.
 3. The user can **acknowledge** it, optionally with a note. MediMind never picks a winner.

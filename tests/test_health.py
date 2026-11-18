@@ -214,7 +214,7 @@ def test_database_schema_is_skipped_without_password() -> None:
     [
         ("at_head", "HEAD", "ok", "(latest)"),
         ("not_migrated", None, "warn", "no migrations applied; run `uv run python -m app migrate`"),
-        ("behind", "0001", "warn", "at revision 0001, latest is 0003"),
+        ("behind", "0001", "warn", "at revision 0001, latest is 0004"),
         ("unknown_revision", "9999", "fail", "revision 9999 is not known to this code"),
     ],
 )

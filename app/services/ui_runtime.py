@@ -12,6 +12,9 @@ the retrieval configuration, and patient-scoped evidence search. No rule, gate o
 - ``search`` builds the configuration exactly as ``python -m app ask`` does and calls
   ``search_evidence``; R1 retrieval behaviour is unchanged. It returns stored evidence only:
   nothing is generated.
+- ``ask`` (Phase 5, ADR-040) runs the copilot: the generator comes from settings (the extractive
+  composer unless an LLM provider is configured) and document passages use
+  ``copilot_retrieval_mode`` (or the best configured mode). Every answer is citation-validated.
 """
 
 import uuid
@@ -24,11 +27,16 @@ from app.core.logging import configure_logging
 from app.ingestion.parsing import DoclingParser
 from app.retrieval.evidence import EvidenceAnswer, RetrievalConfig, RetrievalMode
 from app.retrieval.models import BgeEmbedder, Embedder, MiniLmReranker, Reranker
+from app.services import copilot
 from app.services.document_pipeline import error_kind
 from app.services.search_evidence import search_evidence
 
 __all__ = [
+    "COPILOT_NOTES",
     "RETRIEVAL_MODES",
+    "ask",
+    "copilot_mode",
+    "make_generator",
     "EvidenceAnswer",
     "Settings",
     "available_modes",
@@ -44,6 +52,7 @@ __all__ = [
 
 RETRIEVAL_MODES: Final = tuple(mode.value for mode in RetrievalMode)
 REVISION_NOT_CONFIGURED: Final = "revision_not_configured"
+COPILOT_NOTES: Final = copilot.NOTES
 
 
 def load_settings() -> Settings:
@@ -141,4 +150,70 @@ def search(
         config=config,
         embedder=embedder if config.mode.uses_dense else None,
         reranker=reranker if config.mode.uses_reranker else None,
+    )
+
+
+# --- copilot (Phase 5, ADR-040) ------------------------------------------------------------------
+
+
+def make_generator(settings: Settings) -> object:
+    """The configured answer generator: extractive (default) or an LLM adapter (lazy import).
+
+    Raises:
+        LlmError: ``not_configured`` or ``external_not_allowed`` for an invalid LLM setup.
+    """
+    from app.answering.generate import ExtractiveGenerator, LlmGenerator
+
+    if settings.llm_provider == "none":
+        return ExtractiveGenerator()
+    from app.llm.openai_compatible import OpenAICompatibleProvider
+    from app.llm.provider import LlmError
+
+    if not settings.llm_base_url or not settings.llm_model:
+        raise LlmError(
+            "MEDIMIND_LLM_BASE_URL and MEDIMIND_LLM_MODEL are required", kind="not_configured"
+        )
+    return LlmGenerator(
+        OpenAICompatibleProvider(
+            base_url=settings.llm_base_url,
+            model_name=settings.llm_model,
+            api_key=settings.llm_api_key,
+            allow_external=settings.llm_allow_external,
+            timeout_seconds=float(settings.llm_timeout_seconds),
+        )
+    )
+
+
+def copilot_mode(settings: Settings) -> str | None:
+    """The retrieval mode for copilot passages, or None when no mode can run."""
+    modes = available_modes(settings)
+    if settings.copilot_retrieval_mode is not None:
+        return settings.copilot_retrieval_mode if settings.copilot_retrieval_mode in modes else None
+    return modes[0] if modes else None
+
+
+def ask(
+    settings: Settings,
+    patient_id: uuid.UUID,
+    question: str,
+    *,
+    embedder: Embedder | None,
+    reranker: Reranker | None,
+    generator: object | None = None,
+) -> copilot.CopilotAnswer:
+    """A citation-validated copilot answer for one patient (or a fixed refusal / abstention)."""
+    mode = copilot_mode(settings)
+    retrieval = None
+    if mode is not None:
+        config = retrieval_config(settings, mode)
+        retrieval = copilot.RetrievalDeps(
+            config=config,
+            embedder=embedder if config.mode.uses_dense else None,
+            reranker=reranker if config.mode.uses_reranker else None,
+        )
+    return copilot.ask_copilot(
+        patient_id,
+        question,
+        generator=generator or make_generator(settings),  # type: ignore[arg-type]
+        retrieval=retrieval,
     )

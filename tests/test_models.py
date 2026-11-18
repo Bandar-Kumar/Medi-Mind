@@ -45,7 +45,11 @@ OWNERSHIP_FKS: dict[str, set[tuple[str, tuple[str, ...]]]] = {
     "documents": {("patients", ("id",)), ("documents", ("id", "patient_id"))},
     "pages": {("documents", ("id", "patient_id"))},
     "chunks": {("documents", ("id", "patient_id"))},
-    "extracted_facts": {("documents", ("id", "patient_id"))},
+    # Migration 0004: the producing run and the replacing run are the same patient's too.
+    "extracted_facts": {
+        ("documents", ("id", "patient_id")),
+        ("pipeline_runs", ("id", "document_id", "patient_id")),
+    },
     "review_decisions": {("extracted_facts", ("id", "patient_id"))},
     "conflicts": {("patients", ("id",))},
     "conflict_members": {
@@ -73,6 +77,9 @@ DELETE_RULES: dict[tuple[str, tuple[str, ...]], str] = {
     ("clinical_events", ("fact_id",)): "CASCADE",
     ("review_decisions", ("fact_id", "patient_id")): "CASCADE",
     ("conflicts", ("patient_id",)): "RESTRICT",
+    ("conflicts", ("analyte_id",)): "RESTRICT",
+    ("extracted_facts", ("extraction_run_id", "document_id", "patient_id")): "CASCADE",
+    ("extracted_facts", ("superseded_by_run_id", "document_id", "patient_id")): "CASCADE",
     ("conflict_members", ("conflict_id", "patient_id")): "CASCADE",
     ("conflict_members", ("fact_id", "patient_id")): "CASCADE",
     ("chunks", ("document_id", "patient_id")): "CASCADE",
@@ -103,6 +110,10 @@ ENUM_COLUMNS: dict[tuple[str, str], type[StrEnum]] = {
     ("review_decisions", "decision"): models.Decision,
     ("conflicts", "conflict_type"): models.ConflictType,
     ("conflicts", "status"): models.ConflictStatus,
+    ("conflicts", "closed_reason"): models.ConflictClosedReason,
+    ("observations", "effective_date_source"): models.EffectiveDateSource,
+    ("observations", "ref_range_comparison"): models.RangeComparison,
+    ("observations", "analyte_match"): models.AnalyteMatch,
     ("chunks", "chunk_type"): models.ChunkType,
 }
 
@@ -111,6 +122,7 @@ NO_DEFAULT_COLUMNS = {
     ("extracted_facts", "assertion_type"),
     ("extracted_facts", "negated"),
     ("extracted_facts", "subject"),
+    ("extracted_facts", "review_status"),  # migration 0004: stated explicitly on every insert
 }
 
 
@@ -317,3 +329,12 @@ def test_postgres_ddl_compiles_with_the_planned_types() -> None:
 def test_no_vector_index_yet() -> None:
     # Exact search filtered by patient at personal scale; HNSW only if Phase 5 measures a need.
     assert all("embedding" not in [c.name for c in i.columns] for i in TABLES["chunks"].indexes)
+
+
+def test_nullable_jsonb_columns_store_python_none_as_sql_null() -> None:
+    # Without none_as_null, SQLAlchemy writes None as the JSON value 'null', which is NOT NULL to
+    # PostgreSQL: every reject/verify decision then violated corrected_values_match (2026-11-18).
+    for table in Base.metadata.tables.values():
+        for column in table.columns:
+            if isinstance(column.type, postgresql.JSONB) and column.nullable:
+                assert column.type.none_as_null, f"{table.name}.{column.name}"
