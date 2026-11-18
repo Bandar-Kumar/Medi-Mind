@@ -22,6 +22,76 @@ Only work that actually happened and was verified is recorded.
 
 ---
 
+## 2026-11-18 (night): Phase 6 multi-document clinical intelligence implemented (ADR-042); all targets met on dev and held-out (once)
+
+**Phase:** 6 (owner's master execution prompt; autonomous within the stated approval limits)
+
+### Done
+- **Audit and baseline:** default 1919 passed, integration 221 passed, Ruff clean. The audit found:
+  - the clinical subtype tables already existed (unused);
+  - the frozen Phase 2 classifier and lab stage must stay untouched;
+  - the stored-conflict recompute would close non-observation conflicts;
+  - the frozen Phase 5 gate refuses "what medication…" and "…diagnoses…".
+- **Built:**
+  - `app/clinical/` (classifier, segmentation, medications, allergies, events, fictional lexicon, comparison, conflicts, records Q&A);
+  - migration 0005 (additive);
+  - `app/records/clinical.py`;
+  - the sixth pipeline stage `clinical_extract`;
+  - clinical review;
+  - the records-Q&A dispatcher;
+  - the Clinical records page;
+  - `clinical_v1` (16 fictional patients, 136 PDFs), frozen before any rule.
+- **Measured** (synthetic, same author): dev and held-out (once) met every target.
+  - native extraction, provenance, conflicts and comparison: 1.000;
+  - Q&A: 0.986 / 0.985;
+  - OCR recall: 0.90, all flagged;
+  - hard gates: 0.
+- **Verified:**
+  - default 2032 passed; integration 232 passed;
+  - migrations on `medimind_test`; `medimind` upgraded with all data unchanged;
+  - `copilot_v1` dev identical, and none of the 926 Phase 5 questions is taken by the clinical path;
+  - real Docling end to end for P01: conflicts equal gold.
+
+### Decisions (ADR-042, awaiting owner review)
+- A separate stage and classifier, so the Phase 2 type and the lab stage are unchanged.
+- Code lives in `app/clinical/`, outside `app/extraction/`, so frozen digests stay valid.
+- Clinical conflicts are derived at read time, not stored.
+- An unknown allergy status is no fact, never "none".
+- Records lookups such as "What medications are documented…" pass the Phase 5 gate only with a documentary cue and no advice or interpretation cue.
+
+### Learned
+- Python's `^` does not anchor at `pos` in `Pattern.match(text, pos)`; leave it out when matching from an offset.
+- Docling may merge list bullets onto one line, or drop them entirely under a heading. Segment by labels and item markers, not by lines.
+- A frozen digest over a whole directory constrains where new code can live. Plan module placement around the evaluation protocol.
+- An empty dict is falsy. Check `is not None` when "empty" has to be refused rather than skipped.
+
+### Issues / blockers
+- Same-author synthetic data. Free narrative is not structured. The lexicon is fictional. There was no manual browser pass. No LLM was evaluated (ADR-024).
+- The DECISIONS.md summary table has no rows for ADR-040 and ADR-041 (pre-existing; flagged, not changed).
+
+### Next
+1. **Owner:** review Phase 6 and decide the gate.
+2. Phase 7 (LangGraph appointment preparation) after approval.
+
+## 2026-11-18 (late night): Phase 6 acceptance fixes after a HOLD audit
+
+**Phase:** 6, acceptance fixes (owner's instruction)
+
+### Done
+- **Closed the Q&A bypass:** a full-question allow-list replaces the documentary-word rule. 0 of the 12 audit examples are answered, 57 of 57 probes give the expected decision, and all 926 frozen Phase 5 questions are unchanged.
+- **Identity:** "Identity not confirmed" now appears on clinical tables, Compare, Conflicts, Review and Copilot citations.
+- **Citations:** checked at answer time against the stored page; an inexact citation withholds the answer.
+- **Stage label:** the new pipeline stage has a display name.
+- **Durable safety report:** `evals/reports/clinical_safety_v1/`.
+- **Tests:** default 2116 passed; integration 234 passed; Ruff clean.
+
+### Learned
+- A blocking-word list can't be complete. A full-match allow-list over the whole question is safer, because any extra clause fails closed.
+- Test the gate together with the answer: a plain list of records can still read as an answer to the advice half of a mixed question.
+
+### Next
+- **Owner:** review the fixes and decide the Phase 6 gate.
+
 ## 2026-11-18 (evening): Phase 5 remediation (ADR-041): citation precision 0.605 → 1.000 on a new held-out set; rules-based routing confirmed
 
 **Phase:** 5, focused remediation (owner's instruction)

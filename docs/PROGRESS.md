@@ -625,8 +625,74 @@ Docker Desktop running; `medimind-db-1` reported `healthy` and `pg_isready` acce
 - **Tests:** +25 (vocabulary/unrecognised routing 21, service 4); default 1919 passed, 282 deselected; integration 221 passed; real-model 3 passed; Ruff clean.
 - `copilot_v0`, R1.8 and Phase 1–4 artifacts untouched; nothing staged or committed.
 
+### 2026-11-18 (later): Phase 6 — multi-document clinical intelligence implemented (ADR-042)
+
+- **Baseline before changes:** default 1919 passed / 282 deselected; integration 221 passed; Ruff clean.
+- **Built:**
+  - `app/clinical/` (pure): classifier `clinical-doctype-1`; segmentation, medication, allergy and event extraction `clinical-rules-1`; a fictional lexicon; `clinical-compare-1`; `clinical-qa-1`.
+  - Migration `0005_clinical` (additive) and mirrored models; `app/records/clinical.py`.
+  - Services `extract_clinical` (sixth stage `clinical_extract`), `review_clinical` and `clinical_records`.
+  - The Clinical records page, and records answers in the Copilot box.
+  - `evals/synthetic/clinical.py`, `evals/run_clinical.py`.
+- **Dataset** `clinical_v1`: 16 fictional patients, 136 documents, 677 facts, 39 conflicts, 208 questions. The held-out digest `c3f4db6d…` was frozen at build, before any rule existed. It regenerates byte-identically.
+- **Measured** (synthetic, same-author, not blind):
+  - dev and held-out (once) met every pre-registered target;
+  - native extraction, provenance, conflicts (27 dev / 12 held-out) and comparison are all 1.000;
+  - Q&A correctness: 0.986 dev, 0.985 held-out;
+  - OCR entity recall: 0.90 on both splits (all OCR facts are flagged);
+  - hard gates: 0.
+
+  Reports: `evals/reports/clinical_v1/`; details in [PHASE_6_EVALUATION.md](PHASE_6_EVALUATION.md).
+- **Defects found and fixed during the work:**
+  - a regex `^` used with `Pattern.match(pos)`;
+  - merged and dropped list bullets;
+  - an empty correction dict that would have skipped validation in `review_clinical_fact`.
+
+  All are covered by tests.
+- **Tests:**
+  - **Default:** 2032 passed. That includes 120 new unit and UI tests, and these existing-test updates:
+    - the head revision moves to 0005 in the migration and health tests;
+    - the sixth stage is added to the pipeline tests;
+    - the architecture allow-list gains `app.records.clinical`;
+    - the schema-constraint test supplies 0005's NOT NULL columns.
+
+    No assertion was weakened.
+  - **Integration:** 232 passed (11 new).
+  - **Ruff:** clean.
+- **Database:**
+  - `medimind_test`: upgrade, downgrade, round trip, `alembic check` and catalog identity all verified.
+  - `medimind` upgraded to 0005, with every table's rows and hashes unchanged.
+  - Real Docling end to end for fictional dev patient P01 (8 documents, all six stages succeeded, conflicts equal gold). P01 is left in `medimind`.
+- **Phase 5 regression:** none of the 926 frozen questions is routed to the clinical path; `copilot_v1` dev re-evaluated in memory is identical; the frozen reports are byte-identical.
+- **Not done:**
+  - no manual browser session (UI covered by AppTest);
+  - no LLM extraction (ADR-024 deferred);
+  - clinical re-extraction is not offered.
+
+### 2026-11-18 (later): Phase 6 acceptance fixes (audit recommended HOLD)
+
+- **Fix 1, safety:** the records-question dispatcher now answers only questions that fully match a plain-lookup allow-list (ADR-042 amendment).
+  - All 12 audit bypass examples are refused: 9 keep their Phase 5 refusal and 3 get the fixed clinical refusal.
+  - 57 of 57 hand-written probes give the expected decision.
+  - All 926 frozen Phase 5 questions are still dispatched to Phase 5.
+- **Fix 2, identity:** the identity outcome is carried from `documents` through the fact views, comparison, conflicts, answers and citations. "Identity not confirmed" is shown wherever a source is unconfirmed and never for confirmed ones. Mismatch facts are dropped at read.
+- **Fix 3:** the `clinical_extract` stage now displays as "Extract clinical records".
+- **Fix 4:** citations are checked against this patient's stored page when an answer is built. Any mismatch or missing source withholds the answer.
+- **Fix 5:** `evals/run_clinical_safety.py` and `evals/reports/clinical_safety_v1/`.
+- **Tests:** default 2116 passed; integration 234 passed; Ruff clean. New tests:
+  - 80 safety tests;
+  - 4 UI tests;
+  - 2 PostgreSQL tests.
+
+  `clinical_v1` dev re-evaluated in memory is identical to the frozen dev report, and held-out was not re-run.
+- **Not done:** a full `copilot_v1` re-evaluation. It needs the evaluation patients that exist only in `medimind`, which this task forbids using. The Phase 5 code is unchanged against HEAD, and every frozen Phase 5 question is dispatched to the unchanged Phase 5 path.
+
 ## Next steps
 
+0. **Phase 6 (2026-11-18):**
+   - **Owner:** review Phase 6. That covers [PHASE_6_PLAN.md](PHASE_6_PLAN.md), ADR-042, [PHASE_6_EVALUATION.md](PHASE_6_EVALUATION.md), migration 0005 (already applied to `medimind`) and the guardrail exemption for records lookups. Then decide the phase gate.
+   - Optional: a manual browser pass of the Clinical records page (`uv run streamlit run app/ui/streamlit_app.py`, patient P01).
+   - Next per ROADMAP: Phase 7 (LangGraph appointment preparation), after approval.
 0. **Phase 5 (2026-11-18):**
    - **Owner:** review Phase 5 (`docs/PHASE_5_PLAN.md`, ADR-040, `evals/reports/lab_v0/`, `evals/reports/copilot_v0/`) including the deviations above and the lexical selection.
    - To unblock ADR-024: provide an API key or approve a local model (exact revision); then compare against the extractive baseline on dev and a new held-out split (`copilot_v1`).

@@ -111,6 +111,21 @@ The prototype is single-user and runs locally (ADR-013).
 1. The user selects two documents, or two dates.
 2. The page shows observations that changed, are missing or are new. Each row cites both sources. Differences are calculated deterministically.
 
+> **As built (2026-11-18, Phase 6; ADR-042):**
+> - The **Clinical records** page has seven tabs:
+>   - Documents (the Phase 6 type, or why a document was skipped);
+>   - Medications;
+>   - Allergies;
+>   - Timeline;
+>   - Compare;
+>   - Conflicts;
+>   - Review.
+> - **Compare** takes two clinical documents and shows medications, allergies and documented diagnoses as new, missing, discontinued, repeated or changed. Both documents' exact text is shown, and needs-review items are listed but not compared.
+> - **Conflicts** lists the derived clinical conflicts with both sources, unresolved.
+> - **Review** is verify, correct or reject for one clinical fact.
+> - Allergies with nothing documented show "Allergy status unknown … does not mean there are none".
+> - The **Copilot** box answers records questions, for example "What medications are documented in my records?" or "Which records mention X?", from clinical facts with cited excerpts. Every other question goes to the Phase 5 copilot as before.
+
 ## F9. Prepare for an appointment [Later, Phase 7]
 1. The user selects a date window and optionally adds free-text topics.
 2. The workflow gathers lab changes, documented medications, open conflicts and missing or unverified information.

@@ -274,6 +274,11 @@ Tasks 2.1–2.5 cover the outline's "Docling spike", "upload validation", "stora
 
 - **Objective:** Extend to prescriptions and discharge summaries. Add medications, allergies, events, conflict detection and document comparison.
 - **Acceptance criteria:** Conflict detection precision and recall are measured; comparisons cite both sources.
+- **As built (2026-11-18):** tasks 6.0–6.13 in [PHASE_6_PLAN.md](PHASE_6_PLAN.md) §11, with decisions in ADR-042 and results in [PHASE_6_EVALUATION.md](PHASE_6_EVALUATION.md).
+  - **Scope.** Six non-lab document types, not two. They use a separate `clinical_extract` stage and the Phase 6 classifier; the Phase 2 classifier and the lab stage are unchanged.
+  - **Conflicts.** Clinical conflicts are derived at read time (not stored). Precision and recall are measured on `clinical_v1`.
+  - **Comparison.** Comparisons cite both sources.
+  - **Q&A.** Records questions are answered from clinical facts behind the frozen Phase 5 gate.
 
 ## Phase 7: LangGraph workflows (outline)
 

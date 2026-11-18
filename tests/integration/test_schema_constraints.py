@@ -381,14 +381,23 @@ def test_every_date_pair_rejects_unnormalized_month_dates(
         sql = f"UPDATE documents SET {date_col} = '2024-03-15', {precision} = 'month' WHERE id = :x"
         params = {"x": setup["doc_a"]}
     else:
+        # 0005: the NOT NULL status/context columns and a valid date source and span are supplied,
+        # so the only rule this row breaks is still the month-normalization check.
         required = {
             "medication_mentions": ("name_raw, mention_context", "'Drug X', 'prescribed'"),
-            "allergy_mentions": ("substance_raw", "'Substance X'"),
-            "clinical_events": ("event_type, description_raw", "'consultation', 'Visit'"),
+            "allergy_mentions": (
+                "substance_raw, allergy_status, substance_norm",
+                "'Substance X', 'confirmed', 'substance x'",
+            ),
+            "clinical_events": (
+                "event_type, description_raw, event_context",
+                "'consultation', 'Visit', 'encounter'",
+            ),
         }[table]
+        span = "date_source, date_page_number, date_char_start, date_char_end"
         sql = (
-            f"INSERT INTO {table} (fact_id, {required[0]}, {date_col}, {precision})"
-            f" VALUES (:x, {required[1]}, '2024-03-15', 'month')"
+            f"INSERT INTO {table} (fact_id, {required[0]}, {date_col}, {precision}, {span})"
+            f" VALUES (:x, {required[1]}, '2024-03-15', 'month', 'document', 1, 0, 1)"
         )
         params = {"x": setup["fact_a"]}
     assert _sqlstate(conn, sql, params) == "23514"

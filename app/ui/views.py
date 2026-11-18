@@ -34,7 +34,8 @@ logger = logging.getLogger(__name__)
 
 
 PAGES = (
-    "Patients", "Overview", "Documents", "Timeline", "Lab trends", "Copilot", "Evidence search",
+    "Patients", "Overview", "Documents", "Timeline", "Lab trends", "Clinical records", "Copilot",
+    "Evidence search",
 )  # fmt: skip
 # Phase 4 pages (app/ui/longitudinal_views.py)
 LONGITUDINAL_PAGES = {
@@ -140,6 +141,10 @@ def main() -> None:
         from app.ui import longitudinal_views  # imports this module: loaded on first use
 
         getattr(longitudinal_views, LONGITUDINAL_PAGES[page])(patient)
+    elif page == "Clinical records":  # Phase 6 (ADR-042)
+        from app.ui import clinical_views  # imports this module: loaded on first use
+
+        clinical_views.clinical_page(patient)
     elif page == "Copilot":
         from app.ui import copilot_views  # imports this module: loaded on first use
 

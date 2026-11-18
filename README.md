@@ -17,7 +17,7 @@ All demo data is **fictional and synthetic**.
 
 ## Status
 
-**Phase 2: Medical document intelligence, plus Milestone R1 (evidence retrieval, pulled forward; ADR-035).** The foundation is in place: configuration, logging, error handling, a health check and tests, plus a local PostgreSQL + pgvector database, an authenticated connection and migrations. Phase 2 adds PDF validation, read-only storage of original files, Docling parsing (layout, tables, OCR) into a versioned intermediate representation, persisted pages, an upload service and patient-scoped patient and document repositories. Milestone R1 adds chunking, local embeddings, hybrid search and page-cited evidence from the command line; its retrieval metrics are **not measured yet**. Rule-based classification and patient identity checks gate indexing (ADR-036), and a minimal local Streamlit UI drives the whole flow (see [Local UI](#local-ui-streamlit)). **Phase 3 (structured clinical extraction) is implemented:** rule-based extraction of lab results with exact source spans, normalization, human review and conflict detection ([Lab result extraction](#lab-result-extraction-phase-3)); its PostgreSQL acceptance passed on 2026-11-18. **Phase 4 (longitudinal intelligence) is implemented:** a clinical timeline, lab trends, date comparisons, cross-document duplicate detection and conflict presentation, all deterministic ([Timeline and lab trends](#timeline-and-lab-trends-phase-4)). **Phase 5 (evidence-grounded copilot) is implemented, awaiting review:** a deterministic router, allowlisted SQL tools, cited answers (extractive by default; no LLM provider has been evaluated yet) checked by a deterministic citation validator, and a Copilot page ([Copilot](#copilot-phase-5)). The R1.8 retrieval evaluation is complete. See [docs/PROGRESS.md](docs/PROGRESS.md).
+**Phase 2: Medical document intelligence, plus Milestone R1 (evidence retrieval, pulled forward; ADR-035).** The foundation is in place: configuration, logging, error handling, a health check and tests, plus a local PostgreSQL + pgvector database, an authenticated connection and migrations. Phase 2 adds PDF validation, read-only storage of original files, Docling parsing (layout, tables, OCR) into a versioned intermediate representation, persisted pages, an upload service and patient-scoped patient and document repositories. Milestone R1 adds chunking, local embeddings, hybrid search and page-cited evidence from the command line; its retrieval metrics are **not measured yet**. Rule-based classification and patient identity checks gate indexing (ADR-036), and a minimal local Streamlit UI drives the whole flow (see [Local UI](#local-ui-streamlit)). **Phase 3 (structured clinical extraction) is implemented:** rule-based extraction of lab results with exact source spans, normalization, human review and conflict detection ([Lab result extraction](#lab-result-extraction-phase-3)); its PostgreSQL acceptance passed on 2026-11-18. **Phase 4 (longitudinal intelligence) is implemented:** a clinical timeline, lab trends, date comparisons, cross-document duplicate detection and conflict presentation, all deterministic ([Timeline and lab trends](#timeline-and-lab-trends-phase-4)). **Phase 5 (evidence-grounded copilot) is implemented, awaiting review:** a deterministic router, allowlisted SQL tools, cited answers (extractive by default; no LLM provider has been evaluated yet) checked by a deterministic citation validator, and a Copilot page ([Copilot](#copilot-phase-5)). The R1.8 retrieval evaluation is complete. **Phase 6 (multi-document clinical intelligence) is implemented, awaiting review:** prescriptions, discharge summaries, consultation notes, history records, allergy records and imaging reports; medications, allergies and events with exact provenance; document comparison, derived conflicts and cited records questions ([Clinical records](#clinical-records-phase-6)). See [docs/PROGRESS.md](docs/PROGRESS.md).
 
 ### Roadmap
 | Phase | Focus |
@@ -321,6 +321,52 @@ Ask questions about the selected patient on the **Copilot** page. Every shown st
 - **Generator:** extractive (default, no model). An OpenAI-compatible LLM adapter exists (`MEDIMIND_LLM_PROVIDER=openai_compatible`, local endpoints only unless `MEDIMIND_LLM_ALLOW_EXTERNAL=true`, external only for synthetic patients) but **no provider has been evaluated** (ADR-024).
 - **Evaluation:** `uv run python -m evals.run_copilot build|prepare|dev|freeze|heldout` on the frozen `copilot_v0` set (231 dev / 103 held-out questions). Held-out (run once): routing 0.990, answer correctness 0.913, citation recall 0.944, **citation precision 0.605 (target 0.95 missed: unrecognised phrasings such as "A1c")**, 0 unsupported claims, 0 leaks, 0 of 304 adversarial answers accepted, refusals 1.0. Synthetic, same-author data; not a clinical evaluation. Details: [docs/PHASE_5_PLAN.md](docs/PHASE_5_PLAN.md).
 - **Remediation (ADR-041):** everyday test names (patient vocabulary), abstention when a test name is not recognised (never "all tests"), and a relevance gate on document pages. New evaluation `copilot_v1` with **new held-out patients** (167 questions, run once): citation precision **1.000**, recall 1.000, routing 1.000, correctness 1.000, abstention F1 1.000, 0 unsupported claims, 0 leaks, 0 of 320 attacks accepted. Caveat: the held-out phrasings and the vocabulary were written by the same author in the same session, so this does not measure real-world vocabulary coverage (PHASE_5_PLAN §12.4).
+
+## Clinical records (Phase 6)
+
+Non-lab documents go through a sixth pipeline stage, `clinical_extract` (ADR-042; [docs/PHASE_6_PLAN.md](docs/PHASE_6_PLAN.md)). It uses versioned rules only: no LLM, no external service and no new dependency. Nothing is diagnosed, advised or resolved.
+
+- **Types:** a separate Phase 6 classifier (`clinical-doctype-1`) types:
+  - prescriptions;
+  - discharge summaries;
+  - consultation notes;
+  - medical-history records;
+  - allergy records;
+  - imaging reports.
+
+  Anything else, or anything uncertain, is skipped with a reason and never guessed. The Phase 2 type and the lab extractor are unchanged.
+- **Facts with exact provenance:**
+  - **Medications:** printed name, strength, frequency, duration and route, kept as printed, with normalized values beside them.
+  - **Allergies:** confirmed, suspected or "no known allergies". "Not recorded" stays unknown and is never read as "none".
+  - **Events:** admissions, discharges, diagnoses as written, procedures, symptoms, follow-ups, consultations and imaging.
+
+  Each fact has its date and whether that date is the document's or printed for the item. Family history never becomes a patient fact.
+- **Comparison and conflicts:**
+  - Two documents can be compared: new, missing, discontinued, repeated or changed.
+  - Conflicts are detected and never resolved: the same medicine on the same date at different strengths, "no known allergies" against a recorded allergy, and confirmed against suspected.
+- **Records questions:** asked in the Copilot box, for example "What medications are documented in my records?", "Which records mention X?" or "What changed between my first and latest prescriptions?". Answers are extractive and cite every excerpt. Advice and diagnosis questions are still refused, and lab questions go to the Phase 5 copilot unchanged.
+- **UI:** the **Clinical records** page has Documents, Medications, Allergies, Timeline, Compare, Conflicts and Review tabs.
+
+```powershell
+uv run python -m app migrate                    # migration 0005 (additive; needs empty clinical tables)
+uv run python -m evals.synthetic.clinical --out <dir>   # rebuild the fictional dataset
+uv run python -m evals.run_clinical dev         # Docling + full Phase 6 pipeline, no database
+```
+
+**Measured on the synthetic `clinical_v1` dataset** (16 fictional patients, 136 documents). The data, the rules and the held-out-only label variants share an author, so this is not a blind test, and no clinical accuracy is claimed. Held-out was run once after freezing:
+
+| Split | Classification | Native entity P / R | Field exact match | Provenance P / R | Conflict P / R | Q&A correctness | OCR entity R |
+|---|---|---|---|---|---|---|---|
+| Dev | 1.000 | 1.000 / 1.000 | 1.000 | 1.000 / 1.000 | 1.000 / 1.000 (27) | 0.986 | 0.90 (all flagged) |
+| Held-out | 1.000 | 1.000 / 1.000 | 1.000 | 1.000 / 1.000 | 1.000 / 1.000 (12) | 0.985 | 0.90 (all flagged) |
+
+The hard gates were 0 on both splits:
+- ungrounded facts;
+- facts for an identity mismatch;
+- refusal probes answered;
+- invalid citations.
+
+None of the 926 Phase 5 questions is answered by the clinical path, and `copilot_v1` dev results are identical. Details and limitations: [docs/PHASE_6_EVALUATION.md](docs/PHASE_6_EVALUATION.md).
 
 ## Lab result extraction (Phase 3)
 

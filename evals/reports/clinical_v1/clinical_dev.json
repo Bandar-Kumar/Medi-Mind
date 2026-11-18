@@ -1,0 +1,276 @@
+{
+  "abstentions": {
+    "abstention:allergy_status_unknown": 3
+  },
+  "classification_confusion": {
+    "allergy_record->allergy_record": 11,
+    "consultation_note->consultation_note": 11,
+    "discharge_summary->discharge_summary": 11,
+    "history_record->history_record": 11,
+    "imaging_report->imaging_report": 11,
+    "prescription->prescription": 35,
+    "unsupported_type->unsupported_type": 1
+  },
+  "comparison_extra_items": 0,
+  "conflicts": {
+    "fn": 0,
+    "fp": 0,
+    "tp": 27
+  },
+  "dataset": "clinical_v1@c3f4db6d64fe",
+  "documents": 91,
+  "duration_ms": 347,
+  "errors": [
+    {
+      "document": "P04-RXS",
+      "key": [
+        "event",
+        "consultation",
+        "Dr. Farah Notreal (Fictional), MBBS, DNB"
+      ],
+      "kind": "missed"
+    },
+    {
+      "document": "P04-RXS",
+      "key": [
+        "event",
+        "consultation",
+        "Dr. Farah Notreal (Fictional),MBBS, DNB"
+      ],
+      "kind": "extra"
+    },
+    {
+      "kind": "qa",
+      "qkind": "history_summary",
+      "question": "P04-Q10",
+      "routed": true
+    },
+    {
+      "document": "P11-RXS",
+      "key": [
+        "event",
+        "consultation",
+        "Dr. Arjun Mockwell (Fictional), MD, DM"
+      ],
+      "kind": "missed"
+    },
+    {
+      "document": "P11-RXS",
+      "key": [
+        "event",
+        "consultation",
+        "Dr. ArjunMockwell (Fictional), MD, DM"
+      ],
+      "kind": "extra"
+    },
+    {
+      "kind": "qa",
+      "qkind": "history_summary",
+      "question": "P11-Q10",
+      "routed": true
+    }
+  ],
+  "gate_refusals": {},
+  "groups": {
+    "native": {
+      "date_accuracy": 1.0,
+      "entity_precision": 1.0,
+      "entity_recall": 1.0,
+      "field_errors": {},
+      "field_exact_match": 1.0,
+      "gold": 445,
+      "matched": 445,
+      "matched_by_type": {
+        "allergy": 45,
+        "event": 269,
+        "medication": 131
+      },
+      "predicted": 445,
+      "provenance_precision": 1.0,
+      "provenance_recall": 1.0,
+      "review_status_agreement": 1.0
+    },
+    "raster": {
+      "date_accuracy": 1.0,
+      "entity_precision": 0.9,
+      "entity_recall": 0.9,
+      "field_errors": {},
+      "field_exact_match": 1.0,
+      "gold": 20,
+      "matched": 18,
+      "matched_by_type": {
+        "allergy": 0,
+        "event": 6,
+        "medication": 12
+      },
+      "predicted": 20,
+      "provenance_precision": 0.8,
+      "provenance_recall": 0.8,
+      "review_status_agreement": 1.0
+    }
+  },
+  "hard_gates": {
+    "invalid_citations": 0,
+    "mismatch_profile_facts": 0,
+    "refusal_probes_answered": 0,
+    "ungrounded_facts": 0
+  },
+  "identity": {
+    "identity_own:match": 88,
+    "identity_own:unknown": 3,
+    "identity_swapped:mismatch": 88,
+    "identity_swapped:unknown": 3
+  },
+  "metrics": {
+    "classification_accuracy": 1.0,
+    "comparison_accuracy": 1.0,
+    "conflict_precision": 1.0,
+    "conflict_recall": 1.0,
+    "native_date_accuracy": 1.0,
+    "native_entity_precision": 1.0,
+    "native_entity_recall": 1.0,
+    "native_field_exact_match": 1.0,
+    "native_provenance_precision": 1.0,
+    "native_provenance_recall": 1.0,
+    "native_review_status_agreement": 1.0,
+    "qa_correctness": 0.986,
+    "qa_routing_accuracy": 1.0
+  },
+  "patients": 11,
+  "qa_by_kind": {
+    "admissions": {
+      "correct": 11,
+      "total": 11
+    },
+    "advice": {
+      "correct": 11,
+      "total": 11
+    },
+    "allergies": {
+      "correct": 11,
+      "total": 11
+    },
+    "changes": {
+      "correct": 11,
+      "total": 11
+    },
+    "diagnoses": {
+      "correct": 11,
+      "total": 11
+    },
+    "diagnosis_probe": {
+      "correct": 11,
+      "total": 11
+    },
+    "history_summary": {
+      "correct": 9,
+      "total": 11
+    },
+    "medication_conflicts": {
+      "correct": 11,
+      "total": 11
+    },
+    "medications": {
+      "correct": 11,
+      "total": 11
+    },
+    "mentions": {
+      "correct": 11,
+      "total": 11
+    },
+    "prescriptions_in_year": {
+      "correct": 11,
+      "total": 11
+    },
+    "prescriptions_recent": {
+      "correct": 11,
+      "total": 11
+    },
+    "unsupported": {
+      "correct": 11,
+      "total": 11
+    }
+  },
+  "split": "dev",
+  "targets": {
+    "classification_accuracy": [
+      ">=",
+      0.95
+    ],
+    "comparison_accuracy": [
+      ">=",
+      0.9
+    ],
+    "conflict_precision": [
+      ">=",
+      0.9
+    ],
+    "conflict_recall": [
+      ">=",
+      0.9
+    ],
+    "native_date_accuracy": [
+      ">=",
+      0.95
+    ],
+    "native_entity_precision": [
+      ">=",
+      0.95
+    ],
+    "native_entity_recall": [
+      ">=",
+      0.95
+    ],
+    "native_field_exact_match": [
+      ">=",
+      0.95
+    ],
+    "native_provenance_precision": [
+      ">=",
+      0.95
+    ],
+    "native_provenance_recall": [
+      ">=",
+      0.95
+    ],
+    "native_review_status_agreement": [
+      ">=",
+      0.95
+    ],
+    "qa_correctness": [
+      ">=",
+      0.9
+    ],
+    "qa_routing_accuracy": [
+      ">=",
+      0.95
+    ]
+  },
+  "targets_met": {
+    "classification_accuracy": true,
+    "comparison_accuracy": true,
+    "conflict_precision": true,
+    "conflict_recall": true,
+    "native_date_accuracy": true,
+    "native_entity_precision": true,
+    "native_entity_recall": true,
+    "native_field_exact_match": true,
+    "native_provenance_precision": true,
+    "native_provenance_recall": true,
+    "native_review_status_agreement": true,
+    "qa_correctness": true,
+    "qa_routing_accuracy": true
+  },
+  "versions": {
+    "classifier_version": "clinical-doctype-1",
+    "clinical_source_sha256": "dbce63f36e7fb51a9a3a7be1867b3419c4cfd32186f835fed870fae5bd1bba21",
+    "compare_version": "clinical-compare-1",
+    "date_policy_version": "dates-1",
+    "extractor_version": "clinical-rules-1",
+    "identity_rules_version": "2",
+    "lexicon_version": "lex-e86916b193550e5b",
+    "normalizer_version": "clinical-norm-1",
+    "phase2_classifier_rules_version": "2",
+    "qa_version": "clinical-qa-1"
+  }
+}

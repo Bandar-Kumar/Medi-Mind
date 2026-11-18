@@ -18,7 +18,7 @@ from typing import Any
 
 import streamlit as st
 
-from app.services import copilot, ui_runtime
+from app.services import clinical_records, copilot, ui_runtime
 from app.ui import texts
 from app.ui.views import (
     DOCUMENT_KEY,
@@ -42,18 +42,60 @@ def copilot_page(settings: Any, patient: Any) -> None:
     if not submitted or not question.strip():
         return
     with st.spinner("Checking this patient's records..."):
-        answer = attempt(
-            lambda: ui_runtime.ask(
-                settings,
+        # Phase 6 (ADR-042): clinical-records questions are answered from clinical facts; every
+        # other question (refusals included) reaches the Phase 5 copilot exactly as before.
+        reply = attempt(
+            lambda: clinical_records.ask_records(
                 patient.id,
                 question,
-                embedder=_embedder(settings),
-                reranker=_reranker(settings),
+                copilot=lambda patient_id, text: ui_runtime.ask(
+                    settings,
+                    patient_id,
+                    text,
+                    embedder=_embedder(settings),
+                    reranker=_reranker(settings),
+                ),
             )
         )
-    if answer is None:
+    if reply is None:
         return
-    show_answer(patient, answer)  # rendered now, never kept in session state
+    if reply.clinical is not None:
+        show_clinical_answer(reply.clinical)
+        return
+    show_answer(patient, reply.copilot)  # rendered now, never kept in session state
+
+
+_SECTION_LEVELS = {"uncertain": "warning", "conflicting": "warning", "unavailable": "info"}
+
+
+def show_clinical_answer(answer: Any) -> None:
+    """A Phase 6 records answer: labelled sections, each item with its exact cited text."""
+    if answer.status == "abstained":
+        st.info(answer.summary)
+        return
+    if answer.status in ("refused", "withheld"):  # fixed texts; nothing from the records shown
+        st.warning(answer.summary)
+        return
+    st.subheader("Answer from your clinical records")
+    st.caption(
+        f"Assembled by fixed rules from the stored records (no generated text). {answer.summary}"
+    )
+    for section in answer.sections:
+        level = _SECTION_LEVELS.get(section.label)
+        heading = f"{section.title} [{section.label}]"
+        if level:
+            getattr(st, level)(heading)
+        else:
+            st.markdown(f"**{section.label.capitalize()}:**")
+            st.text(section.title)
+        for index, item in enumerate(section.items):
+            st.text(f"• {item.text}")
+            with st.expander(f"Sources for item {index + 1}"):
+                for citation in item.citations:
+                    st.caption(f"{citation.document_name}, page {citation.page_number}")
+                    if not citation.identity_confirmed:
+                        st.warning(texts.IDENTITY_UNCERTAIN)
+                    st.text(citation.excerpt)
 
 
 def _show_status(answer: Any) -> None:

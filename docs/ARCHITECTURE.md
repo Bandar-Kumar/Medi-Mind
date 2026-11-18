@@ -51,6 +51,18 @@ evals/           datasets (dev / held-out), runners, metrics, reports
 migrations/      Alembic
 ```
 
+> **As built (2026-11-18, Phase 6; ADR-042, [PHASE_6_PLAN.md](PHASE_6_PLAN.md)):** a pure package `app/clinical/` holds Phase 6 logic:
+> - `classify` (`clinical-doctype-1`);
+> - `segments`, `medications`, `allergies` and `extract` (`clinical-rules-1`);
+> - `lexicon` (a fictional medication list);
+> - `compare` (`clinical-compare-1`);
+> - `answering` (`clinical-qa-1`).
+>
+> It sits outside `app/extraction/` so the frozen Phase 3 source digest is unchanged, and it imports the Phase 3 date, span and grounding helpers without changing them. The other layers are:
+> - services: `extract_clinical` (the sixth pipeline stage, `clinical_extract`), `review_clinical` and `clinical_records` (comparison, conflicts, records Q&A dispatcher);
+> - records: `app/records/clinical.py`;
+> - UI: `app/ui/clinical_views.py` (the Clinical records page).
+
 ## 4. Data flows
 
 ### 4.1 Document ingestion and extraction
@@ -181,6 +193,11 @@ PostgreSQL holds the structured records, the vectors (pgvector) and full-text in
 > - **Duplicates:** derived at read time (exact or possible, with reasons), never stored.
 > - **Comparisons:** two *dates* (document comparison stays in Phase 6).
 > - **Conflicts:** the Phase 3 records are presented with direct and linked members; nothing is re-detected.
+
+> **As built (2026-11-18, Phase 6; ADR-042):**
+> - **Document comparison** of medications, allergies and documented diagnoses between two documents: `new`, `missing` (not listed, which is not "stopped"), `discontinued` (explicitly documented), `repeated` or `changed` with the changed fields. An unmapped name matches by exact text only and is marked uncertain.
+> - **Clinical conflicts** (`medication_same_date_mismatch`, `allergy_contradiction`, `allergy_status_disagreement`) are **derived at read time and not stored**. The stored-conflict recomputation is observation-only and would close them. Both sources are always kept, and the newest document is not assumed correct.
+> - Only usable facts take part (validated, verified or corrected; patient subject), and a correction's values stand in for the machine values.
 
 ## 9. Question answering
 

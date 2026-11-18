@@ -11,6 +11,7 @@ dependency order, each through its existing service; nothing here decides a stag
     3. identity  ``check_document_identity``  (reads the stored pages; independent of classify)
     4. index     ``index_document``           (the centralized gate, then chunk, embed, store)
     5. extract   ``extract_document``         (Phase 3: its own gate; independent of index)
+    6. clinical_extract ``extract_clinical_document`` (Phase 6: the same gate; non-lab types)
 
 **Every stage is attempted once per call, and each service decides for itself.** A stage whose
 input is missing is refused by its own service, not skipped here: without pages, classify and
@@ -28,6 +29,11 @@ document stays ``processing`` until every stage is complete: the shared completi
 Extraction (Phase 3) has its own gate with the indexing gate's precedence; an index failure never
 blocks it. A document that is not a lab report gets a ``skipped`` extract run and the stage
 reports ``succeeded`` with ``detail.outcome == "not_applicable"`` (§9.2).
+
+Clinical extraction (Phase 6, ADR-042) is a separate sixth stage with the same gate. It never
+changes ``processing_status`` or the completion rule, so Phase 2–5 status behaviour is unchanged.
+A lab report gets a ``skipped`` clinical run; a document the Phase 6 classifier cannot type gets
+a ``skipped`` run with the abstention reason (``detail.outcome == "skipped"``).
 
 Each stage reports exactly one status (A4):
 - ``succeeded``    the service ran and stored its result (``detail`` holds it);
@@ -67,6 +73,7 @@ from app.records.repositories import ALREADY_CHECKED, ALREADY_CLASSIFIED, Proces
 from app.retrieval.models import Embedder
 from app.services.check_identity import IdentityCheckResult, check_document_identity
 from app.services.classify_document import ClassifyResult, classify_document
+from app.services.extract_clinical import ClinicalExtractResult, extract_clinical_document
 from app.services.extract_document import ExtractResult, extract_document
 from app.services.index_document import IndexResult, index_document
 from app.services.library import get_document, list_documents
@@ -79,7 +86,8 @@ CLASSIFY: Final = "classify"
 IDENTITY: Final = "identity"
 INDEX: Final = "index"
 EXTRACT: Final = "extract"
-STAGES: Final = (PARSE, CLASSIFY, IDENTITY, INDEX, EXTRACT)
+CLINICAL_EXTRACT: Final = "clinical_extract"  # Phase 6 (ADR-042)
+STAGES: Final = (PARSE, CLASSIFY, IDENTITY, INDEX, EXTRACT, CLINICAL_EXTRACT)
 
 SUCCEEDED: Final = "succeeded"
 ALREADY_DONE: Final = "already_done"
@@ -96,6 +104,7 @@ _ALREADY_DONE_KIND: Final = {
     IDENTITY: ALREADY_CHECKED,
     INDEX: ALREADY_INDEXED,
     EXTRACT: ALREADY_EXTRACTED,
+    CLINICAL_EXTRACT: ALREADY_EXTRACTED,
 }
 _BLOCKED_KINDS: Final = {
     PARSE: frozenset({ProcessingErrorKind.ALREADY_RUNNING.value}),
@@ -103,11 +112,19 @@ _BLOCKED_KINDS: Final = {
     IDENTITY: frozenset({NOT_PARSED}),
     INDEX: frozenset({NOT_PARSED}) | GATE_REFUSALS,
     EXTRACT: frozenset({NOT_PARSED}) | EXTRACT_GATE_REFUSALS,
+    CLINICAL_EXTRACT: frozenset({NOT_PARSED}) | EXTRACT_GATE_REFUSALS,
 }
 _SAFE_KIND = re.compile(r"[a-z][a-z0-9_]{0,63}")
 _SAFE_CLASS = re.compile(r"[A-Za-z_][A-Za-z0-9_.]{0,127}")
 
-StageDetail = ProcessResult | ClassifyResult | IdentityCheckResult | IndexResult | ExtractResult
+StageDetail = (
+    ProcessResult
+    | ClassifyResult
+    | IdentityCheckResult
+    | IndexResult
+    | ExtractResult
+    | ClinicalExtractResult
+)
 
 
 @dataclass(frozen=True)
@@ -124,7 +141,7 @@ class StageResult:
 
 @dataclass(frozen=True)
 class DocumentPipelineResult:
-    """Every stage of one document, always all five, in ``STAGES`` order."""
+    """Every stage of one document, always all of ``STAGES``, in ``STAGES`` order."""
 
     document_id: uuid.UUID
     stages: tuple[StageResult, ...]
@@ -217,6 +234,7 @@ def _run_stages(
         (IDENTITY, lambda: check_document_identity(patient_id, document_id)),
         (INDEX, lambda: index_document(settings, embedder, patient_id, document_id)),
         (EXTRACT, lambda: extract_document(settings, patient_id, document_id)),
+        (CLINICAL_EXTRACT, lambda: extract_clinical_document(settings, patient_id, document_id)),
     )
     results = []
     for stage, call in calls:

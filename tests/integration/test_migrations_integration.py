@@ -100,7 +100,7 @@ def test_fresh_initialization_from_base(test_engine: Engine, app_settings: Setti
     assert tables == MEDIMIND_TABLES
     assert len(tables) == 16
     assert vector == "0.8.7"
-    assert version == "0004"
+    assert version == "0005"
 
 
 def test_stepwise_downgrade_and_upgrade_round_trip(
@@ -109,14 +109,14 @@ def test_stepwise_downgrade_and_upgrade_round_trip(
     with test_engine.connect() as connection:
         before = _catalog(connection, "public")
 
-    expected_counts = {"0003": 16, "0002": 15, "0001": 4, "base": 0}
+    expected_counts = {"0004": 16, "0003": 16, "0002": 15, "0001": 4, "base": 0}
     for target, count in expected_counts.items():
         run_alembic(test_engine, app_settings.db_name, "downgrade", "-1")
         tables, _, version = _state(test_engine)
         assert len(tables) == count, target
         assert version == (None if target == "base" else target)
 
-    for target in ("0001", "0002", "0003", "0004"):
+    for target in ("0001", "0002", "0003", "0004", "0005"):
         run_alembic(test_engine, app_settings.db_name, "upgrade", "+1")
         assert _state(test_engine)[2] == target
 
@@ -185,7 +185,7 @@ def test_unconfirmed_downgrade_is_refused_and_schema_stays_at_head(
     with pytest.raises(DowngradeNotConfirmed, match="Refusing to downgrade"):
         run_alembic(test_engine, app_settings.db_name, "downgrade", target, confirm=False)
     tables, vector, version = _state(test_engine)
-    assert version == "0004"
+    assert version == "0005"
     assert tables == MEDIMIND_TABLES
     assert vector == "0.8.7"
 
@@ -195,4 +195,4 @@ def test_unconfirmed_backward_stamp_is_refused_and_revision_is_unchanged(
 ) -> None:
     with pytest.raises(DowngradeNotConfirmed, match="Refusing to stamp backwards"):
         run_alembic(test_engine, app_settings.db_name, "stamp", "0001", confirm=False)
-    assert _state(test_engine)[2] == "0004"
+    assert _state(test_engine)[2] == "0005"

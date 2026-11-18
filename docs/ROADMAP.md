@@ -48,6 +48,17 @@ These estimates will be revised with actual progress after Phase 1.
 
 > **Phase 5 remediation (2026-11-18, ADR-041):** rules-based routing confirmed; unrecognised test names abstain; `copilot_v1` held-out (new patients) run once. LLM provider evaluation still deferred. See PHASE_5_PLAN §12.
 
+> **Phase 6 (2026-11-18):** implemented on the owner's instruction under [PHASE_6_PLAN.md](PHASE_6_PLAN.md) (ADR-042). It covers:
+> - prescriptions, discharge summaries, consultation notes, medical-history records, allergy records and imaging reports;
+> - medications, allergies and events with exact provenance (rule-based, no model);
+> - additive migration 0005;
+> - document comparison and derived clinical conflicts;
+> - records Q&A behind the Phase 5 gate;
+> - a Clinical records page;
+> - the `clinical_v1` evaluation.
+>
+> Measured results are in [PHASE_6_EVALUATION.md](PHASE_6_EVALUATION.md). The phase gate needs the owner's approval.
+
 ## Phase gates
 
 A phase is complete only when:

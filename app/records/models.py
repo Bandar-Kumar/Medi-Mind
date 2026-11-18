@@ -166,6 +166,72 @@ class EventType(StrEnum):
     DIAGNOSIS_DOCUMENTED = "diagnosis_documented"  # a document states it; MediMind never infers
     FOLLOW_UP_INSTRUCTION = "follow_up_instruction"
     OTHER = "other"
+    # --- Migration 0005 (Phase 6; widening only) ---
+    IMAGING = "imaging"
+    SYMPTOM_DOCUMENTED = "symptom_documented"  # a symptom a document records, as printed
+
+
+# --- Migration 0005_clinical (Phase 6; docs/PHASE_6_PLAN.md §4) ------------------------------
+
+
+class ClinicalDocType(StrEnum):
+    """``documents.clinical_doc_type``: set only by the ``clinical_extract`` stage."""
+
+    PRESCRIPTION = "prescription"
+    DISCHARGE_SUMMARY = "discharge_summary"
+    CONSULTATION_NOTE = "consultation_note"
+    HISTORY_RECORD = "history_record"
+    ALLERGY_RECORD = "allergy_record"
+    IMAGING_REPORT = "imaging_report"
+
+
+class DateSource(StrEnum):
+    DOCUMENT = "document"  # the document's own date (e.g. a prescription's date)
+    STATED = "stated"  # a date printed for this item (admission date, procedure date, a year)
+
+
+class NameMatch(StrEnum):
+    GENERIC_EXACT = "generic_exact"
+    BRAND_ALIAS = "brand_alias"
+
+
+class DosageForm(StrEnum):
+    TABLET = "tablet"
+    CAPSULE = "capsule"
+    SYRUP = "syrup"
+    INJECTION = "injection"
+
+
+class RouteNorm(StrEnum):
+    ORAL = "oral"
+    INTRAVENOUS = "intravenous"
+    INTRAMUSCULAR = "intramuscular"
+    SUBCUTANEOUS = "subcutaneous"
+    TOPICAL = "topical"
+    INHALED = "inhaled"
+
+
+class DurationUnit(StrEnum):
+    DAY = "day"
+    WEEK = "week"
+    MONTH = "month"  # never converted to days
+
+
+class AllergyStatus(StrEnum):
+    CONFIRMED = "confirmed"
+    SUSPECTED = "suspected"
+    NONE_KNOWN = "none_known"  # "No known allergies" (negated); an unknown status is no row
+
+
+class SeverityNorm(StrEnum):
+    MILD = "mild"
+    MODERATE = "moderate"
+    SEVERE = "severe"
+
+
+class EventContext(StrEnum):
+    ENCOUNTER = "encounter"  # documented for the document's own encounter
+    HISTORY = "history"  # a past-history item
 
 
 class Decision(StrEnum):
@@ -248,6 +314,36 @@ def date_precision_checks(date: str, precision: str, prefix: str) -> tuple[Check
     )
 
 
+def date_span_checks(date: str) -> tuple[CheckConstraint, ...]:
+    """Migration 0005: a clinical fact's date keeps its source and its own exact span."""
+    return (
+        enum_check("date_source", DateSource),
+        CheckConstraint(f"({date} IS NULL) = (date_source IS NULL)", name="date_source_pair"),
+        CheckConstraint(
+            "(date_page_number IS NULL) = (date_char_start IS NULL) "
+            "AND (date_char_start IS NULL) = (date_char_end IS NULL)",
+            name="date_span_all_or_none",
+        ),
+        CheckConstraint(
+            "date_char_start IS NULL OR (date_page_number >= 1 AND date_char_start >= 0 "
+            "AND date_char_start <= date_char_end)",
+            name="date_span_order",
+        ),
+        CheckConstraint(
+            f"{date} IS NULL OR date_char_start IS NOT NULL", name="date_span_required"
+        ),
+    )
+
+
+class _DateSpanColumns:
+    """Migration 0005 columns shared by the three clinical subtypes (a mixin, no table)."""
+
+    date_source: Mapped[str | None] = mapped_column(Text)
+    date_page_number: Mapped[int | None] = mapped_column(Integer)
+    date_char_start: Mapped[int | None] = mapped_column(Integer)
+    date_char_end: Mapped[int | None] = mapped_column(Integer)
+
+
 def _uuid_pk() -> Mapped[uuid.UUID]:
     return mapped_column(Uuid, primary_key=True, server_default=sql_text("uuidv7()"))
 
@@ -305,6 +401,8 @@ class Document(Base):
         enum_check("processing_status", ProcessingStatus),
         enum_check("identity_check", IdentityCheck),
         *date_precision_checks("document_date", "document_date_precision", "document_date"),
+        # --- Migration 0005 ---
+        enum_check("clinical_doc_type", ClinicalDocType),
     )
 
     id: Mapped[uuid.UUID] = _uuid_pk()
@@ -332,6 +430,8 @@ class Document(Base):
     )
     supersedes_document_id: Mapped[uuid.UUID | None] = mapped_column(Uuid)
     created_at: Mapped[dt.datetime] = _created_at()
+    # Migration 0005: the Phase 6 type (the Phase 2 ``doc_type`` is never changed by Phase 6).
+    clinical_doc_type: Mapped[str | None] = mapped_column(Text)
     # Maintained by the ORM on update; direct SQL updates do not change it.
     updated_at: Mapped[dt.datetime] = mapped_column(
         DateTime(timezone=True), nullable=False, server_default=func.now(), onupdate=func.now()
@@ -689,13 +789,28 @@ class Observation(ExtractedFact):
     analyte_match: Mapped[str | None] = mapped_column(Text)
 
 
-class MedicationMention(ExtractedFact):
+class MedicationMention(_DateSpanColumns, ExtractedFact):
     """A medication as documented on a date. Not a current medication list."""
 
     __tablename__ = "medication_mentions"
     __table_args__ = (
         enum_check("mention_context", MentionContext),
         *date_precision_checks("mention_date", "date_precision", "mention_date"),
+        # --- Migration 0005 ---
+        *date_span_checks("mention_date"),
+        enum_check("name_match", NameMatch),
+        CheckConstraint("(name_norm IS NULL) = (name_match IS NULL)", name="name_match_pair"),
+        enum_check("dosage_form", DosageForm),
+        CheckConstraint("(strength_value IS NULL) = (strength_unit IS NULL)", name="strength_pair"),
+        CheckConstraint("strength_value IS NULL OR strength_value > 0", name="strength_positive"),
+        enum_check("route_norm", RouteNorm),
+        CheckConstraint(
+            "frequency_per_day IS NULL OR frequency_per_day BETWEEN 1 AND 24",
+            name="frequency_per_day_range",
+        ),
+        CheckConstraint("(duration_value IS NULL) = (duration_unit IS NULL)", name="duration_pair"),
+        CheckConstraint("duration_value IS NULL OR duration_value > 0", name="duration_positive"),
+        enum_check("duration_unit", DurationUnit),
     )
     __mapper_args__ = {"polymorphic_identity": FactType.MEDICATION.value}
 
@@ -712,13 +827,33 @@ class MedicationMention(ExtractedFact):
     mention_date: Mapped[dt.date | None] = mapped_column(Date)
     date_precision: Mapped[str | None] = mapped_column(Text)
     date_raw: Mapped[str | None] = mapped_column(Text)
+    # --- Migration 0005: normalized values, kept apart from the raw ones (never overwritten) ---
+    name_match: Mapped[str | None] = mapped_column(Text)
+    dosage_form: Mapped[str | None] = mapped_column(Text)
+    strength_value: Mapped[Decimal | None] = mapped_column(Numeric)
+    strength_unit: Mapped[str | None] = mapped_column(Text)
+    route_norm: Mapped[str | None] = mapped_column(Text)
+    frequency_per_day: Mapped[int | None] = mapped_column(Integer)
+    as_needed: Mapped[bool | None] = mapped_column(Boolean)
+    duration_value: Mapped[int | None] = mapped_column(Integer)
+    duration_unit: Mapped[str | None] = mapped_column(Text)
 
 
-class AllergyMention(ExtractedFact):
+class AllergyMention(_DateSpanColumns, ExtractedFact):
     """An allergy as documented. "No known allergies" is ``negated = true`` on the base row."""
 
     __tablename__ = "allergy_mentions"
-    __table_args__ = (*date_precision_checks("mention_date", "date_precision", "mention_date"),)
+    __table_args__ = (
+        *date_precision_checks("mention_date", "date_precision", "mention_date"),
+        # --- Migration 0005 ---
+        *date_span_checks("mention_date"),
+        enum_check("allergy_status", AllergyStatus),
+        CheckConstraint(
+            "(allergy_status = 'none_known') = (substance_norm IS NULL)",
+            name="substance_norm_matches_status",
+        ),
+        enum_check("severity_norm", SeverityNorm),
+    )
     __mapper_args__ = {"polymorphic_identity": FactType.ALLERGY.value}
 
     fact_id: Mapped[uuid.UUID] = _fact_pk()
@@ -728,15 +863,22 @@ class AllergyMention(ExtractedFact):
     mention_date: Mapped[dt.date | None] = mapped_column(Date)
     date_precision: Mapped[str | None] = mapped_column(Text)
     date_raw: Mapped[str | None] = mapped_column(Text)
+    # --- Migration 0005 ---
+    allergy_status: Mapped[str] = mapped_column(Text, nullable=False)
+    substance_norm: Mapped[str | None] = mapped_column(Text)
+    severity_norm: Mapped[str | None] = mapped_column(Text)
 
 
-class ClinicalEvent(ExtractedFact):
+class ClinicalEvent(_DateSpanColumns, ExtractedFact):
     """An encounter or event as documented (admission, consultation, procedure, ...)."""
 
     __tablename__ = "clinical_events"
     __table_args__ = (
         enum_check("event_type", EventType),
         *date_precision_checks("event_date", "date_precision", "event_date"),
+        # --- Migration 0005 ---
+        *date_span_checks("event_date"),
+        enum_check("event_context", EventContext),
     )
     __mapper_args__ = {"polymorphic_identity": FactType.EVENT.value}
 
@@ -746,6 +888,8 @@ class ClinicalEvent(ExtractedFact):
     event_date: Mapped[dt.date | None] = mapped_column(Date)
     date_precision: Mapped[str | None] = mapped_column(Text)
     date_raw: Mapped[str | None] = mapped_column(Text)
+    # --- Migration 0005 ---
+    event_context: Mapped[str] = mapped_column(Text, nullable=False)
 
 
 # --- Migration 0002_facts: review and conflicts ----------------------------------------------

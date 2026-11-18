@@ -54,6 +54,7 @@ A Proposed or Deferred ADR is not a final decision.
 | 037 | Deterministic lab extraction with exact provenance | **Accepted**, implemented | Owner, 2026-11-17 (Phase 3 plan) |
 | 038 | Extraction stage, identity mismatch, completion and conflicts | **Accepted**, implemented; PostgreSQL acceptance passed 2026-11-18 | Owner, 2026-11-17 (Phase 3 plan) |
 | 039 | Longitudinal views: usable facts only, clinical dates, derived duplicates, per-unit trends | **Implemented** 2026-11-18 on the owner's instruction to implement Phase 4; awaiting owner review | Owner instruction, 2026-11-18 ([PHASE_4_PLAN.md](PHASE_4_PLAN.md)) |
+| 042 | Phase 6 clinical documents: separate stage and classifier, additive migration 0005, derived conflicts, records Q&A behind the Phase 5 gate | **Implemented** 2026-11-18 on the owner's instruction (Phase 6 execution prompt); awaiting owner review | Owner instruction, 2026-11-18 ([PHASE_6_PLAN.md](PHASE_6_PLAN.md)) |
 
 ---
 
@@ -913,6 +914,74 @@ A Proposed or Deferred ADR is not a final decision.
 - **Unchanged:** the citation validator, fail-closed source checks, patient isolation, refusal rules, provenance, ADR-023 filtering. No safety check was relaxed; the 0.95 citation-precision target is unchanged.
 - **Measured:** see [PHASE_5_PLAN.md](PHASE_5_PLAN.md) §12.
 - **Trade-offs:** a vocabulary table needs maintenance and is written by the system's author; unknown names abstain (safe but unhelpful); the question words are matched literally (no fuzzy matching, so misspellings abstain).
+
+## ADR-042: Phase 6 clinical documents: separate stage and classifier, additive migration 0005, derived conflicts, records Q&A behind the Phase 5 gate
+- **Status:** **Implemented** 2026-11-18 under [PHASE_6_PLAN.md](PHASE_6_PLAN.md) on the owner's instruction (Phase 6 master execution prompt, which authorised autonomous execution within stated approval limits). **Awaiting owner review.** No external service, model, API key or new dependency was introduced.
+- **Context (audit):**
+  - The subtype tables `medication_mentions`, `allergy_mentions` and `clinical_events` have existed since migration 0002 and were never written.
+  - The frozen Phase 2 classifier emits only `lab_report / other / unknown`.
+  - The frozen lab `extract` stage records `skipped` for non-lab documents, and the Phase 3 evaluation imports that rule.
+  - `_recompute_conflicts` closes every stored conflict that the observation detector does not report.
+  - The frozen Phase 5 input gate refuses "what medication …" (advice) and "… diagnoses …" (diagnosis).
+  - The Phase 3 freeze digests every file under `app/extraction/`, and the Phase 5 freeze digests named copilot files.
+- **Decisions:**
+  1. **New pure package `app/clinical/`** (outside `app/extraction/`, so the frozen Phase 3 digest stays valid). It contains:
+     - `clinical-doctype-1` classifier;
+     - `clinical-rules-1` extractor;
+     - `clinical-norm-1` normalizers;
+     - a **fictional** medication lexicon;
+     - `clinical-compare-1`;
+     - `clinical-qa-1`.
+
+     Phase 3 date, span, grounding and page-guard helpers are imported, never changed.
+  2. **Separate stage `clinical_extract`**, the sixth pipeline stage:
+     - it uses the lab extraction gate unchanged;
+     - lab reports get a `skipped` run;
+     - documents the Phase 6 classifier cannot type get a `skipped` run with `unclassified` / `ambiguous_type` / `unsupported_type` / `no_text`, so a type is never guessed;
+     - **`documents.doc_type` and the completion rule are unchanged.**
+  3. **Migration 0005 (additive, reversible):**
+     - `documents.clinical_doc_type`;
+     - each clinical date's source (`document` / `stated`) and exact span;
+     - normalized medication fields, kept beside the raw ones;
+     - `allergy_status` (`confirmed / suspected / none_known`);
+     - `event_context` (`encounter / history`);
+     - `event_type` widened with `imaging` and `symptom_documented`.
+
+     The upgrade needs empty subtype tables. The downgrade refuses while any Phase 6 data exists.
+  4. **Conflicts are derived at read time, never stored** (as ADR-039 duplicates). Storing them in `conflicts` would let the observation recompute close them. The conflict types are:
+     - `medication_same_date_mismatch`;
+     - `allergy_contradiction` (no known allergies vs. a listed allergy);
+     - `allergy_status_disagreement`.
+
+     Nothing is resolved, and the latest document is not assumed correct.
+  5. **Unknown stays unknown:**
+     - an absent or "Not recorded" allergy field writes no fact (never "no allergies");
+     - a missing dose, frequency or duration stays NULL with a quality note;
+     - a duration is never turned into an end date;
+     - "current medications" are never inferred from old prescriptions.
+  6. **Records Q&A** is extractive and cited:
+     - it is answered after the frozen Phase 5 input gate;
+     - a refused *advice* or *diagnosis* question reaches it only when it is a pure records lookup (a documentary cue, no advice or interpretation cue, a claimed clinical intent), following the `_RECORDS_HAVE` precedent (ADR-041);
+     - all other questions go to the unchanged Phase 5 copilot;
+     - a test proves that none of the 926 `copilot_v0` / `copilot_v1` questions is taken by the clinical path.
+  7. **Review** reuses `record_review_decision` unchanged. Clinical corrections (`clinical-correction-1`) are normalized with the extraction rules or refused.
+- **Trade-offs / limits:**
+  - The rules cover printed labels and conventional abbreviations only; free narrative is not structured.
+  - The lexicon is fictional, so a real deployment needs a licensed drug database.
+  - Facility and prescriber are kept as event descriptions, not separate fields.
+  - Re-extraction of clinical documents is not offered.
+  - Same-author synthetic evaluation.
+- **Measured:** see [PHASE_6_EVALUATION.md](PHASE_6_EVALUATION.md).
+- **Amendment (2026-11-18, acceptance fixes after the read-only acceptance audit, which recommended HOLD):**
+  - **Decision 6 is replaced by a full-question allow-list** (`plain_lookup`, `_PLAIN_LOOKUPS` in `app/clinical/answering.py`).
+    - The audit showed that the "documentary word, no blocking word" rule answered 9 questions that the Phase 5 gate refuses. Examples: interactions, "risky", "for my cancer", "curable", "explains my headache".
+    - Now a clinical-topic question is answered only when the **whole** normalized question is one plain record-lookup form and the router agrees on the intent. The normalization only changes case, spacing and trailing punctuation.
+    - A Phase 5 advice or diagnosis refusal is lifted only for these exact forms. Injection, invalid and general-knowledge outcomes are never lifted.
+    - Any other claimed question keeps its Phase 5 refusal, or gets the fixed clinical refusal when the gate allowed it. If uncertain, MediMind refuses.
+    - The frozen `input_gate` is unchanged.
+  - **Identity:** every clinical fact carries its document's identity outcome. Unconfirmed sources are labelled "Identity not confirmed" in the tables, Compare, Conflicts, Review and Copilot citations. Mismatch facts (never stored, because the gate refuses them) are also dropped at read as defence in depth.
+  - **Citations are checked when an answer is built:** each citation must be an exact slice of this patient's stored page (`citation_issues`), or the whole answer is withheld, never repaired. The Phase 5 validator was not reused, because it is built around lab facts and chunks; reusing it would mean changing frozen Phase 5 code.
+  - **Evidence:** `evals/run_clinical_safety.py` and `evals/reports/clinical_safety_v1/`.
 
 ## Open questions linked to ADRs
 - **Q12** (from ADR-025): Should an ambiguous date be auto-accepted when the *same document* contains an unambiguous date confirming DD/MM order (for example `25/03/2024`)? This would reduce review work, but adds an inference rule. **Default: no. Always flag.** *Data (2026-11-17, `extract_v0` dev, lab-rules-2):* 129 of 394 extracted facts (0.33) carry `ambiguous_date`.

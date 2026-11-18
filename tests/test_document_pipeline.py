@@ -27,6 +27,7 @@ from app.services import document_pipeline as pipe
 from app.services import library
 from app.services.check_identity import IdentityCheckResult
 from app.services.classify_document import ClassifyResult
+from app.services.extract_clinical import ClinicalExtractResult
 from app.services.extract_document import ExtractResult
 from app.services.index_document import IndexResult
 from app.services.process_document import ProcessResult
@@ -54,12 +55,14 @@ class Doc:
     doc_type: str = "unknown"
     indexed: bool = False
     extracted: bool = False
+    clinical_extracted: bool = False  # Phase 6: a completed clinical_extract run exists
     # what the next attempt of each stage does
     parse_error: BaseException | None = None
     classify_error: BaseException | None = None
     identity_error: BaseException | None = None
     index_error: BaseException | None = None
     extract_error: BaseException | None = None
+    clinical_error: BaseException | None = None
     next_type: str = "lab_report"
     next_identity: str = "match"
 
@@ -150,6 +153,35 @@ class World:
             document_id, outcome, uuid.uuid4(), facts, 0, {}, 0, 0, 0, doc.indexed, 7
         )
 
+    def clinical(self, _settings, patient_id, document_id) -> ClinicalExtractResult:
+        self.calls.append((pipe.CLINICAL_EXTRACT, document_id))
+        doc = self._doc(patient_id, document_id)
+        refusal = extraction_gate_refusal(
+            has_pages=doc.pages,
+            classified=doc.classified,
+            identity_checked=doc.identity_checked,
+            identity_check=doc.identity_check,
+        )
+        if refusal is not None:
+            raise _err(refusal)
+        if doc.clinical_extracted:
+            raise _err("already_extracted")
+        if doc.clinical_error is not None:
+            raise doc.clinical_error
+        doc.clinical_extracted = True
+        lab = doc.doc_type == "lab_report"
+        return ClinicalExtractResult(
+            document_id,
+            "skipped" if lab else "extracted",
+            uuid.uuid4(),
+            None if lab else "prescription",
+            "lab_report" if lab else None,
+            0 if lab else 2,
+            0,
+            {},
+            5,
+        )
+
     # library ----------------------------------------------------------------------------------
     def get_document(self, patient_id, document_id) -> DocumentSummary:
         return _summary(self._doc(patient_id, document_id))
@@ -178,6 +210,7 @@ def world(monkeypatch):
         monkeypatch.setattr(pipe, "check_document_identity", w.identity)
         monkeypatch.setattr(pipe, "index_document", w.index)
         monkeypatch.setattr(pipe, "extract_document", w.extract)
+        monkeypatch.setattr(pipe, "extract_clinical_document", w.clinical)
         monkeypatch.setattr(pipe, "get_document", w.get_document)
         monkeypatch.setattr(pipe, "list_documents", w.list_documents)
         return w
@@ -206,6 +239,7 @@ def test_a_new_document_goes_through_every_stage_in_order(world) -> None:
         ("identity", "succeeded", None),
         ("index", "succeeded", None),
         ("extract", "succeeded", None),
+        ("clinical_extract", "succeeded", None),
     ]
     assert [stage for stage, _ in w.calls] == list(pipe.STAGES)
     assert isinstance(result.stage("classify").detail, ClassifyResult)
@@ -226,6 +260,7 @@ def test_completed_stages_are_reported_already_done_and_not_repeated(world) -> N
         ("identity", "already_done", "already_checked"),
         ("index", "already_done", "already_indexed"),
         ("extract", "already_done", "already_extracted"),
+        ("clinical_extract", "already_done", "already_extracted"),
     ]
     assert again.indexed and all(s.detail is None for s in again.stages)
 
@@ -243,6 +278,7 @@ def test_a_classification_failure_does_not_stop_identity_and_blocks_indexing(wor
         ("identity", "succeeded", None),
         ("index", "blocked", "not_classified"),
         ("extract", "blocked", "not_classified"),
+        ("clinical_extract", "blocked", "not_classified"),
     ]
     assert result.stage("classify").error_class == "RuntimeError"
     assert (pipe.IDENTITY, doc.id) in w.calls and not result.indexed
@@ -258,6 +294,7 @@ def test_an_identity_failure_does_not_stop_classification_and_blocks_indexing(wo
         ("identity", "failed", "database_error"),
         ("index", "blocked", "identity_not_checked"),
         ("extract", "blocked", "identity_not_checked"),
+        ("clinical_extract", "blocked", "identity_not_checked"),
     ]
 
 
@@ -381,7 +418,7 @@ def test_a_patient_run_reports_every_document_in_order_and_continues(world) -> N
     w = world(first, broken, last, other)
     results = pipe.run_patient_pipeline(None, None, None, PATIENT)  # type: ignore[arg-type]
     assert [r.document_id for r in results] == [first.id, broken.id, last.id]  # oldest first
-    assert all(len(r.stages) == 5 for r in results)
+    assert all(len(r.stages) == len(pipe.STAGES) == 6 for r in results)
     assert results[0].indexed
     assert results[1].stage("parse").status == "failed" and not results[1].indexed
     assert results[2].stage("index").reason == "identity_mismatch"

@@ -13,6 +13,7 @@ STAGE_NAMES: Final = {
     "identity": "Identity check",
     "index": "Index for search",
     "extract": "Extract lab results",
+    "clinical_extract": "Extract clinical records",  # Phase 6 (ADR-042)
 }
 
 # (icon, label) per stage status (ADR-036 A4)

@@ -133,6 +133,38 @@ The region profile itself (date order, digit grouping, unit spellings) is applic
 
 > **Phase 5 (2026-11-18):** no migration and no schema change. One read-only, patient-scoped repository function was added, `app/records/chunks.py::stored_chunks(patient_id, chunk_ids)`, used by the citation validator to compare a cited passage with the stored chunk. The copilot reads facts only through the Phase 4 repositories.
 
+### 4.6 Phase 6 (migration 0005_clinical; ADR-042, [PHASE_6_PLAN.md](PHASE_6_PLAN.md) §4)
+
+The change is additive: no table is added and no existing value changes.
+- **`documents.clinical_doc_type`** (nullable): one of `prescription`, `discharge_summary`, `consultation_note`, `history_record`, `allergy_record`, `imaging_report`. Only the `clinical_extract` stage writes it, and `doc_type` (Phase 2) is never changed.
+- **All three clinical subtypes** gain:
+  - `date_source` (`document` = the document's own date; `stated` = a date printed for the item);
+  - the date's own span (`date_page_number`, `date_char_start`, `date_char_end`, all or none, required for a dated fact).
+- **`medication_mentions`** gains the normalized fields. The raw `*_raw` columns are kept, and no normalized field is ever derived from another (no route from the form, no end date from a duration):
+  - `name_match` (`generic_exact | brand_alias`, paired with `name_norm`);
+  - `dosage_form`;
+  - `strength_value` and `strength_unit` (paired, > 0);
+  - `route_norm`;
+  - `frequency_per_day` (1–24);
+  - `as_needed`;
+  - `duration_value` and `duration_unit` (`day | week | month`, paired).
+- **`allergy_mentions`** gains:
+  - `allergy_status` (NOT NULL: `confirmed | suspected | none_known`);
+  - `substance_norm` (NULL exactly for `none_known`);
+  - `severity_norm`.
+
+  An unknown status ("Not recorded") is **no row**.
+- **`clinical_events`** gains `event_context` (NOT NULL: `encounter | history`). `event_type` is widened with `imaging` and `symptom_documented`. Family history is `subject = family`.
+- **Precondition:** the upgrade raises unless the three subtype tables are empty.
+- **Downgrade:** refused while any clinical fact or `clinical_doc_type` exists, on top of the database-name confirmation.
+- **Clinical conflicts are not stored.** They are derived at read time (`app/clinical/compare.py`), because `_recompute_conflicts` would close any conflict whose key the observation detector does not report.
+- **Verified on PostgreSQL** (`medimind_test`, 2026-11-18):
+  - fresh initialization to 0005;
+  - a stepwise downgrade to base and an upgrade back with an identical catalog;
+  - `alembic check` with no differences;
+  - the model and migration catalogs are identical;
+  - the downgrade refusal with data.
+
 ## 5. Scoping and integrity rules
 
 - Every repository method takes `patient_id` as a required argument. There is no unscoped query method.

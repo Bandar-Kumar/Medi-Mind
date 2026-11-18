@@ -98,6 +98,22 @@ ALLOWED_RECORDS_NAMES: dict[str, set[str]] = {
         "reference_analyte_ids",
         "seed_reference_data",
     },
+    "app.records.clinical": {  # Phase 6 services (docs/PHASE_6_PLAN.md; ADR-042)
+        "LAB_REPORT",
+        "LAB_REPORT_REFUSAL",
+        "ClinicalDecision",
+        "ClinicalDocumentView",
+        "ClinicalFactRecord",
+        "ClinicalFactView",
+        "get_clinical_fact",
+        "get_clinical_target",
+        "list_clinical_documents",
+        "list_clinical_facts",
+        "record_clinical_extraction",
+        "record_clinical_failure",
+        "record_clinical_skipped",
+        "stored_page_texts",  # answer-time citation checks (Phase 6 acceptance fix)
+    },
     "app.records.longitudinal": {  # Phase 4 reads (docs/PHASE_4_PLAN.md; ADR-039)
         "TimelineDocumentRecord",
         "count_facts_by_status",

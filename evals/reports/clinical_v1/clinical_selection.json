@@ -1,0 +1,78 @@
+{
+  "dataset": "clinical_v1@c3f4db6d64fe",
+  "dev_report_sha256": "d0fb65b54c262288b81e611642808e76544bcf973f68e5d83347e1c0993836d6",
+  "frozen_at": "2026-11-18T13:07:24+00:00",
+  "hard_gates": [
+    "ungrounded_facts",
+    "mismatch_profile_facts",
+    "refusal_probes_answered",
+    "invalid_citations"
+  ],
+  "heldout_sha256": "c3f4db6d64fe1ee6c72b8f9fc952c11c2745f67241bfbd44e999fa3f8a21bb75",
+  "targets": {
+    "classification_accuracy": [
+      ">=",
+      0.95
+    ],
+    "comparison_accuracy": [
+      ">=",
+      0.9
+    ],
+    "conflict_precision": [
+      ">=",
+      0.9
+    ],
+    "conflict_recall": [
+      ">=",
+      0.9
+    ],
+    "native_date_accuracy": [
+      ">=",
+      0.95
+    ],
+    "native_entity_precision": [
+      ">=",
+      0.95
+    ],
+    "native_entity_recall": [
+      ">=",
+      0.95
+    ],
+    "native_field_exact_match": [
+      ">=",
+      0.95
+    ],
+    "native_provenance_precision": [
+      ">=",
+      0.95
+    ],
+    "native_provenance_recall": [
+      ">=",
+      0.95
+    ],
+    "native_review_status_agreement": [
+      ">=",
+      0.95
+    ],
+    "qa_correctness": [
+      ">=",
+      0.9
+    ],
+    "qa_routing_accuracy": [
+      ">=",
+      0.95
+    ]
+  },
+  "versions": {
+    "classifier_version": "clinical-doctype-1",
+    "clinical_source_sha256": "dbce63f36e7fb51a9a3a7be1867b3419c4cfd32186f835fed870fae5bd1bba21",
+    "compare_version": "clinical-compare-1",
+    "date_policy_version": "dates-1",
+    "extractor_version": "clinical-rules-1",
+    "identity_rules_version": "2",
+    "lexicon_version": "lex-e86916b193550e5b",
+    "normalizer_version": "clinical-norm-1",
+    "phase2_classifier_rules_version": "2",
+    "qa_version": "clinical-qa-1"
+  }
+}

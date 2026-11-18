@@ -1,0 +1,252 @@
+{
+  "abstentions": {
+    "abstention:allergy_status_unknown": 1
+  },
+  "classification_confusion": {
+    "allergy_record->allergy_record": 5,
+    "consultation_note->consultation_note": 5,
+    "discharge_summary->discharge_summary": 5,
+    "history_record->history_record": 5,
+    "imaging_report->imaging_report": 5,
+    "prescription->prescription": 17,
+    "unsupported_type->unsupported_type": 3
+  },
+  "comparison_extra_items": 0,
+  "conflicts": {
+    "fn": 0,
+    "fp": 0,
+    "tp": 12
+  },
+  "dataset": "clinical_v1@c3f4db6d64fe",
+  "documents": 45,
+  "duration_ms": 1044,
+  "errors": [
+    {
+      "document": "P10-RXS",
+      "key": [
+        "medication",
+        "Sampletrex",
+        "prescribed"
+      ],
+      "kind": "missed"
+    },
+    {
+      "document": "P10-RXS",
+      "key": [
+        "medication",
+        "Sampletrex 500 mg0-0-1",
+        "prescribed"
+      ],
+      "kind": "extra"
+    },
+    {
+      "kind": "qa",
+      "qkind": "medications",
+      "question": "P10-Q01",
+      "routed": true
+    }
+  ],
+  "gate_refusals": {},
+  "groups": {
+    "native": {
+      "date_accuracy": 1.0,
+      "entity_precision": 1.0,
+      "entity_recall": 1.0,
+      "field_errors": {},
+      "field_exact_match": 1.0,
+      "gold": 202,
+      "matched": 202,
+      "matched_by_type": {
+        "allergy": 23,
+        "event": 121,
+        "medication": 58
+      },
+      "predicted": 202,
+      "provenance_precision": 1.0,
+      "provenance_recall": 1.0,
+      "review_status_agreement": 1.0
+    },
+    "raster": {
+      "date_accuracy": 1.0,
+      "entity_precision": 0.9,
+      "entity_recall": 0.9,
+      "field_errors": {},
+      "field_exact_match": 1.0,
+      "gold": 10,
+      "matched": 9,
+      "matched_by_type": {
+        "allergy": 0,
+        "event": 4,
+        "medication": 5
+      },
+      "predicted": 10,
+      "provenance_precision": 0.9,
+      "provenance_recall": 0.9,
+      "review_status_agreement": 1.0
+    }
+  },
+  "hard_gates": {
+    "invalid_citations": 0,
+    "mismatch_profile_facts": 0,
+    "refusal_probes_answered": 0,
+    "ungrounded_facts": 0
+  },
+  "identity": {
+    "identity_own:match": 44,
+    "identity_own:unknown": 1,
+    "identity_swapped:mismatch": 44,
+    "identity_swapped:unknown": 1
+  },
+  "metrics": {
+    "classification_accuracy": 1.0,
+    "comparison_accuracy": 1.0,
+    "conflict_precision": 1.0,
+    "conflict_recall": 1.0,
+    "native_date_accuracy": 1.0,
+    "native_entity_precision": 1.0,
+    "native_entity_recall": 1.0,
+    "native_field_exact_match": 1.0,
+    "native_provenance_precision": 1.0,
+    "native_provenance_recall": 1.0,
+    "native_review_status_agreement": 1.0,
+    "qa_correctness": 0.9846,
+    "qa_routing_accuracy": 1.0
+  },
+  "patients": 5,
+  "qa_by_kind": {
+    "admissions": {
+      "correct": 5,
+      "total": 5
+    },
+    "advice": {
+      "correct": 5,
+      "total": 5
+    },
+    "allergies": {
+      "correct": 5,
+      "total": 5
+    },
+    "changes": {
+      "correct": 5,
+      "total": 5
+    },
+    "diagnoses": {
+      "correct": 5,
+      "total": 5
+    },
+    "diagnosis_probe": {
+      "correct": 5,
+      "total": 5
+    },
+    "history_summary": {
+      "correct": 5,
+      "total": 5
+    },
+    "medication_conflicts": {
+      "correct": 5,
+      "total": 5
+    },
+    "medications": {
+      "correct": 4,
+      "total": 5
+    },
+    "mentions": {
+      "correct": 5,
+      "total": 5
+    },
+    "prescriptions_in_year": {
+      "correct": 5,
+      "total": 5
+    },
+    "prescriptions_recent": {
+      "correct": 5,
+      "total": 5
+    },
+    "unsupported": {
+      "correct": 5,
+      "total": 5
+    }
+  },
+  "split": "heldout",
+  "targets": {
+    "classification_accuracy": [
+      ">=",
+      0.95
+    ],
+    "comparison_accuracy": [
+      ">=",
+      0.9
+    ],
+    "conflict_precision": [
+      ">=",
+      0.9
+    ],
+    "conflict_recall": [
+      ">=",
+      0.9
+    ],
+    "native_date_accuracy": [
+      ">=",
+      0.95
+    ],
+    "native_entity_precision": [
+      ">=",
+      0.95
+    ],
+    "native_entity_recall": [
+      ">=",
+      0.95
+    ],
+    "native_field_exact_match": [
+      ">=",
+      0.95
+    ],
+    "native_provenance_precision": [
+      ">=",
+      0.95
+    ],
+    "native_provenance_recall": [
+      ">=",
+      0.95
+    ],
+    "native_review_status_agreement": [
+      ">=",
+      0.95
+    ],
+    "qa_correctness": [
+      ">=",
+      0.9
+    ],
+    "qa_routing_accuracy": [
+      ">=",
+      0.95
+    ]
+  },
+  "targets_met": {
+    "classification_accuracy": true,
+    "comparison_accuracy": true,
+    "conflict_precision": true,
+    "conflict_recall": true,
+    "native_date_accuracy": true,
+    "native_entity_precision": true,
+    "native_entity_recall": true,
+    "native_field_exact_match": true,
+    "native_provenance_precision": true,
+    "native_provenance_recall": true,
+    "native_review_status_agreement": true,
+    "qa_correctness": true,
+    "qa_routing_accuracy": true
+  },
+  "versions": {
+    "classifier_version": "clinical-doctype-1",
+    "clinical_source_sha256": "dbce63f36e7fb51a9a3a7be1867b3419c4cfd32186f835fed870fae5bd1bba21",
+    "compare_version": "clinical-compare-1",
+    "date_policy_version": "dates-1",
+    "extractor_version": "clinical-rules-1",
+    "identity_rules_version": "2",
+    "lexicon_version": "lex-e86916b193550e5b",
+    "normalizer_version": "clinical-norm-1",
+    "phase2_classifier_rules_version": "2",
+    "qa_version": "clinical-qa-1"
+  }
+}
